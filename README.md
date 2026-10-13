@@ -3,7 +3,7 @@
 > **Free AI Video Editing Studio — Automatic Silence Removal & Rough-Cut Desktop Studio**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%202%20Architecture%20Complete-success.svg)](docs/reports/STEP_02_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%203%20Bootstrap%20Complete-success.svg)](docs/reports/STEP_03_REPORT.md)
 [![Roadmap](https://img.shields.io/badge/Roadmap-32%20Steps%20Approved-success.svg)](docs/roadmap/DEVELOPMENT_ROADMAP.md)
 
 OpenTake is a free, open-source, offline-first desktop application designed to streamline spoken-word video editing. It provides content creators, podcasters, educators, and video editors with a fast, privacy-preserving studio to automatically detect and eliminate dead air, review cuts on an interactive timeline, and export high-quality, watermark-free MP4 videos.
@@ -13,13 +13,50 @@ OpenTake is a free, open-source, offline-first desktop application designed to s
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 2 Completed (Architecture & Licensing Decisions)**  
-> The project has completed its comprehensive technical architecture, IPC contracts, licensing analysis, and test design. All engineering blueprints are locked for **STEP 3 (Tauri + Rust + React Project Bootstrap)**. The application implementation has not yet begun.
+> **Project State: STEP 3 Completed (Tauri + Rust + React Project Bootstrap)**  
+> The working desktop foundation is live! OpenTake compiles and runs natively as a Tauri 2 desktop application with a pure headless Rust core (`opentake-core`), React 19 / TypeScript / Vite frontend, and typed Serde IPC bridge. Next: **STEP 4 (App Shell, Navigation & Design System)**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)
 - **Primary Development Environment:** Ubuntu Linux x86_64
-- **Primary Tech Stack:** Tauri 2, Rust (Tokio), React 19, TypeScript, Tailwind CSS, FFmpeg/FFprobe
+- **Primary Tech Stack:** Tauri 2, Rust (Tokio), React 19, TypeScript, Tailwind CSS v4, FFmpeg/FFprobe
+
+---
+
+## 🚀 Developer Quickstart
+
+### Prerequisites (Ubuntu / Debian Linux)
+Ensure standard native build tools and WebKitGTK libraries are installed:
+```bash
+sudo apt update
+sudo apt install -y build-essential curl pkg-config libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+```
+
+### Installation & Local Run
+```bash
+# 1. Install Node.js frontend dependencies
+npm install
+
+# 2. Run the native desktop application in development mode
+npm run tauri dev
+
+# 3. Run frontend standalone preview (browser only)
+npm run dev
+```
+
+### Verification & Quality Checks
+```bash
+# Frontend typecheck & lint
+npm run typecheck
+npm run lint
+npm run build
+
+# Rust workspace compilation, unit tests, and clippy
+cargo check --workspace
+cargo test --workspace
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+```
 
 ---
 
@@ -81,7 +118,7 @@ All architectural specifications, requirements, and roadmaps are tracked within 
 | ADR-0005 | [Playback and Proxy Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0005.md) | Proposed |
 | ADR-0006 | [FFmpeg Process and Export Pipeline](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0006.md) | Proposed |
 | ADR-0007 | [Project Serialization and Recovery](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0007.md) | Proposed |
-| ADR-0008 | [FFmpeg Licensing and Distribution Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0008.md) | Proposed |
+| ADR-0008 | [FFmpeg Licensing and Distribution Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/licensing/FFMPEG_DISTRIBUTION.md) | Proposed |
 | ADR-0009 | [Background Jobs and Cancellation Protocol](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0009.md) | Proposed |
 | ADR-0010 | [Cross-Platform Release Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0010.md) | Proposed |
 | ADR-0011 | [Open-Source Licensing and Dependency Policy](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0011.md) | Proposed |
@@ -89,6 +126,7 @@ All architectural specifications, requirements, and roadmaps are tracked within 
 ### Milestone Execution Reports
 - [Step 1 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_01_REPORT.md)
 - [Step 2 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_02_REPORT.md)
+- [Step 3 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_03_REPORT.md)
 
 ---
 
@@ -98,8 +136,8 @@ All architectural specifications, requirements, and roadmaps are tracked within 
 Milestone 1 — Foundation (Days 1–4)
   ├── STEP 1: Requirements, Scope Lock & Acceptance Baseline  ◄ [COMPLETED]
   ├── STEP 2: Architecture & Licensing Decisions              ◄ [COMPLETED]
-  ├── STEP 3: Tauri + Rust + React Project Bootstrap          ◄ [NEXT]
-  └── STEP 4: App Shell, Navigation & Design System
+  ├── STEP 3: Tauri + Rust + React Project Bootstrap          ◄ [COMPLETED]
+  └── STEP 4: App Shell, Navigation & Design System          ◄ [NEXT]
 
 Milestone 2 — Media Foundation (Days 5–8)
   ├── STEP 5: FFmpeg/FFprobe Integration
@@ -160,4 +198,4 @@ The primary development environment is Linux x86_64:
 
 OpenTake welcomes contributors from the global open-source community. Full contributing guides, issue templates, and coding standards will be formally published in **STEP 26**.
 
-To inspect the architecture and licensing decisions, check the [Step 2 Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_02_REPORT.md).
+To inspect the desktop bootstrap audit, check the [Step 3 Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_03_REPORT.md).

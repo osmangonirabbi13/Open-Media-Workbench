@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/opentake-core",
+    "src-tauri",
+]
+resolver = "2"

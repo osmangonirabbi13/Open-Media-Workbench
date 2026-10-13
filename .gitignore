@@ -1,0 +1,30 @@
+# Rust & Cargo
+/target/
+**/*.rs.bk
+
+# Node & Frontend
+/node_modules/
+/dist/
+/.vite/
+
+# Tauri build artifacts
+/src-tauri/target/
+/src-tauri/gen/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Environment & Local overrides
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.bak
+*.opentake.tmp
+*.opentake.bak
