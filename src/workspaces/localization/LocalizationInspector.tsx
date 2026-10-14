@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import type { MediaAsset } from "../../types/media";
+import type {
+  SubtitleDocument,
+  SubtitleFormat,
+  SubtitleTrack,
+} from "../../types/subtitles";
 import {
   SubtitlesIcon,
   GlobeIcon,
@@ -7,8 +12,12 @@ import {
   UploadIcon,
   SparklesIcon,
   ShieldCheckIcon,
+  DownloadIcon,
+  CheckIcon,
 } from "../../components/ui/Icons";
 import { Button } from "../../components/ui/Button";
+import { SubtitleTrackManager } from "./SubtitleTrackManager";
+import { exportSubtitleTrack } from "../../lib/subtitles";
 
 export type LocalizationTab = "subtitles" | "translation" | "dubbing" | "export";
 
@@ -16,19 +25,53 @@ export interface LocalizationInspectorProps {
   asset: MediaAsset | null;
   activeTab?: LocalizationTab;
   onTabChange?: (tab: LocalizationTab) => void;
+  document: SubtitleDocument | null;
+  activeTrack: SubtitleTrack | null;
+  currentTime: number;
+  onDocumentChange: (doc: SubtitleDocument | null) => void;
+  onActiveTrackChange: (trackId: string) => void;
+  onToggleTrackVisibility: (trackId: string) => void;
+  onSeek: (seconds: number) => void;
 }
 
 export function LocalizationInspector({
   asset,
   activeTab: controlledTab,
   onTabChange,
+  document,
+  activeTrack,
+  currentTime,
+  onDocumentChange,
+  onActiveTrackChange,
+  onToggleTrackVisibility,
+  onSeek,
 }: LocalizationInspectorProps): React.ReactElement {
   const [internalTab, setInternalTab] = useState<LocalizationTab>("subtitles");
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
 
+  const [exportFormat, setExportFormat] = useState<SubtitleFormat>("srt");
+  const [exportFeedback, setExportFeedback] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
   const handleTabClick = (tab: LocalizationTab) => {
     setInternalTab(tab);
     onTabChange?.(tab);
+  };
+
+  const handleRunExport = async () => {
+    if (!activeTrack) return;
+    setIsExporting(true);
+    setExportFeedback(null);
+    try {
+      const res = await exportSubtitleTrack(activeTrack, exportFormat);
+      if (res) {
+        setExportFeedback(`Exported ${activeTrack.displayName} to ${res.exportedPath}`);
+      }
+    } catch (err) {
+      setExportFeedback(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -109,55 +152,26 @@ export function LocalizationInspector({
       </div>
 
       {/* Tab Panels */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 select-text">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
         {/* SUBTITLES PANEL */}
         {activeTab === "subtitles" && (
-          <div id="loc-panel-subtitles" role="tabpanel" aria-labelledby="loc-tab-subtitles" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold text-zinc-200 flex items-center space-x-1.5">
-                <SubtitlesIcon size={14} className="text-indigo-400" />
-                <span>Subtitle Cues & Transcription</span>
-              </h4>
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700/50">
-                Scheduled: STEP 16–18
-              </span>
-            </div>
-
-            <div className="p-3 rounded-lg border border-zinc-800 bg-zinc-900/60 space-y-2.5">
-              <label className="text-xs font-medium text-zinc-300 block">Audio Transcription Engine</label>
-              <div className="flex items-center space-x-2">
-                <select
-                  disabled
-                  className="flex-1 text-xs bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-500 cursor-not-allowed"
-                >
-                  <option>Local Whisper Engine (Offline ggml-small)</option>
-                  <option>Local Whisper Engine (Offline ggml-base)</option>
-                </select>
-                <Button size="xs" variant="secondary" disabled>
-                  Transcribe
-                </Button>
-              </div>
-              <p className="text-[11px] text-zinc-500">
-                Transcribes speech directly on-device using local Whisper weights without cloud uploads.
-              </p>
-            </div>
-
-            {/* Subtitle Cue List Truthful Empty State */}
-            <div className="p-5 rounded-lg border border-dashed border-zinc-800 text-center space-y-2">
-              <SubtitlesIcon size={24} className="mx-auto text-zinc-600" />
-              <div className="text-xs font-medium text-zinc-400">No Subtitle Cues Generated</div>
-              <p className="text-[11px] text-zinc-500 max-w-xs mx-auto leading-relaxed">
-                {asset
-                  ? "Local AI transcription and interactive subtitle editing (splitting, retiming, merging) will be unlocked in STEPS 16–18."
-                  : "Select a media asset from the library to configure subtitle localization."}
-              </p>
-            </div>
+          <div id="loc-panel-subtitles" role="tabpanel" aria-labelledby="loc-tab-subtitles" className="h-full flex flex-col">
+            <SubtitleTrackManager
+              asset={asset}
+              document={document}
+              activeTrack={activeTrack}
+              currentTime={currentTime}
+              onDocumentChange={onDocumentChange}
+              onActiveTrackChange={onActiveTrackChange}
+              onToggleTrackVisibility={onToggleTrackVisibility}
+              onSeek={onSeek}
+            />
           </div>
         )}
 
         {/* TRANSLATION PANEL */}
         {activeTab === "translation" && (
-          <div id="loc-panel-translation" role="tabpanel" aria-labelledby="loc-tab-translation" className="space-y-4">
+          <div id="loc-panel-translation" role="tabpanel" aria-labelledby="loc-tab-translation" className="p-4 space-y-4 overflow-y-auto">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold text-zinc-200 flex items-center space-x-1.5">
                 <GlobeIcon size={14} className="text-indigo-400" />
@@ -210,7 +224,7 @@ export function LocalizationInspector({
 
         {/* VOICE & DUBBING PANEL */}
         {activeTab === "dubbing" && (
-          <div id="loc-panel-dubbing" role="tabpanel" aria-labelledby="loc-tab-dubbing" className="space-y-4">
+          <div id="loc-panel-dubbing" role="tabpanel" aria-labelledby="loc-tab-dubbing" className="p-4 space-y-4 overflow-y-auto">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold text-zinc-200 flex items-center space-x-1.5">
                 <MicIcon size={14} className="text-indigo-400" />
@@ -259,36 +273,88 @@ export function LocalizationInspector({
 
         {/* EXPORT PANEL */}
         {activeTab === "export" && (
-          <div id="loc-panel-export" role="tabpanel" aria-labelledby="loc-tab-export" className="space-y-4">
+          <div id="loc-panel-export" role="tabpanel" aria-labelledby="loc-tab-export" className="p-4 space-y-4 overflow-y-auto">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold text-zinc-200 flex items-center space-x-1.5">
                 <UploadIcon size={14} className="text-indigo-400" />
                 <span>Localization Export</span>
               </h4>
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700/50">
-                Scheduled: STEP 29–31
+              <span className="px-1.5 py-0.2 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800">
+                STEP 16 Active
               </span>
             </div>
 
-            <div className="p-3 rounded-lg border border-zinc-800 bg-zinc-900/60 space-y-3">
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2 text-xs text-zinc-300 cursor-not-allowed">
-                  <input type="checkbox" disabled checked className="rounded bg-zinc-800 border-zinc-700" />
-                  <span>Export Subtitle File (.srt / .vtt)</span>
+            {/* Subtitle Export Section */}
+            <div className="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-zinc-200 block">
+                  Export Subtitle File (.srt / .vtt)
                 </label>
-                <label className="flex items-center space-x-2 text-xs text-zinc-300 cursor-not-allowed">
-                  <input type="checkbox" disabled className="rounded bg-zinc-800 border-zinc-700" />
-                  <span>Burn-in Subtitles onto Video</span>
-                </label>
-                <label className="flex items-center space-x-2 text-xs text-zinc-300 cursor-not-allowed">
-                  <input type="checkbox" disabled className="rounded bg-zinc-800 border-zinc-700" />
-                  <span>Multiplex Dubbed Audio Stream</span>
-                </label>
+                <span className="text-[10px] text-zinc-400 font-mono">
+                  {activeTrack ? `${activeTrack.displayName} (${activeTrack.cues.length} cues)` : "No Active Track"}
+                </span>
               </div>
 
-              <Button size="xs" variant="secondary" disabled className="w-full">
-                Export Localized Video (Scheduled STEP 30)
+              <div className="space-y-2">
+                <label className="text-[11px] text-zinc-400 block">Export Format</label>
+                <div className="flex items-center space-x-2">
+                  <label className="flex items-center space-x-1.5 text-xs text-zinc-300 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="exportFormat"
+                      checked={exportFormat === "srt"}
+                      onChange={() => setExportFormat("srt")}
+                      className="text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span>SubRip (.srt)</span>
+                  </label>
+                  <label className="flex items-center space-x-1.5 text-xs text-zinc-300 cursor-pointer ml-3">
+                    <input
+                      type="radio"
+                      name="exportFormat"
+                      checked={exportFormat === "webVtt"}
+                      onChange={() => setExportFormat("webVtt")}
+                      className="text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span>WebVTT (.vtt)</span>
+                  </label>
+                </div>
+              </div>
+
+              <Button
+                size="xs"
+                variant="primary"
+                onClick={handleRunExport}
+                disabled={!activeTrack || isExporting}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium"
+              >
+                <DownloadIcon size={12} className="mr-1.5" />
+                {activeTrack
+                  ? `Export ${activeTrack.displayName} as ${exportFormat.toUpperCase()}`
+                  : "Select a track to export"}
               </Button>
+
+              {exportFeedback && (
+                <div className="text-[11px] p-2 rounded bg-zinc-950 border border-zinc-800 text-zinc-300 flex items-center space-x-1.5">
+                  <CheckIcon size={12} className="text-indigo-400 shrink-0" />
+                  <span className="truncate">{exportFeedback}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Future Export Capabilities Notice */}
+            <div className="p-3.5 rounded-lg border border-zinc-800/80 bg-zinc-900/30 space-y-2.5">
+              <div className="text-xs font-semibold text-zinc-400">Advanced Video Muxing (Scheduled)</div>
+              <div className="space-y-2 opacity-60">
+                <label className="flex items-center space-x-2 text-xs text-zinc-400 cursor-not-allowed">
+                  <input type="checkbox" disabled className="rounded bg-zinc-800 border-zinc-700" />
+                  <span>Burn-in Subtitles onto Video (Scheduled STEP 21)</span>
+                </label>
+                <label className="flex items-center space-x-2 text-xs text-zinc-400 cursor-not-allowed">
+                  <input type="checkbox" disabled className="rounded bg-zinc-800 border-zinc-700" />
+                  <span>Multiplex Dubbed Audio Stream (Scheduled STEP 30)</span>
+                </label>
+              </div>
             </div>
           </div>
         )}

@@ -64,6 +64,12 @@ pub fn run() {
             commands::repair::export_recovery_review_report,
             commands::repair::get_recovery_history,
             commands::repair::clear_recovery_history,
+            commands::subtitles::pick_and_import_subtitle_file,
+            commands::subtitles::parse_subtitle_content,
+            commands::subtitles::export_subtitle_track,
+            commands::subtitles::save_subtitle_project,
+            commands::subtitles::open_subtitle_project,
+            commands::subtitles::validate_subtitle_document_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

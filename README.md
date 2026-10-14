@@ -3,7 +3,7 @@
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%2015%20Recovery%20Review%20Complete-success.svg)](docs/reports/STEP_15_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2016%20Subtitle%20Foundation%20Complete-success.svg)](docs/reports/STEP_16_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 Open Media Workbench is a free, open-source, offline-first desktop application designed for media recovery and local AI localization. Built with Tauri 2, Rust, and React 19, the workbench provides content creators, archivists, and video professionals with an uncompromising local-first studio that processes all media strictly on-device without cloud telemetry or mandatory accounts.
@@ -14,7 +14,7 @@ Open Media Workbench is a free, open-source, offline-first desktop application d
 
 Open Media Workbench unifies two specialized studio workspaces under a single high-performance desktop shell, sharing a common Rust media processing core:
 
-1. **Repair Studio** *(Active Development — STEPS 12, 13 & 14 Complete)*
+1. **Repair Studio** *(Active Development — STEPS 12, 13, 14 & 15 Complete)*
    - **Video Corruption Diagnostics (STEP 12):**
      - **Container Identification:** Fast magic byte validation for MP4/MOV, MKV (EBML), and AVI (RIFF) with extension mismatch detection.
      - **ISO BMFF Structural Inspection:** Bounded, memory-safe atom parser (`ftyp`, `moov`, `mdat`, `moof`, `free/skip`) handling 32-bit, 64-bit extended sizes, and size-0 atoms without loading sample payloads into memory.
@@ -48,12 +48,21 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Persistent Local Recovery History:** Crash-safe, atomic versioned JSON ledger tracking up to 50 previous recovery attempts with status, validation levels, timestamps, and manual history clear action. No cloud telemetry or private path leakage.
      - **Sanitized JSON & Standalone Offline HTML Reports:** User-initiated report export featuring stable machine-readable finding codes, strict Content-Security-Policy, offline embedded dark CSS, XSS escaping, and path privacy sanitization (redacting home directories to `~` and masking temporary staging paths).
 
-2. **Localization Studio** *(Planned — STEP 11 Desktop UI Ready)*
-   - Interactive subtitle editor and timing adjustment
-   - Local, privacy-first AI speech-to-text transcription (Whisper)
-   - On-device multilingual translation
-   - Synchronized neural speech synthesis (voice dubbing)
-   - Multi-track preview and dubbed video/subtitle export
+2. **Localization Studio** *(Active Development — STEP 16 Subtitle Foundation Complete)*
+   - **Canonical Subtitle Domain Model (STEP 16 Implemented):**
+     - **Strict Microsecond Timestamps:** Microsecond-accurate integer representation (`MediaTimeUs`), preventing floating-point drift across playback ticks.
+     - **Robust SubRip (.srt) Support:** Parsing and serialization supporting UTF-8 BOM, CRLF/LF line endings, multiline cues, and tolerant numbering.
+     - **Standards-Aware WebVTT (.vtt) Support:** Parses WebVTT signatures, skips `NOTE` comments, inspects cue settings (`line:`, `position:`, `align:`, `size:`, `vertical:`), and extracts `<v Speaker>` voice tags into structured speaker attributes.
+     - **Full Unicode & Bengali (বাংলা) Preservation:** Zero byte corruption or entity truncation when processing non-Latin alphabets and complex Unicode scripts.
+     - **Automated Validation Diagnostic Engine:** Inspects tracks and documents for empty cues, inverted intervals, duplicate IDs, out-of-order cues, duration anomalies, and media bounds violations.
+     - **Safe Local Import & Provenance:** Native `rfd` file picker enforcing `SourceProvenance::SubtitleFileDialog`, 10MB file size ceiling, and 20,000 cue caps without arbitrary filesystem writes or media mutation.
+     - **Live Video Preview Overlay & Synchronized Seek:** Clean plain-text subtitle overlay rendered over the HTML5 preview player with Closed Captions (CC) toggle; click-to-seek cue list navigation powered by $O(\log N)$ binary search lookup.
+     - **Safe Atomic Export & Project Persistence:** Export to compliant `.srt` and `.vtt` formats with temporary file rename guarantees; versioned `.omwsub` project document format.
+   - **Interactive Subtitle Editor & Retiming** *(Planned STEP 17–18)*
+   - **Local, Offline AI Speech-to-Text (Whisper)** *(Planned STEP 19)*
+   - **On-Device Multilingual Translation** *(Planned STEP 22–23)*
+   - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
+   - **Multiplexed & Burn-In Video Export** *(Planned STEP 21 & 30)*
 
 ---
 
@@ -61,7 +70,7 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 
 > [!IMPORTANT]
 > **Zero-Byte Source Mutation Guarantee**
-> All recovery and reconstruction operations execute strictly on read-only file descriptors. Output files are generated in an isolated temporary staging location. Source and reference media files are **never** modified, overwritten, truncated, or moved.
+> All recovery, reconstruction, and subtitle operations execute strictly on read-only file descriptors. Output files are generated in isolated temporary staging locations or atomic swap paths. Source media files are **never** modified, overwritten, truncated, or moved.
 
 > [!NOTE]
 > **Lossless Stream Copy vs Re-encoding**
@@ -77,15 +86,15 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 
 > [!TIP]
 > **Strict No-Clobber Export Safety**
-> When saving recovered media to user storage, Open Media Workbench requires native OS file dialog confirmation, forbids writing over the original source or reference files, and rejects attempts to overwrite existing files or write to symlinks.
+> When saving recovered media or subtitle files to user storage, Open Media Workbench requires native OS file dialog confirmation, forbids writing over the original source or reference files, and rejects attempts to overwrite existing files without explicit user confirmation.
 
 ---
 
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 15 Completed (Professional Recovery Preview, Validation & Reports)**
-> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), and professional recovery review/preview/reporting pipeline (STEP 15) are fully implemented and verified with **159 automated Rust tests** and **37 TypeScript unit tests**. Next milestone: **STEP 16**.
+> **Project State: STEP 16 Completed (Professional Subtitle Data Model, SRT/WebVTT Import, Validation & Export)**
+> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), recovery review/reporting pipeline (STEP 15), and professional subtitle foundation (STEP 16) are fully implemented and verified with **204 automated Rust tests** and **46 TypeScript unit tests**. Next milestone: **STEP 17**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)

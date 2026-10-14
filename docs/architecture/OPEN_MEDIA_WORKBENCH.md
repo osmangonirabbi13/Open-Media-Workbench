@@ -109,22 +109,29 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - Crash-safe, atomic versioned JSON history ledger (up to 50 attempts).
   - Standalone offline HTML and machine-readable JSON report export with home directory and staging path privacy sanitization.
 
-### 3.2 Localization Studio (Planned Workspace 2)
+### 3.2 Localization Studio (Active Development — STEP 16 Subtitle Foundation Complete)
 **Objective:** End-to-end subtitle generation, speech recognition, machine translation, and neural speech dubbing.
 
-- **Subtitle Editor & Timebase Boundary:**
+- **Canonical Subtitle Domain Model & Timing (Completed in STEP 16):**
+  - **Microsecond Precision:** Cues and tracks represent time exclusively via `MediaTimeUs` ($t \ge 0$), completely eliminating floating-point rounding drifts.
+  - **Dual Standards Ingestion:** Strict-but-resilient SRT parsing (handling arbitrary line breaks, BOMs, non-sequential indexes) and standards-aware WebVTT parsing (with `NOTE`, cue settings, and voice markup extraction).
+  - **Structured Validation Engine:** Automatic detection of empty tracks, inverted intervals, duplicate IDs, out-of-bounds cues, and non-fatal overlapping cues with stable finding codes.
+  - **Native Desktop Security & Provenance:** Subtitle file import enforces `SourceProvenance::SubtitleFileDialog` via `rfd`, 10 MB bounded file size limits, 20,000 max cue limits, and explicit binding to authorized media assets without media file mutation.
+  - **Safe Atomic Export & Versioned Persistence:** Native export to compliant `.srt` and `.vtt` formats with atomic write/rename guarantees; versioned `.omwsub` project document format for multi-track persistence and reopening.
+  - **Live Preview Caption Overlay & Time Sync:** Synchronized plain-text subtitle rendering in video preview monitor with CC visibility toggle and click-to-seek cue list navigation ($O(\log N)$ binary search lookup).
+- **Interactive Subtitle Editor & Retiming (Planned STEP 17–18):**
   - Subtitle cues modeled as microsecond intervals (`SourceRange`), perfectly synchronized with the canonical EDL engine.
   - Interactive cue manipulation: splitting, merging, retiming, and text editing with real-time waveform visualization.
-- **Local AI Transcription (Speech-to-Text):**
+- **Local AI Transcription (Speech-to-Text — Planned STEP 19):**
   - Fully offline, local Whisper inference (e.g., via `whisper.cpp` / ONNX runtime).
   - Emits word-level and phrase-level timestamped tokens directly into the subtitle cue list.
   - Zero external network requests or third-party cloud dependencies.
-- **Local Machine Translation:**
+- **Local Machine Translation (Planned STEP 22–23):**
   - On-device translation pipeline mapping source subtitle text to target language scripts.
-- **AI Voice Dubbing (Speech Synthesis):**
+- **AI Voice Dubbing (Speech Synthesis — Planned STEP 24–28):**
   - Offline neural text-to-speech (TTS) engine generating synthesized speech clips for each subtitle cue.
   - Automatic time-stretching or rate-scaling to synchronize dubbed audio within subtitle cue interval boundaries.
-- **Multiplexed Export:**
+- **Multiplexed & Burn-In Export (Planned STEP 21 & 30):**
   - Uses the shared FFmpeg managed process engine to mux subtitle tracks (SRT/VTT/embedded) and synchronized dubbing audio into the output video.
 
 ---

@@ -1,10 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import type { MediaAsset } from "../../types/media";
+import type { SubtitleDocument } from "../../types/subtitles";
 import { MediaLibraryPanel } from "../../components/editor/MediaLibraryPanel";
 import { PreviewPanel } from "../../components/editor/PreviewPanel";
 import { TimelinePanel } from "../../components/editor/TimelinePanel";
 import { LocalizationInspector } from "./LocalizationInspector";
 import { LAYOUT_BOUNDS } from "../../types/preferences";
+import { findActiveCues } from "../../lib/subtitles";
 
 export interface LocalizationWorkspaceProps {
   mediaPanelWidth: number;
@@ -30,11 +32,16 @@ export function LocalizationWorkspace({
   onToggleSnap,
 }: LocalizationWorkspaceProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [inspectorWidth, setInspectorWidth] = useState<number>(320);
+  const [inspectorWidth, setInspectorWidth] = useState<number>(360);
 
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
   const [isDraggingInspector, setIsDraggingInspector] = useState(false);
+
+  // Subtitle document and track state
+  const [subtitleDoc, setSubtitleDoc] = useState<SubtitleDocument | null>(null);
+  const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
+  const [subtitlesVisible, setSubtitlesVisible] = useState<boolean>(true);
 
   // Synchronized playback state shared between PreviewPanel and TimelinePanel
   const [playbackTime, setPlaybackTime] = useState<{
@@ -61,6 +68,30 @@ export function LocalizationWorkspace({
     if (seekHandlerRef.current) {
       seekHandlerRef.current(seconds);
     }
+  };
+
+  // Active track resolved from document
+  const activeTrack = useMemo(() => {
+    if (!subtitleDoc || subtitleDoc.tracks.length === 0) return null;
+    if (activeTrackId) {
+      const found = subtitleDoc.tracks.find((t) => t.id === activeTrackId);
+      if (found) return found;
+    }
+    return subtitleDoc.tracks[0] || null;
+  }, [subtitleDoc, activeTrackId]);
+
+  // Real-time active cues lookup for video preview caption overlay (O(log N))
+  const activeCues = useMemo(() => {
+    if (!activeTrack || !activeTrack.isVisible) return [];
+    return findActiveCues(activeTrack.cues, playbackTime.currentTime);
+  }, [activeTrack, playbackTime.currentTime]);
+
+  const handleToggleTrackVisibility = (trackId: string) => {
+    if (!subtitleDoc) return;
+    const updatedTracks = subtitleDoc.tracks.map((t) =>
+      t.id === trackId ? { ...t, isVisible: !t.isVisible } : t
+    );
+    setSubtitleDoc({ ...subtitleDoc, tracks: updatedTracks });
   };
 
   // Horizontal Splitter Dragging (Media Panel Width)
@@ -203,6 +234,9 @@ export function LocalizationWorkspace({
             asset={selectedAsset}
             onPlaybackTimeChange={handlePlaybackTimeChange}
             onRegisterSeek={handleRegisterSeek}
+            activeSubtitleCues={activeCues}
+            subtitlesVisible={subtitlesVisible}
+            onToggleSubtitlesVisible={() => setSubtitlesVisible((v) => !v)}
           />
         </div>
 
@@ -262,7 +296,16 @@ export function LocalizationWorkspace({
         style={{ width: `${inspectorWidth}px` }}
         className="shrink-0 h-full overflow-hidden border-l border-zinc-800/80"
       >
-        <LocalizationInspector asset={selectedAsset} />
+        <LocalizationInspector
+          asset={selectedAsset}
+          document={subtitleDoc}
+          activeTrack={activeTrack}
+          currentTime={playbackTime.currentTime}
+          onDocumentChange={setSubtitleDoc}
+          onActiveTrackChange={setActiveTrackId}
+          onToggleTrackVisibility={handleToggleTrackVisibility}
+          onSeek={handleTimelineSeek}
+        />
       </div>
     </div>
   );

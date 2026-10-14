@@ -18,6 +18,8 @@ pub enum SourceProvenance {
     NativeWindowDrop,
     /// Staged recovery candidate generated safely in app-owned staging.
     StagedRecoveryCandidate,
+    /// User explicitly selected the subtitle file through a native OS file dialog.
+    SubtitleFileDialog,
 }
 
 /// An authorization record granting OpenTake permission to inspect and stream a specific file.

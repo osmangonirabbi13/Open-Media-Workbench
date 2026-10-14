@@ -10,10 +10,13 @@ import {
   VolumeIcon,
   VolumeMuteIcon,
   ResetIcon,
+  SubtitlesIcon,
 } from "../ui/Icons";
 import { IconButton } from "../ui/IconButton";
 import { EmptyState } from "../ui/EmptyState";
 import type { MediaAsset } from "../../types/media";
+import type { SubtitleCue } from "../../types/subtitles";
+import { SubtitleOverlay } from "./SubtitleOverlay";
 import { useVideoPlayback } from "../../hooks/useVideoPlayback";
 import { formatTimecode, formatFrames } from "../../lib/playback";
 
@@ -22,6 +25,9 @@ export interface PreviewPanelProps {
   asset: MediaAsset | null;
   onPlaybackTimeChange?: (currentTime: number, duration: number, isPlaying: boolean) => void;
   onRegisterSeek?: (seekFn: (seconds: number) => void) => void;
+  activeSubtitleCues?: SubtitleCue[];
+  subtitlesVisible?: boolean;
+  onToggleSubtitlesVisible?: () => void;
 }
 
 export function PreviewPanel({
@@ -29,6 +35,9 @@ export function PreviewPanel({
   asset,
   onPlaybackTimeChange,
   onRegisterSeek,
+  activeSubtitleCues,
+  subtitlesVisible = true,
+  onToggleSubtitlesVisible,
 }: PreviewPanelProps): React.ReactElement {
   const videoRef = useRef<HTMLVideoElement>(null);
   const scrubberTrackRef = useRef<HTMLDivElement>(null);
@@ -205,8 +214,26 @@ export function PreviewPanel({
           )}
         </div>
 
-        <div className="font-mono text-xs text-zinc-300 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800/60">
-          {currentTimecode}
+        <div className="flex items-center space-x-2">
+          {onToggleSubtitlesVisible && (
+            <button
+              type="button"
+              onClick={onToggleSubtitlesVisible}
+              title={subtitlesVisible ? "Disable Subtitle Overlay" : "Enable Subtitle Overlay"}
+              className={`flex items-center space-x-1 px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors border ${
+                subtitlesVisible
+                  ? "bg-indigo-950/80 text-indigo-300 border-indigo-700/60 shadow-xs"
+                  : "bg-zinc-900 text-zinc-500 border-zinc-800 hover:text-zinc-300"
+              }`}
+            >
+              <SubtitlesIcon size={12} className={subtitlesVisible ? "text-indigo-400" : ""} />
+              <span>CC</span>
+            </button>
+          )}
+
+          <div className="font-mono text-xs text-zinc-300 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800/60">
+            {currentTimecode}
+          </div>
         </div>
       </div>
 
@@ -242,6 +269,12 @@ export function PreviewPanel({
                   error ? "hidden" : "block"
                 }`}
                 onClick={togglePlay}
+              />
+
+              {/* Subtitle Caption Overlay */}
+              <SubtitleOverlay
+                activeCues={activeSubtitleCues || []}
+                isVisible={subtitlesVisible}
               />
 
               {/* Buffering / Loading Overlay */}

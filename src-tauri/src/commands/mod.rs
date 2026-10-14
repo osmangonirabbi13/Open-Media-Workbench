@@ -3,6 +3,7 @@ pub mod media_engine;
 pub mod media_import;
 pub mod playback;
 pub mod repair;
+pub mod subtitles;
 pub mod waveform;
 
 pub use app_info::{get_app_info, AppInfo};
@@ -25,6 +26,12 @@ pub use repair::{
     register_recovery_candidate_preview, run_advanced_output_validation, run_media_diagnostics,
     start_media_recovery, start_mp4_reconstruction, ReconstructionJobStatus, RecoveryJobStatus,
     RepairDiagnosticsState,
+};
+pub use subtitles::{
+    export_subtitle_track, open_subtitle_project, parse_subtitle_content,
+    pick_and_import_subtitle_file, save_subtitle_project, validate_subtitle_document_command,
+    SubtitleExportResponse, SubtitleImportResponse, SubtitleProjectOpenResponse,
+    SubtitleProjectSaveResponse,
 };
 pub use waveform::{
     cancel_waveform_analysis, get_waveform_segment, get_waveform_status, request_waveform_analysis,

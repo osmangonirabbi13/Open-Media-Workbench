@@ -6,6 +6,7 @@
 //! dependency on Tauri, WebViews, or UI frameworks.
 
 pub mod editing;
+pub mod localization;
 pub mod media;
 pub mod repair;
 
