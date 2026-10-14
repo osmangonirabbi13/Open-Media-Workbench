@@ -11,6 +11,8 @@ pub mod process;
 pub mod proxy;
 pub mod range;
 pub mod version;
+pub mod waveform;
+pub mod waveform_cache;
 
 pub use authorization::{AuthorizationRecord, MediaAuthorizationRegistry, SourceProvenance};
 pub use compatibility::{CompatibilityStatus, MediaCompatibility};
@@ -31,6 +33,15 @@ pub use proxy::{
 pub use range::{
     determine_mime_type, parse_byte_range, read_range_slice, ResolvedByteRange,
     MAX_RANGE_CHUNK_BYTES,
+};
+pub use waveform::{
+    WaveformBin, WaveformData, WaveformEngine, WaveformLodLevel, WaveformSegment,
+    BASE_BINS_PER_SECOND, MAX_SEGMENT_BINS, SAMPLES_PER_BASE_BIN, WAVEFORM_ALGORITHM_VERSION,
+    WAVEFORM_SAMPLE_RATE,
+};
+pub use waveform_cache::{
+    compute_waveform_cache_key, get_waveform_cache_path, load_waveform_from_cache,
+    save_waveform_to_cache, WAVEFORM_CACHE_MAGIC, WAVEFORM_CACHE_SCHEMA_VERSION,
 };
 
 use std::sync::Arc;

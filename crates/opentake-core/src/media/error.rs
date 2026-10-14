@@ -104,6 +104,18 @@ pub enum MediaEngineError {
     #[error("Preview proxy generation for asset '{id}' was cancelled")]
     ProxyCancelled { id: String },
 
+    #[error("Audio waveform extraction failed for asset '{id}': {reason}")]
+    WaveformExtractionFailed { id: String, reason: String },
+
+    #[error("Audio waveform extraction for asset '{id}' was cancelled")]
+    WaveformCancelled { id: String },
+
+    #[error("Media asset '{id}' has no audio tracks")]
+    NoAudioTrack { id: String },
+
+    #[error("Waveform cache error: {details}")]
+    WaveformCacheError { details: String },
+
     #[error("Internal media engine error: {0}")]
     Internal(String),
 }
@@ -140,6 +152,10 @@ impl MediaEngineError {
             Self::RangeNotSatisfiable { .. } => "RANGE_NOT_SATISFIABLE",
             Self::ProxyGenerationFailed { .. } => "PROXY_GENERATION_FAILED",
             Self::ProxyCancelled { .. } => "PROXY_CANCELLED",
+            Self::WaveformExtractionFailed { .. } => "WAVEFORM_EXTRACTION_FAILED",
+            Self::WaveformCancelled { .. } => "WAVEFORM_CANCELLED",
+            Self::NoAudioTrack { .. } => "NO_AUDIO_TRACK",
+            Self::WaveformCacheError { .. } => "WAVEFORM_CACHE_ERROR",
             Self::Internal(_) => "INTERNAL_ERROR",
         }
     }
@@ -234,6 +250,14 @@ impl MediaEngineError {
                 format!("Preview proxy transcode failed: {reason}")
             }
             Self::ProxyCancelled { .. } => "Preview proxy generation was cancelled.".to_string(),
+            Self::WaveformExtractionFailed { reason, .. } => {
+                format!("Waveform analysis failed: {reason}")
+            }
+            Self::WaveformCancelled { .. } => "Waveform analysis was cancelled.".to_string(),
+            Self::NoAudioTrack { .. } => "The selected media contains no audio track.".to_string(),
+            Self::WaveformCacheError { details } => {
+                format!("Waveform cache storage error: {details}")
+            }
             Self::Internal(msg) => format!("Media engine error: {msg}"),
         }
     }

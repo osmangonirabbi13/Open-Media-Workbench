@@ -2,10 +2,11 @@ pub mod commands;
 pub mod protocol;
 
 pub use commands::{
-    cancel_preview_proxy, clear_media_library, get_app_info, get_media_engine_status,
-    get_media_library_assets, get_media_playback_url, get_proxy_status, import_files_by_path,
-    pick_and_import_files, remove_media_library_asset, request_preview_proxy, AppInfo,
-    MediaEngineState, MediaLibraryState, PlaybackState,
+    cancel_preview_proxy, cancel_waveform_analysis, clear_media_library, get_app_info,
+    get_media_engine_status, get_media_library_assets, get_media_playback_url, get_proxy_status,
+    get_waveform_segment, get_waveform_status, import_files_by_path, pick_and_import_files,
+    remove_media_library_asset, request_preview_proxy, request_waveform_analysis, AppInfo,
+    MediaEngineState, MediaLibraryState, PlaybackState, WaveformState,
 };
 
 /// Desktop application entry point.
@@ -15,6 +16,7 @@ pub fn run() {
         .manage(commands::MediaEngineState::default())
         .manage(commands::MediaLibraryState::default())
         .manage(commands::PlaybackState::default())
+        .manage(commands::WaveformState::default())
         .register_uri_scheme_protocol("opentake-media", |app, req| {
             protocol::media::handle_media_protocol(app, req)
         })
@@ -30,6 +32,10 @@ pub fn run() {
             commands::playback::request_preview_proxy,
             commands::playback::cancel_preview_proxy,
             commands::playback::get_proxy_status,
+            commands::waveform::get_waveform_status,
+            commands::waveform::request_waveform_analysis,
+            commands::waveform::cancel_waveform_analysis,
+            commands::waveform::get_waveform_segment,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

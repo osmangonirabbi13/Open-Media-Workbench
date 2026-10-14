@@ -162,6 +162,132 @@ pub async fn run_managed_process(
     })
 }
 
+/// Output summary returned from streaming process execution.
+#[derive(Debug, Clone)]
+pub struct StreamingProcessOutput {
+    pub exit_code: Option<i32>,
+    pub stderr: String,
+    pub bytes_streamed: u64,
+    pub duration: Duration,
+}
+
+/// Asynchronously executes a child process, streaming chunks of stdout to a consumer callback
+/// without unbounded buffer accumulation, while bounding stderr and supporting timeout and cancellation.
+pub async fn run_streaming_process<F>(
+    spec: ProcessSpec,
+    cancellation: Option<&CancellationToken>,
+    mut chunk_consumer: F,
+) -> Result<StreamingProcessOutput, MediaEngineError>
+where
+    F: FnMut(&[u8]) -> Result<(), MediaEngineError>,
+{
+    let start_time = Instant::now();
+    let command_repr = format!("{} {}", spec.program.display(), spec.args.join(" "));
+
+    let mut cmd = Command::new(&spec.program);
+    cmd.args(&spec.args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .kill_on_drop(true);
+
+    #[cfg(unix)]
+    {
+        cmd.process_group(0);
+    }
+
+    if let Some(ref cwd) = spec.working_dir {
+        cmd.current_dir(cwd);
+    }
+
+    cmd.env("LC_ALL", "C");
+
+    let mut child = cmd.spawn().map_err(|e| MediaEngineError::SpawnFailed {
+        command: command_repr.clone(),
+        details: e.to_string(),
+    })?;
+
+    let pid = child.id();
+
+    let mut stdout_pipe = child.stdout.take().ok_or_else(|| {
+        MediaEngineError::Internal("Failed to capture child stdout pipe".to_string())
+    })?;
+
+    let mut stderr_pipe = child.stderr.take().ok_or_else(|| {
+        MediaEngineError::Internal("Failed to capture child stderr pipe".to_string())
+    })?;
+
+    let max_stderr = spec.max_stderr_bytes;
+    let read_stderr_task =
+        tokio::spawn(async move { read_bounded_stream(&mut stderr_pipe, max_stderr).await });
+
+    // Stream stdout in bounded chunks
+    let mut chunk = [0u8; 64 * 1024];
+    let mut total_bytes_read = 0u64;
+
+    let execution_result = tokio::select! {
+        res = async {
+            loop {
+                let n = stdout_pipe.read(&mut chunk).await.map_err(|e| {
+                    MediaEngineError::Internal(format!("Failed to read stdout stream: {e}"))
+                })?;
+                if n == 0 {
+                    break;
+                }
+                total_bytes_read += n as u64;
+                chunk_consumer(&chunk[..n])?;
+            }
+            let status = child.wait().await.map_err(|e| {
+                MediaEngineError::Internal(format!("Failed to wait for child: {e}"))
+            })?;
+            Ok(status.code())
+        } => res,
+
+        _ = async {
+            match cancellation {
+                Some(token) => token.cancelled().await,
+                None => std::future::pending::<()>().await,
+            }
+        } => {
+            terminate_and_reap(&mut child, pid).await;
+            Err(MediaEngineError::Cancelled { command: command_repr.clone() })
+        }
+
+        _ = tokio::time::sleep(spec.timeout) => {
+            terminate_and_reap(&mut child, pid).await;
+            Err(MediaEngineError::Timeout {
+                command: command_repr.clone(),
+                duration_ms: spec.timeout.as_millis() as u64,
+            })
+        }
+    };
+
+    let exit_code = execution_result?;
+
+    let (stderr_bytes, _) = read_stderr_task
+        .await
+        .map_err(|e| MediaEngineError::Internal(format!("Stderr reader panicked: {e}")))?;
+
+    let stderr_str = String::from_utf8_lossy(&stderr_bytes).to_string();
+
+    if let Some(code) = exit_code {
+        if code != 0 {
+            return Err(MediaEngineError::NonZeroExit {
+                command: command_repr,
+                code: exit_code,
+                stderr: stderr_str,
+            });
+        }
+    }
+
+    Ok(StreamingProcessOutput {
+        exit_code,
+        stderr: stderr_str,
+        bytes_streamed: total_bytes_read,
+        duration: start_time.elapsed(),
+    })
+}
+
 /// Reads a stream asynchronously up to `max_bytes`, discarding subsequent bytes to prevent memory overflow.
 async fn read_bounded_stream<R: tokio::io::AsyncRead + Unpin>(
     reader: &mut R,

@@ -29,6 +29,33 @@ export function ResizableWorkspace({
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
 
+  // Synchronized playback state shared between PreviewPanel and TimelinePanel
+  const [playbackTime, setPlaybackTime] = useState<{
+    currentTime: number;
+    duration: number;
+    isPlaying: boolean;
+  }>({
+    currentTime: 0,
+    duration: 0,
+    isPlaying: false,
+  });
+
+  const seekHandlerRef = useRef<((seconds: number) => void) | null>(null);
+
+  const handleRegisterSeek = (seekFn: (seconds: number) => void) => {
+    seekHandlerRef.current = seekFn;
+  };
+
+  const handlePlaybackTimeChange = (currentTime: number, duration: number, isPlaying: boolean) => {
+    setPlaybackTime({ currentTime, duration, isPlaying });
+  };
+
+  const handleTimelineSeek = (seconds: number) => {
+    if (seekHandlerRef.current) {
+      seekHandlerRef.current(seconds);
+    }
+  };
+
   // Horizontal Splitter Dragging (Media Panel Width)
   const handleHorizontalPointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
     e.preventDefault();
@@ -168,6 +195,8 @@ export function ResizableWorkspace({
           <PreviewPanel
             timecodeFormat={timecodeFormat}
             asset={selectedAsset}
+            onPlaybackTimeChange={handlePlaybackTimeChange}
+            onRegisterSeek={handleRegisterSeek}
           />
         </div>
       </div>
@@ -200,6 +229,10 @@ export function ResizableWorkspace({
           snapEnabled={snapEnabled}
           onToggleSnap={onToggleSnap}
           timecodeFormat={timecodeFormat}
+          asset={selectedAsset}
+          currentTime={playbackTime.currentTime}
+          duration={playbackTime.duration}
+          onSeek={handleTimelineSeek}
         />
       </div>
     </div>

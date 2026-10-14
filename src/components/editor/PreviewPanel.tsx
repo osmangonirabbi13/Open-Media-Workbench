@@ -20,11 +20,15 @@ import { formatTimecode, formatFrames } from "../../lib/playback";
 export interface PreviewPanelProps {
   timecodeFormat: "timecode" | "frames";
   asset: MediaAsset | null;
+  onPlaybackTimeChange?: (currentTime: number, duration: number, isPlaying: boolean) => void;
+  onRegisterSeek?: (seekFn: (seconds: number) => void) => void;
 }
 
 export function PreviewPanel({
   timecodeFormat,
   asset,
+  onPlaybackTimeChange,
+  onRegisterSeek,
 }: PreviewPanelProps): React.ReactElement {
   const videoRef = useRef<HTMLVideoElement>(null);
   const scrubberTrackRef = useRef<HTMLDivElement>(null);
@@ -52,6 +56,20 @@ export function PreviewPanel({
     triggerProxyGeneration,
     cancelProxyGeneration,
   } = useVideoPlayback({ videoRef, asset });
+
+  // Register seek handler to parent for timeline playhead scrubbing
+  useEffect(() => {
+    if (onRegisterSeek) {
+      onRegisterSeek(seek);
+    }
+  }, [onRegisterSeek, seek]);
+
+  // Synchronize playback timing to parent component (e.g. for timeline playhead synchronization)
+  useEffect(() => {
+    if (onPlaybackTimeChange) {
+      onPlaybackTimeChange(currentTime, duration, isPlaying);
+    }
+  }, [onPlaybackTimeChange, currentTime, duration, isPlaying]);
 
   // Format timecodes according to preference
   const currentTimecode =

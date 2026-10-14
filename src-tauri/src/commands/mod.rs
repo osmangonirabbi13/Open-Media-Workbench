@@ -2,6 +2,7 @@ pub mod app_info;
 pub mod media_engine;
 pub mod media_import;
 pub mod playback;
+pub mod waveform;
 
 pub use app_info::{get_app_info, AppInfo};
 pub use media_engine::{get_media_engine_status, MediaEngineState};
@@ -12,4 +13,8 @@ pub use media_import::{
 pub use playback::{
     cancel_preview_proxy, get_media_playback_url, get_proxy_status, request_preview_proxy,
     PlaybackInfo, PlaybackState, ProxyStateInfo, ProxyStatusResponse,
+};
+pub use waveform::{
+    cancel_waveform_analysis, get_waveform_segment, get_waveform_status, request_waveform_analysis,
+    WaveformSegmentResponse, WaveformState, WaveformStatusInfo, WaveformStatusResponse,
 };

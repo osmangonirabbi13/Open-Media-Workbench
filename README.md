@@ -3,7 +3,7 @@
 > **Free AI Video Editing Studio — Automatic Silence Removal & Rough-Cut Desktop Studio**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%207%20Playback%20Complete-success.svg)](docs/reports/STEP_07_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%208%20Waveform%20Complete-success.svg)](docs/reports/STEP_08_REPORT.md)
 [![Roadmap](https://img.shields.io/badge/Roadmap-32%20Steps%20Approved-success.svg)](docs/roadmap/DEVELOPMENT_ROADMAP.md)
 
 OpenTake is a free, open-source, offline-first desktop application designed to streamline spoken-word video editing. It provides content creators, podcasters, educators, and video editors with a fast, privacy-preserving studio to automatically detect and eliminate dead air, review cuts on an interactive timeline, and export high-quality, watermark-free MP4 videos.
@@ -13,8 +13,8 @@ OpenTake is a free, open-source, offline-first desktop application designed to s
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 7 Completed (Secure Video Playback, Seeking & Proxy Foundation)**  
-> Secure local video playback, precise seeking, and preview proxy workflows are live! OpenTake now features a Rust-owned asset authorization system, an `opentake-media://` protocol handler with bounded HTTP byte-range streaming, an integrated HTML5 video preview monitor with transport controls and keyboard shortcuts, and managed background FFmpeg 720p H.264 preview proxy generation with deterministic caching and cancellation. Next: **STEP 8 (Audio Extraction, Peak Caching & Multi-LOD Waveform Pipeline)**.
+> **Project State: STEP 8 Completed (Audio Extraction, Peak Caching & Multi-LOD Waveform Pipeline)**  
+> Milestone 2 (Media Foundation) is now complete! OpenTake features an end-to-end streaming audio analysis engine using managed FFmpeg child processes, normalized peak and RMS sample calculations, a multi-LOD waveform pyramid (LOD 0: 100 bins/s, LOD 1: 10 bins/s, LOD 2: 1 bin/s), an atomic binary disk cache (`.otwf`), and an interactive React Canvas 2D waveform renderer synchronized with HTML5 preview playback and time ruler scrubbing. Next: **STEP 9 (Canonical EDL & Cut List Model)**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)
@@ -130,6 +130,9 @@ All architectural specifications, requirements, and roadmaps are tracked within 
 - [Step 3 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_03_REPORT.md)
 - [Step 4 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_04_REPORT.md)
 - [Step 5 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_05_REPORT.md)
+- [Step 6 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_06_REPORT.md)
+- [Step 7 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_07_REPORT.md)
+- [Step 8 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_08_REPORT.md)
 
 ---
 
@@ -144,12 +147,12 @@ Milestone 1 — Foundation (Days 1–4)
 
 Milestone 2 — Media Foundation (Days 5–8)
   ├── STEP 5: FFmpeg/FFprobe Integration                      ◄ [COMPLETED]
-  ├── STEP 6: File Import & Metadata Inspection               ◄ [NEXT]
-  ├── STEP 7: Playback & Seeking Foundation
-  └── STEP 8: Audio Waveform Generation
+  ├── STEP 6: File Import & Metadata Inspection               ◄ [COMPLETED]
+  ├── STEP 7: Playback & Seeking Foundation                   ◄ [COMPLETED]
+  └── STEP 8: Audio Waveform Generation                       ◄ [COMPLETED]
 
 Milestone 3 — Editing Engine (Days 9–13)
-  ├── STEP 9: Non-Destructive Editing Data Model
+  ├── STEP 9: Non-Destructive Editing Data Model              ◄ [NEXT]
   ├── STEP 10: Visual Timeline & Manual Editing
   ├── STEP 11: Undo/Redo & Keyboard Shortcuts
   ├── STEP 12: Project Persistence & Reopen
