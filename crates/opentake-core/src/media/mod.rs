@@ -1,3 +1,4 @@
+pub mod authorization;
 pub mod capabilities;
 pub mod compatibility;
 pub mod discovery;
@@ -7,8 +8,11 @@ pub mod import;
 pub mod metadata;
 pub mod probe;
 pub mod process;
+pub mod proxy;
+pub mod range;
 pub mod version;
 
+pub use authorization::{AuthorizationRecord, MediaAuthorizationRegistry, SourceProvenance};
 pub use compatibility::{CompatibilityStatus, MediaCompatibility};
 pub use error::MediaEngineError;
 pub use identity::{MediaAsset, SourceIdentity};
@@ -21,6 +25,13 @@ pub use metadata::{
     OtherStreamMetadata, Rational, VideoStreamMetadata,
 };
 pub use probe::probe_media_file;
+pub use proxy::{
+    compute_proxy_cache_key, ProxyEngine, ProxyMapping, DEFAULT_PROXY_TIMEOUT, PROXY_MAX_HEIGHT,
+};
+pub use range::{
+    determine_mime_type, parse_byte_range, read_range_slice, ResolvedByteRange,
+    MAX_RANGE_CHUNK_BYTES,
+};
 
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};

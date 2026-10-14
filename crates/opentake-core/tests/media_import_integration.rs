@@ -3,6 +3,7 @@ use std::process::Command;
 use tempfile::TempDir;
 use tokio_util::sync::CancellationToken;
 
+use opentake_core::media::authorization::SourceProvenance;
 use opentake_core::media::compatibility::CompatibilityStatus;
 use opentake_core::media::error::MediaEngineError;
 use opentake_core::media::import::MediaLibrarySession;
@@ -44,6 +45,23 @@ fn generate_synthetic_media(
 }
 
 #[tokio::test]
+async fn test_unauthorized_import_rejected() {
+    let temp_dir = TempDir::new().unwrap();
+    let mp4_path = temp_dir.path().join("unauthorized.mp4");
+
+    if !generate_synthetic_media(&mp4_path, "libx264", None, 0.5) {
+        eprintln!("Skipping test: ffmpeg failed or not available");
+        return;
+    }
+
+    let session = MediaLibrarySession::default();
+    // Attempting to import without native authorization MUST be rejected!
+    let err = session.import_file(&mp4_path, None).await.unwrap_err();
+    assert!(matches!(err, MediaEngineError::UnauthorizedPath { .. }));
+    assert_eq!(err.code(), "UNAUTHORIZED_PATH");
+}
+
+#[tokio::test]
 async fn test_import_synthetic_h264_aac_mp4() {
     let temp_dir = TempDir::new().unwrap();
     let mp4_path = temp_dir.path().join("synthetic_valid.mp4");
@@ -55,7 +73,7 @@ async fn test_import_synthetic_h264_aac_mp4() {
 
     let session = MediaLibrarySession::default();
     let asset = session
-        .import_file(&mp4_path, None)
+        .import_authorized_file(&mp4_path, SourceProvenance::NativeFileDialog, None)
         .await
         .expect("Import failed");
 
@@ -88,7 +106,7 @@ async fn test_import_hyphen_filename_option_injection_defense() {
 
     let session = MediaLibrarySession::default();
     let asset = session
-        .import_file(&hyphen_path, None)
+        .import_authorized_file(&hyphen_path, SourceProvenance::NativeFileDialog, None)
         .await
         .expect("Import of hyphen-prefixed file failed");
 
@@ -108,7 +126,7 @@ async fn test_import_unicode_and_spaces_in_filename() {
 
     let session = MediaLibrarySession::default();
     let asset = session
-        .import_file(&unicode_path, None)
+        .import_authorized_file(&unicode_path, SourceProvenance::NativeFileDialog, None)
         .await
         .expect("Import of unicode filename failed");
 
@@ -127,10 +145,16 @@ async fn test_duplicate_file_rejection() {
     }
 
     let session = MediaLibrarySession::default();
-    let _asset1 = session.import_file(&mp4_path, None).await.unwrap();
+    let _asset1 = session
+        .import_authorized_file(&mp4_path, SourceProvenance::NativeFileDialog, None)
+        .await
+        .unwrap();
 
     // Second import of the identical file
-    let err = session.import_file(&mp4_path, None).await.unwrap_err();
+    let err = session
+        .import_authorized_file(&mp4_path, SourceProvenance::NativeFileDialog, None)
+        .await
+        .unwrap_err();
     assert!(matches!(err, MediaEngineError::DuplicateFile { .. }));
     assert_eq!(err.code(), "DUPLICATE_FILE");
 }
@@ -142,7 +166,10 @@ async fn test_corrupted_file_rejection() {
     fs::write(&corrupt_path, b"NotAValidMp4HeaderCorruptedDataHere!!").unwrap();
 
     let session = MediaLibrarySession::default();
-    let err = session.import_file(&corrupt_path, None).await.unwrap_err();
+    let err = session
+        .import_authorized_file(&corrupt_path, SourceProvenance::NativeFileDialog, None)
+        .await
+        .unwrap_err();
     assert!(matches!(
         err,
         MediaEngineError::CorruptMedia { .. } | MediaEngineError::OutputParseFailed { .. }
@@ -164,7 +191,11 @@ async fn test_import_cancellation() {
     cancel_token.cancel(); // Pre-cancelled
 
     let err = session
-        .import_file(&mp4_path, Some(&cancel_token))
+        .import_authorized_file(
+            &mp4_path,
+            SourceProvenance::NativeFileDialog,
+            Some(&cancel_token),
+        )
         .await
         .unwrap_err();
     assert!(matches!(err, MediaEngineError::Cancelled { .. }));
@@ -184,7 +215,10 @@ async fn test_source_preservation_on_removal() {
     let initial_content = fs::read(&mp4_path).unwrap();
 
     let session = MediaLibrarySession::default();
-    let asset = session.import_file(&mp4_path, None).await.unwrap();
+    let asset = session
+        .import_authorized_file(&mp4_path, SourceProvenance::NativeFileDialog, None)
+        .await
+        .unwrap();
     assert_eq!(session.get_assets().await.len(), 1);
 
     // Remove from library

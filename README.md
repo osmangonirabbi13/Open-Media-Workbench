@@ -3,7 +3,7 @@
 > **Free AI Video Editing Studio — Automatic Silence Removal & Rough-Cut Desktop Studio**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%206%20Media%20Import%20Complete-success.svg)](docs/reports/STEP_06_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%207%20Playback%20Complete-success.svg)](docs/reports/STEP_07_REPORT.md)
 [![Roadmap](https://img.shields.io/badge/Roadmap-32%20Steps%20Approved-success.svg)](docs/roadmap/DEVELOPMENT_ROADMAP.md)
 
 OpenTake is a free, open-source, offline-first desktop application designed to streamline spoken-word video editing. It provides content creators, podcasters, educators, and video editors with a fast, privacy-preserving studio to automatically detect and eliminate dead air, review cuts on an interactive timeline, and export high-quality, watermark-free MP4 videos.
@@ -13,8 +13,8 @@ OpenTake is a free, open-source, offline-first desktop application designed to s
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 6 Completed (File Import & Metadata Inspection)**  
-> Media import and inspection are live! OpenTake now supports selecting and dragging local video files, rigorous path authorization and validation, FFprobe container and stream metadata extraction with option-injection defense, exact rational frame rate handling, compatibility evaluation, and session Media Library management. Next: **STEP 7 (Video Playback & Seeking Foundation)**.
+> **Project State: STEP 7 Completed (Secure Video Playback, Seeking & Proxy Foundation)**  
+> Secure local video playback, precise seeking, and preview proxy workflows are live! OpenTake now features a Rust-owned asset authorization system, an `opentake-media://` protocol handler with bounded HTTP byte-range streaming, an integrated HTML5 video preview monitor with transport controls and keyboard shortcuts, and managed background FFmpeg 720p H.264 preview proxy generation with deterministic caching and cancellation. Next: **STEP 8 (Audio Extraction, Peak Caching & Multi-LOD Waveform Pipeline)**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)

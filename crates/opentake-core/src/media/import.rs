@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::{RwLock, Semaphore};
 use tokio_util::sync::CancellationToken;
 
+use super::authorization::{MediaAuthorizationRegistry, SourceProvenance};
 use super::compatibility::MediaCompatibility;
 use super::error::MediaEngineError;
 use super::identity::{MediaAsset, SourceIdentity};
@@ -133,6 +134,7 @@ pub struct MediaLibrarySession {
     assets: Arc<RwLock<Vec<MediaAsset>>>,
     probe_semaphore: Arc<Semaphore>,
     ffprobe_path: Option<PathBuf>,
+    authorization_registry: Arc<MediaAuthorizationRegistry>,
 }
 
 impl Default for MediaLibrarySession {
@@ -147,7 +149,13 @@ impl MediaLibrarySession {
             assets: Arc::new(RwLock::new(Vec::new())),
             probe_semaphore: Arc::new(Semaphore::new(MAX_CONCURRENT_PROBE_JOBS)),
             ffprobe_path,
+            authorization_registry: Arc::new(MediaAuthorizationRegistry::new()),
         }
+    }
+
+    /// Returns a reference to the authoritative media authorization registry.
+    pub fn authorization_registry(&self) -> &Arc<MediaAuthorizationRegistry> {
+        &self.authorization_registry
     }
 
     /// Returns a snapshot of all active media assets in this session.
@@ -170,25 +178,87 @@ impl MediaLibrarySession {
             .cloned()
     }
 
-    /// Removes an asset from the media library session.
+    /// Removes an asset from the media library session and revokes its authorization.
     /// GUARANTEE: Does NOT delete, rename, or touch the source file on disk.
     pub async fn remove_asset(&self, id: &str) -> bool {
         let mut write = self.assets.write().await;
-        let original_len = write.len();
-        write.retain(|a| a.id != id);
-        write.len() < original_len
+        if let Some(pos) = write.iter().position(|a| a.id == id) {
+            let removed = write.remove(pos);
+            drop(write);
+            // Revoke authorization in registry
+            let path = PathBuf::from(&removed.source.canonical_path);
+            self.authorization_registry.revoke(&path).await;
+            true
+        } else {
+            false
+        }
     }
 
-    /// Clears all assets from the session without touching files on disk.
+    /// Clears all assets from the session and revokes all authorizations without touching files on disk.
     pub async fn clear_session(&self) {
         let mut write = self.assets.write().await;
         write.clear();
+        drop(write);
+        self.authorization_registry.clear().await;
     }
 
-    /// Ingests and inspects a single validated file path.
+    /// Explicitly pre-authorizes a path with verified native provenance (e.g. from native window drop).
+    pub async fn authorize_path(
+        &self,
+        path: PathBuf,
+        provenance: SourceProvenance,
+        size_bytes: u64,
+        modified_epoch_ms: Option<u64>,
+    ) {
+        self.authorization_registry
+            .authorize(path, provenance, size_bytes, modified_epoch_ms)
+            .await;
+    }
+
+    /// Imports a candidate file with explicit native user provenance.
+    /// Used by the native file picker and native window drop event listener.
+    pub async fn import_authorized_file(
+        &self,
+        candidate_path: &Path,
+        provenance: SourceProvenance,
+        cancellation: Option<&CancellationToken>,
+    ) -> Result<MediaAsset, MediaEngineError> {
+        let validated = validate_media_file_path(candidate_path)?;
+
+        // Authorize in registry with verified provenance
+        self.authorization_registry
+            .authorize(
+                validated.canonical_path.clone(),
+                provenance,
+                validated.file_size,
+                validated.modified_epoch_ms,
+            )
+            .await;
+
+        self.import_internal(validated, cancellation).await
+    }
+
+    /// Ingests a candidate file path, strictly validating that it has been pre-authorized.
+    /// Rejects any arbitrary path that was not authorized via native user selection.
     pub async fn import_file(
         &self,
         candidate_path: &Path,
+        cancellation: Option<&CancellationToken>,
+    ) -> Result<MediaAsset, MediaEngineError> {
+        let validated = validate_media_file_path(candidate_path)?;
+
+        // SECURITY ENFORCEMENT: Reject any path not pre-authorized by native user selection
+        self.authorization_registry
+            .verify_authorization(&validated.canonical_path, validated.file_size)
+            .await?;
+
+        self.import_internal(validated, cancellation).await
+    }
+
+    /// Internal import logic after path validation and authorization.
+    async fn import_internal(
+        &self,
+        validated: ValidatedFile,
         cancellation: Option<&CancellationToken>,
     ) -> Result<MediaAsset, MediaEngineError> {
         // 1. Check cancellation
@@ -200,10 +270,7 @@ impl MediaLibrarySession {
             }
         }
 
-        // 2. Validate file on filesystem
-        let validated = validate_media_file_path(candidate_path)?;
-
-        // 3. Duplicate check
+        // 2. Duplicate check
         if let Some(_existing) = self
             .find_duplicate(&validated.canonical_path_str, validated.file_size)
             .await
@@ -213,7 +280,7 @@ impl MediaLibrarySession {
             });
         }
 
-        // 4. Acquire probe concurrency permit (bounds simultaneous FFprobe processes)
+        // 3. Acquire probe concurrency permit (bounds simultaneous FFprobe processes)
         let _permit = self
             .probe_semaphore
             .acquire()
@@ -229,7 +296,7 @@ impl MediaLibrarySession {
             }
         }
 
-        // 5. Probe media with FFprobe
+        // 4. Probe media with FFprobe
         let metadata = probe_media_file(
             self.ffprobe_path.as_ref(),
             &validated.canonical_path,
@@ -238,10 +305,10 @@ impl MediaLibrarySession {
         )
         .await?;
 
-        // 6. Evaluate compatibility
+        // 5. Evaluate compatibility
         let compatibility = MediaCompatibility::evaluate(&metadata);
 
-        // 7. Construct source identity and asset
+        // 6. Construct source identity and asset
         let source = SourceIdentity::new(
             validated.canonical_path_str,
             validated.file_size,
@@ -250,10 +317,9 @@ impl MediaLibrarySession {
 
         let asset = MediaAsset::new(source, metadata, compatibility);
 
-        // 8. Register in session
+        // 7. Register in session
         {
             let mut write = self.assets.write().await;
-            // Final duplicate check before inserting
             if !write
                 .iter()
                 .any(|a| a.matches_source(&asset.source.canonical_path, asset.source.file_size))

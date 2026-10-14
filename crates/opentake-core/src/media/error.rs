@@ -83,6 +83,27 @@ pub enum MediaEngineError {
     #[error("File at '{path}' has already been imported into this session")]
     DuplicateFile { path: String },
 
+    #[error("Path '{path}' was not authorized through native user selection")]
+    UnauthorizedPath { path: String },
+
+    #[error("Media asset '{id}' was not found in the active session")]
+    AssetNotFound { id: String },
+
+    #[error("Media asset '{id}' has been revoked or removed from the session")]
+    AssetRevoked { id: String },
+
+    #[error("Invalid HTTP byte range request: {details}")]
+    InvalidRange { details: String },
+
+    #[error("HTTP byte range {start}-{end} is unsatisfiable for resource size {total}")]
+    RangeNotSatisfiable { start: u64, end: u64, total: u64 },
+
+    #[error("Failed to generate preview proxy for asset '{id}': {reason}")]
+    ProxyGenerationFailed { id: String, reason: String },
+
+    #[error("Preview proxy generation for asset '{id}' was cancelled")]
+    ProxyCancelled { id: String },
+
     #[error("Internal media engine error: {0}")]
     Internal(String),
 }
@@ -112,6 +133,13 @@ impl MediaEngineError {
             Self::CorruptMedia { .. } => "CORRUPT_MEDIA",
             Self::NoStreamsFound { .. } => "NO_STREAMS_FOUND",
             Self::DuplicateFile { .. } => "DUPLICATE_FILE",
+            Self::UnauthorizedPath { .. } => "UNAUTHORIZED_PATH",
+            Self::AssetNotFound { .. } => "ASSET_NOT_FOUND",
+            Self::AssetRevoked { .. } => "ASSET_REVOKED",
+            Self::InvalidRange { .. } => "INVALID_RANGE",
+            Self::RangeNotSatisfiable { .. } => "RANGE_NOT_SATISFIABLE",
+            Self::ProxyGenerationFailed { .. } => "PROXY_GENERATION_FAILED",
+            Self::ProxyCancelled { .. } => "PROXY_CANCELLED",
             Self::Internal(_) => "INTERNAL_ERROR",
         }
     }
@@ -188,6 +216,24 @@ impl MediaEngineError {
                 "The media file contains no detectable video or audio streams.".to_string()
             }
             Self::DuplicateFile { .. } => "This file is already in your media library.".to_string(),
+            Self::UnauthorizedPath { .. } => {
+                "The selected file was not authorized via native file picker or drag-and-drop."
+                    .to_string()
+            }
+            Self::AssetNotFound { .. } => "The requested media asset was not found.".to_string(),
+            Self::AssetRevoked { .. } => {
+                "Access to this media asset has been revoked or removed.".to_string()
+            }
+            Self::InvalidRange { details } => {
+                format!("Invalid media seek/range request: {details}")
+            }
+            Self::RangeNotSatisfiable { .. } => {
+                "Requested media range is beyond the end of the file.".to_string()
+            }
+            Self::ProxyGenerationFailed { reason, .. } => {
+                format!("Preview proxy transcode failed: {reason}")
+            }
+            Self::ProxyCancelled { .. } => "Preview proxy generation was cancelled.".to_string(),
             Self::Internal(msg) => format!("Media engine error: {msg}"),
         }
     }

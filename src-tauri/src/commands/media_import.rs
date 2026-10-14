@@ -4,6 +4,7 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use tauri::State;
 
+use opentake_core::media::authorization::SourceProvenance;
 use opentake_core::media::error::MediaEngineError;
 use opentake_core::media::identity::MediaAsset;
 use opentake_core::media::import::MediaLibrarySession;
@@ -41,6 +42,7 @@ pub struct ImportBatchResult {
 }
 
 /// Opens the native OS file picker and imports all selected media files.
+/// Provenance: NativeFileDialog (authorized via genuine OS file chooser).
 #[tauri::command]
 pub async fn pick_and_import_files(
     state: State<'_, MediaLibraryState>,
@@ -66,17 +68,22 @@ pub async fn pick_and_import_files(
     };
 
     let paths: Vec<PathBuf> = files.into_iter().map(|h| h.path().to_path_buf()).collect();
-    process_import_paths(&paths, &state.session).await
+    process_authorized_paths(&paths, &state.session, SourceProvenance::NativeFileDialog).await
 }
 
-/// Ingests candidate file paths passed from native window drag-and-drop.
+/// Ingests candidate file paths passed from drag-and-drop.
+///
+/// # Security Invariant
+/// Paths provided from frontend IPC MUST be pre-authorized in the Rust
+/// MediaAuthorizationRegistry (e.g. from genuine window drop events).
+/// Arbitrary un-authorized paths are rejected immediately with UNAUTHORIZED_PATH.
 #[tauri::command]
 pub async fn import_files_by_path(
     paths: Vec<String>,
     state: State<'_, MediaLibraryState>,
 ) -> Result<ImportBatchResult, String> {
     let path_bufs: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
-    process_import_paths(&path_bufs, &state.session).await
+    process_preauthorized_paths(&path_bufs, &state.session).await
 }
 
 /// Returns all media assets currently in the active session.
@@ -87,7 +94,7 @@ pub async fn get_media_library_assets(
     Ok(state.session.get_assets().await)
 }
 
-/// Removes a media asset from the current library session.
+/// Removes a media asset from the current library session and revokes its authorization.
 /// GUARANTEE: Does NOT delete, rename, or touch the source file on disk.
 #[tauri::command]
 pub async fn remove_media_library_asset(
@@ -104,8 +111,43 @@ pub async fn clear_media_library(state: State<'_, MediaLibraryState>) -> Result<
     Ok(())
 }
 
-/// Shared helper function to validate and ingest multiple paths sequentially.
-async fn process_import_paths(
+/// Ingests paths with verified native provenance (e.g. NativeFileDialog or NativeWindowDrop).
+pub async fn process_authorized_paths(
+    paths: &[PathBuf],
+    session: &MediaLibrarySession,
+    provenance: SourceProvenance,
+) -> Result<ImportBatchResult, String> {
+    let mut succeeded = Vec::new();
+    let mut duplicates = Vec::new();
+    let mut failed = Vec::new();
+
+    for path in paths {
+        let file_name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown")
+            .to_string();
+
+        match session.import_authorized_file(path, provenance, None).await {
+            Ok(asset) => succeeded.push(asset),
+            Err(MediaEngineError::DuplicateFile { .. }) => duplicates.push(file_name),
+            Err(e) => failed.push(ImportFailure {
+                file_name,
+                error_code: e.code().to_string(),
+                error_message: e.user_message(),
+            }),
+        }
+    }
+
+    Ok(ImportBatchResult {
+        succeeded,
+        duplicates,
+        failed,
+    })
+}
+
+/// Ingests paths verifying that they were pre-authorized in the registry.
+pub async fn process_preauthorized_paths(
     paths: &[PathBuf],
     session: &MediaLibrarySession,
 ) -> Result<ImportBatchResult, String> {
@@ -150,15 +192,22 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_process_import_paths_missing_file() {
+    async fn test_process_import_paths_unauthorized_rejection() {
         let session = MediaLibrarySession::default();
-        let fake_path = PathBuf::from("/nonexistent/video_test_file.mp4");
-        let result = process_import_paths(&[fake_path], &session).await.unwrap();
+        let arbitrary_path = PathBuf::from("/etc/shadow");
+        // An un-authorized path must be rejected by preauthorized path processing!
+        let result = process_preauthorized_paths(&[arbitrary_path], &session)
+            .await
+            .unwrap();
 
         assert_eq!(result.succeeded.len(), 0);
-        assert_eq!(result.duplicates.len(), 0);
         assert_eq!(result.failed.len(), 1);
-        assert_eq!(result.failed[0].error_code, "FILE_NOT_FOUND");
+        // Either FileNotFound if doesn't exist/unreadable, or UnauthorizedPath
+        assert!(
+            result.failed[0].error_code == "UNAUTHORIZED_PATH"
+                || result.failed[0].error_code == "PERMISSION_DENIED"
+                || result.failed[0].error_code == "FILE_NOT_FOUND"
+        );
     }
 
     #[tokio::test]

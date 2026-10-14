@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { LAYOUT_BOUNDS } from "../../types/preferences";
+import type { MediaAsset } from "../../types/media";
 import { MediaLibraryPanel } from "../editor/MediaLibraryPanel";
 import { PreviewPanel } from "../editor/PreviewPanel";
 import { TimelinePanel } from "../editor/TimelinePanel";
@@ -24,6 +25,7 @@ export function ResizableWorkspace({
   onToggleSnap,
 }: ResizableWorkspaceProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [selectedAsset, setSelectedAsset] = useState<MediaAsset | null>(null);
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
 
@@ -136,7 +138,10 @@ export function ResizableWorkspace({
           style={{ width: `${mediaPanelWidth}px` }}
           className="shrink-0 h-full overflow-hidden"
         >
-          <MediaLibraryPanel />
+          <MediaLibraryPanel
+            selectedAsset={selectedAsset}
+            onSelectAsset={setSelectedAsset}
+          />
         </div>
 
         {/* Horizontal Splitter Handle */}
@@ -160,7 +165,10 @@ export function ResizableWorkspace({
 
         {/* Preview Monitor Panel */}
         <div className="flex-1 min-w-0 h-full overflow-hidden">
-          <PreviewPanel timecodeFormat={timecodeFormat} />
+          <PreviewPanel
+            timecodeFormat={timecodeFormat}
+            asset={selectedAsset}
+          />
         </div>
       </div>
 

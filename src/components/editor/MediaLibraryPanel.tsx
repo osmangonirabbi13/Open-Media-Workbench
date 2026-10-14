@@ -25,14 +25,31 @@ import {
 } from "../../types/media";
 import { MediaDetailsModal } from "./MediaDetailsModal";
 
-export function MediaLibraryPanel(): React.ReactElement {
+export interface MediaLibraryPanelProps {
+  selectedAsset?: MediaAsset | null;
+  onSelectAsset?: (asset: MediaAsset | null) => void;
+}
+
+export function MediaLibraryPanel({
+  selectedAsset: controlledSelectedAsset,
+  onSelectAsset,
+}: MediaLibraryPanelProps = {}): React.ReactElement {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [selectedAsset, setSelectedAsset] = useState<MediaAsset | null>(null);
+  const [internalSelectedAsset, setInternalSelectedAsset] = useState<MediaAsset | null>(null);
   const [detailsAsset, setDetailsAsset] = useState<MediaAsset | null>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [noticeBanner, setNoticeBanner] = useState<string | null>(null);
+
+  const selectedAsset = controlledSelectedAsset !== undefined ? controlledSelectedAsset : internalSelectedAsset;
+  const setSelectedAsset = useCallback(
+    (asset: MediaAsset | null) => {
+      setInternalSelectedAsset(asset);
+      onSelectAsset?.(asset);
+    },
+    [onSelectAsset]
+  );
 
   // Load existing session assets on initial mount
   useEffect(() => {
@@ -42,6 +59,9 @@ export function MediaLibraryPanel(): React.ReactElement {
         const loaded = await getMediaLibraryAssets();
         if (isMounted) {
           setAssets(loaded);
+          if (loaded.length > 0 && !selectedAsset) {
+            setSelectedAsset(loaded[0]);
+          }
         }
       } catch (err) {
         console.error("Failed to load initial media assets:", err);

@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: data: blob:; media-src 'self' asset: data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' http://localhost:1420 http://127.0.0.1:1420 ws://localhost:1420 ws://127.0.0.1:1420 tauri: ipc:;"
+      "csp": "default-src 'self'; img-src 'self' asset: data: blob:; media-src 'self' asset: opentake-media: data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' opentake-media: http://localhost:1420 http://127.0.0.1:1420 ws://localhost:1420 ws://127.0.0.1:1420 tauri: ipc:;"
     }
   },
   "bundle": {
