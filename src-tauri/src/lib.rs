@@ -70,6 +70,7 @@ pub fn run() {
             commands::subtitles::save_subtitle_project,
             commands::subtitles::open_subtitle_project,
             commands::subtitles::validate_subtitle_document_command,
+            commands::subtitles::apply_subtitle_operation_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

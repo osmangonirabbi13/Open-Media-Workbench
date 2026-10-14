@@ -149,3 +149,14 @@ The validation engine inspects tracks without mutating content:
 - **Authoritative Coordinate Space:** Cues are authored in **Source Media Time** (`MediaTimeUs`).
 - **Binary Search Lookup ($O(\log N)$):** During video playback (up to 60 FPS), the UI uses binary partition search rather than $O(N)$ linear scans to identify active cues, ensuring buttery-smooth laptop performance with files containing thousands of cues.
 - **Safe Caption Overlay:** Captions are rendered as pure React text elements with text shadows and backdrop blur. `dangerouslySetInnerHTML` is strictly prohibited.
+
+---
+
+## 7. Interactive Subtitle Editing Architecture (STEP 17)
+
+The foundations laid in STEP 16 are extended into a full interactive timeline editor in STEP 17. See [SUBTITLE_EDITOR.md](SUBTITLE_EDITOR.md) for complete details on:
+- The canonical `SubtitleOperation` domain engine in Rust and TypeScript
+- Direct visual manipulation on the audio waveform canvas
+- Snapping algorithms and visual alignment
+- Multi-level history and crash recovery architecture
+

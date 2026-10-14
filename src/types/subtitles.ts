@@ -82,3 +82,35 @@ export interface SubtitleProjectOpenResponse {
   fileName: string;
   filePath: string;
 }
+
+export type SubtitleOperation =
+  | { type: "addCue"; payload: { trackId: string; cue: SubtitleCue } }
+  | { type: "deleteCue"; payload: { trackId: string; cueId: string } }
+  | { type: "deleteCues"; payload: { trackId: string; cueIds: string[] } }
+  | { type: "updateCueText"; payload: { trackId: string; cueId: string; text: string } }
+  | { type: "updateCueSpeaker"; payload: { trackId: string; cueId: string; speaker?: string } }
+  | { type: "setCueTiming"; payload: { trackId: string; cueId: string; startUs: number; endUs: number } }
+  | { type: "moveCue"; payload: { trackId: string; cueId: string; deltaUs: number } }
+  | { type: "resizeCueStart"; payload: { trackId: string; cueId: string; newStartUs: number } }
+  | { type: "resizeCueEnd"; payload: { trackId: string; cueId: string; newEndUs: number } }
+  | { type: "splitCue"; payload: { trackId: string; cueId: string; splitTimeUs: number } }
+  | { type: "mergeCues"; payload: { trackId: string; firstCueId: string; secondCueId: string } }
+  | { type: "shiftSelectedCues"; payload: { trackId: string; cueIds: string[]; deltaUs: number } }
+  | { type: "duplicateCue"; payload: { trackId: string; cueId: string } }
+  | { type: "updateTrackMetadata"; payload: { trackId: string; language?: string; displayName?: string } };
+
+export interface SubtitleOperationResponse {
+  document: SubtitleDocument;
+  findings: SubtitleFinding[];
+}
+
+export type SnapTargetType = "playhead" | "cueStart" | "cueEnd" | "grid";
+
+export interface SnapResult {
+  snappedTimeUs: number;
+  snappedPixelX: number;
+  targetType: SnapTargetType;
+  targetTimeUs: number;
+  label: string;
+}
+

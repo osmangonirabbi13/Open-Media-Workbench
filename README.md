@@ -3,8 +3,9 @@
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%2016%20Subtitle%20Foundation%20Complete-success.svg)](docs/reports/STEP_16_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2017%20Professional%20Subtitle%20Editor%20Complete-success.svg)](docs/reports/STEP_17_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
+
 
 Open Media Workbench is a free, open-source, offline-first desktop application designed for media recovery and local AI localization. Built with Tauri 2, Rust, and React 19, the workbench provides content creators, archivists, and video professionals with an uncompromising local-first studio that processes all media strictly on-device without cloud telemetry or mandatory accounts.
 
@@ -43,12 +44,12 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
    - **Professional Recovery Preview, Validation & Reports (STEP 15 Implemented):**
      - **Secure Staged Candidate Preview:** Preview recovered media safely prior to final export using `SourceProvenance::StagedRecoveryCandidate` and opaque custom protocol tokens (`opentake-media://`) without exposing staging filesystem paths or expanding Tauri capabilities.
      - **Multi-Mode Before/After Comparison Player:** Side-by-side synchronized comparison (`Original | Recovered`) with linked or independent seek modes, as well as single recovered-only and original-only views. Unplayable originals are handled honestly: metadata and diagnostic findings remain visible while recovered candidate plays independently.
-     - **Advanced Multi-Tier Output Validation:** Distinguishes `MetadataOnly`, `SampledDecode` (with explicit disclosure of sample duration and coverage), and user-initiated on-demand `FullDecode` (verifying 100% of bitstream frames without unbounded automatic execution).
-     - **Timeline Difference & Integrity Review:** Compares stream durations and start offsets using verified timestamp evidence; missing nominal durations (e.g. missing moov) are never fabricated or converted to misleading recovery percentages.
-     - **Persistent Local Recovery History:** Crash-safe, atomic versioned JSON ledger tracking up to 50 previous recovery attempts with status, validation levels, timestamps, and manual history clear action. No cloud telemetry or private path leakage.
-     - **Sanitized JSON & Standalone Offline HTML Reports:** User-initiated report export featuring stable machine-readable finding codes, strict Content-Security-Policy, offline embedded dark CSS, XSS escaping, and path privacy sanitization (redacting home directories to `~` and masking temporary staging paths).
+     - **Advanced Multi-Tier Output Validation:** Distinguishes `MetadataOnly`, `SampledDecode` (with explicit disclosure of sample coverage), and user-initiated on-demand `FullDecode` (verifying 100% of bitstream frames without unbounded automatic execution).
+     - **Timeline Difference & Integrity Review:** Compares stream durations and start offsets using verified timestamp evidence; missing nominal durations are never fabricated.
+     - **Persistent Local Recovery History:** Crash-safe, atomic versioned JSON ledger tracking up to 50 previous recovery attempts with status, validation levels, timestamps, and manual history clear action.
+     - **Sanitized JSON & Standalone Offline HTML Reports:** User-initiated report export featuring stable machine-readable finding codes, strict Content-Security-Policy, offline embedded dark CSS, XSS escaping, and path privacy sanitization.
 
-2. **Localization Studio** *(Active Development — STEP 16 Subtitle Foundation Complete)*
+2. **Localization Studio** *(Active Development — STEPS 16 & 17 Implemented)*
    - **Canonical Subtitle Domain Model (STEP 16 Implemented):**
      - **Strict Microsecond Timestamps:** Microsecond-accurate integer representation (`MediaTimeUs`), preventing floating-point drift across playback ticks.
      - **Robust SubRip (.srt) Support:** Parsing and serialization supporting UTF-8 BOM, CRLF/LF line endings, multiline cues, and tolerant numbering.
@@ -58,7 +59,16 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Safe Local Import & Provenance:** Native `rfd` file picker enforcing `SourceProvenance::SubtitleFileDialog`, 10MB file size ceiling, and 20,000 cue caps without arbitrary filesystem writes or media mutation.
      - **Live Video Preview Overlay & Synchronized Seek:** Clean plain-text subtitle overlay rendered over the HTML5 preview player with Closed Captions (CC) toggle; click-to-seek cue list navigation powered by $O(\log N)$ binary search lookup.
      - **Safe Atomic Export & Project Persistence:** Export to compliant `.srt` and `.vtt` formats with temporary file rename guarantees; versioned `.omwsub` project document format.
-   - **Interactive Subtitle Editor & Retiming** *(Planned STEP 17–18)*
+   - **Professional Subtitle Timeline Editor (STEP 17 Implemented):**
+     - **Visual Timeline Cue Blocks:** Interactive cue blocks on a dedicated `S1 Subtitle` track lane precisely aligned with the audio waveform canvas and horizontal time ruler.
+     - **Interactive Timeline Manipulation:** Drag cue bodies to translate timing; drag left and right boundary handles to resize start and end times in integer microseconds.
+     - **Multi-Target Snapping Engine:** Snaps cue boundaries to current playhead, neighboring cue start/end boundaries, and timeline grid with visual amber snap indicators and threshold controls.
+     - **Split & Merge Workflows:** Split cues at playhead with clean Unicode/Bengali word and newline division; merge adjacent cues with deterministic text concatenation and metadata preservation.
+     - **Precise Timing Inspector:** Dedicated start/end timecode inputs (`HH:MM:SS.mmm`), duration display, configurable nudge buttons (-100ms, +100ms, -500ms, +500ms), and playhead sync buttons ("Start @ Playhead", "End @ Playhead").
+     - **Inline Dialogue Editor:** Multiline text editor with live character counts, lines count, reading speed (chars/sec), and non-blocking readability warnings (>42 chars/line).
+     - **Multi-Cue Batch Editing:** Ctrl/Cmd-click and Shift-click range selection, batch nudge timing shifts with atomic negative-time rejection, and batch deletion.
+     - **Multi-Level Undo/Redo:** 50-step deterministic history stack with `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`, and `Ctrl/Cmd+Y` shortcuts, designed to never intercept native text input undo events.
+     - **Autosave & Crash Recovery:** Dirty state tracking with debounced snapshots and automatic recovery prompts on launch protecting against abrupt crashes or power loss.
    - **Local, Offline AI Speech-to-Text (Whisper)** *(Planned STEP 19)*
    - **On-Device Multilingual Translation** *(Planned STEP 22–23)*
    - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
@@ -93,8 +103,9 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 16 Completed (Professional Subtitle Data Model, SRT/WebVTT Import, Validation & Export)**
-> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), recovery review/reporting pipeline (STEP 15), and professional subtitle foundation (STEP 16) are fully implemented and verified with **204 automated Rust tests** and **46 TypeScript unit tests**. Next milestone: **STEP 17**.
+> **Project State: STEP 17 Completed (Professional Visual Subtitle Editor: Timing, Split/Merge, Waveform Alignment & Undo/Redo)**
+> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), recovery review/reporting pipeline (STEP 15), subtitle foundation (STEP 16), and professional subtitle editor (STEP 17) are fully implemented and verified with **225 automated Rust tests** and **57 TypeScript unit tests**. Next milestone: **STEP 18**.
+
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)

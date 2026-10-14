@@ -52,4 +52,10 @@ pub enum SubtitleError {
 
     #[error("Track not found with ID '{0}'")]
     TrackNotFound(String),
+
+    #[error("Cue not found with ID '{0}'")]
+    CueNotFound(String),
+
+    #[error("Subtitle operation error: {0}")]
+    OperationError(String),
 }

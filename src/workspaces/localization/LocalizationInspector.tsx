@@ -3,8 +3,10 @@ import type { MediaAsset } from "../../types/media";
 import type {
   SubtitleDocument,
   SubtitleFormat,
+  SubtitleOperation,
   SubtitleTrack,
 } from "../../types/subtitles";
+
 import {
   SubtitlesIcon,
   GlobeIcon,
@@ -28,6 +30,13 @@ export interface LocalizationInspectorProps {
   document: SubtitleDocument | null;
   activeTrack: SubtitleTrack | null;
   currentTime: number;
+  selectedCueIds?: string[];
+  onSelectCues?: (cueIds: string[]) => void;
+  onApplyOperation?: (op: SubtitleOperation) => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
   onDocumentChange: (doc: SubtitleDocument | null) => void;
   onActiveTrackChange: (trackId: string) => void;
   onToggleTrackVisibility: (trackId: string) => void;
@@ -41,11 +50,19 @@ export function LocalizationInspector({
   document,
   activeTrack,
   currentTime,
+  selectedCueIds,
+  onSelectCues,
+  onApplyOperation,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
   onDocumentChange,
   onActiveTrackChange,
   onToggleTrackVisibility,
   onSeek,
 }: LocalizationInspectorProps): React.ReactElement {
+
   const [internalTab, setInternalTab] = useState<LocalizationTab>("subtitles");
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
 
@@ -161,11 +178,19 @@ export function LocalizationInspector({
               document={document}
               activeTrack={activeTrack}
               currentTime={currentTime}
+              selectedCueIds={selectedCueIds}
+              onSelectCues={onSelectCues}
+              onApplyOperation={onApplyOperation}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={onUndo}
+              onRedo={onRedo}
               onDocumentChange={onDocumentChange}
               onActiveTrackChange={onActiveTrackChange}
               onToggleTrackVisibility={onToggleTrackVisibility}
               onSeek={onSeek}
             />
+
           </div>
         )}
 

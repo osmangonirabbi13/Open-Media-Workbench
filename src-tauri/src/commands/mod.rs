@@ -28,11 +28,12 @@ pub use repair::{
     RepairDiagnosticsState,
 };
 pub use subtitles::{
-    export_subtitle_track, open_subtitle_project, parse_subtitle_content,
-    pick_and_import_subtitle_file, save_subtitle_project, validate_subtitle_document_command,
-    SubtitleExportResponse, SubtitleImportResponse, SubtitleProjectOpenResponse,
-    SubtitleProjectSaveResponse,
+    apply_subtitle_operation_command, export_subtitle_track, open_subtitle_project,
+    parse_subtitle_content, pick_and_import_subtitle_file, save_subtitle_project,
+    validate_subtitle_document_command, SubtitleExportResponse, SubtitleImportResponse,
+    SubtitleOperationResponse, SubtitleProjectOpenResponse, SubtitleProjectSaveResponse,
 };
+
 pub use waveform::{
     cancel_waveform_analysis, get_waveform_segment, get_waveform_status, request_waveform_analysis,
     WaveformSegmentResponse, WaveformState, WaveformStatusInfo, WaveformStatusResponse,

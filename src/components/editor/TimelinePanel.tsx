@@ -10,7 +10,9 @@ import {
 import { IconButton } from "../ui/IconButton";
 import { EmptyState } from "../ui/EmptyState";
 import type { MediaAsset } from "../../types/media";
+import type { SubtitleTrack } from "../../types/subtitles";
 import { WaveformCanvas } from "../timeline/WaveformCanvas";
+import { SubtitleTimelineLane } from "../timeline/SubtitleTimelineLane";
 import { useWaveform } from "../../hooks/useWaveform";
 import { formatTimecode, formatFrames } from "../../lib/playback";
 
@@ -22,6 +24,12 @@ export interface TimelinePanelProps {
   currentTime: number;
   duration: number;
   onSeek: (seconds: number) => void;
+  subtitleTrack?: SubtitleTrack | null;
+  selectedCueIds?: string[];
+  onSelectCues?: (cueIds: string[]) => void;
+  onMoveCue?: (cueId: string, deltaUs: number) => void;
+  onResizeCueStart?: (cueId: string, newStartUs: number) => void;
+  onResizeCueEnd?: (cueId: string, newEndUs: number) => void;
 }
 
 const ZOOM_LEVELS = [1, 2, 4, 8, 16];
@@ -34,10 +42,17 @@ export function TimelinePanel({
   currentTime,
   duration,
   onSeek,
+  subtitleTrack,
+  selectedCueIds = [],
+  onSelectCues,
+  onMoveCue,
+  onResizeCueStart,
+  onResizeCueEnd,
 }: TimelinePanelProps): React.ReactElement {
   const [zoomIdx, setZoomIdx] = useState<number>(0);
   const [timelineWidth, setTimelineWidth] = useState<number>(800);
   const surfaceRef = useRef<HTMLDivElement>(null);
+
   const rulerRef = useRef<HTMLDivElement>(null);
 
   const zoomMultiplier = ZOOM_LEVELS[zoomIdx];
@@ -175,7 +190,7 @@ export function TimelinePanel({
               Timeline
             </span>
             <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-zinc-800 text-zinc-400">
-              {asset ? "2 Tracks Active (Read-Only)" : "0 Tracks Active"}
+              {asset ? (subtitleTrack ? "3 Tracks Active (1 Subtitle)" : "2 Tracks Active (Read-Only)") : "0 Tracks Active"}
             </span>
             {zoomMultiplier > 1 && (
               <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-indigo-950 text-indigo-300 border border-indigo-700/50">
@@ -288,6 +303,19 @@ export function TimelinePanel({
             </div>
             <span className="text-[9px] font-mono text-zinc-500 mt-1">16 kHz • MONO</span>
           </div>
+
+          {/* Track S1 Header (Subtitles) */}
+          {subtitleTrack && (
+            <div className="h-16 border-b border-zinc-800/60 flex flex-col justify-center px-2.5 text-xs bg-indigo-950/20">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-indigo-400">S1</span>
+                <span className="text-[10px] text-zinc-500">Subtitle</span>
+              </div>
+              <span className="text-[9px] font-mono text-zinc-400 mt-1 truncate">
+                {subtitleTrack.language.toUpperCase()} • {subtitleTrack.cues.length} cues
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Right: Timeline Surface */}
@@ -374,10 +402,29 @@ export function TimelinePanel({
                   </div>
                 )}
               </div>
+
+              {/* Subtitle Track Lane (S1) */}
+              {subtitleTrack && (
+                <SubtitleTimelineLane
+                  track={subtitleTrack}
+                  currentTimeMicros={currentTimeMicros}
+                  viewportStartMicros={viewportStartMicros}
+                  viewportEndMicros={viewportEndMicros}
+                  durationMicros={durationMicros}
+                  snapEnabled={snapEnabled}
+                  selectedCueIds={selectedCueIds}
+                  onSelectCues={onSelectCues || (() => {})}
+                  onMoveCue={onMoveCue || (() => {})}
+                  onResizeCueStart={onResizeCueStart || (() => {})}
+                  onResizeCueEnd={onResizeCueEnd || (() => {})}
+                  onSeek={onSeek}
+                />
+              )}
             </>
           )}
         </div>
       </div>
+
     </section>
   );
 }

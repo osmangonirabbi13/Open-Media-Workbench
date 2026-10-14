@@ -109,8 +109,8 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - Crash-safe, atomic versioned JSON history ledger (up to 50 attempts).
   - Standalone offline HTML and machine-readable JSON report export with home directory and staging path privacy sanitization.
 
-### 3.2 Localization Studio (Active Development — STEP 16 Subtitle Foundation Complete)
-**Objective:** End-to-end subtitle generation, speech recognition, machine translation, and neural speech dubbing.
+### 3.2 Localization Studio (Active Development — STEPS 16 & 17 Complete)
+**Objective:** End-to-end subtitle generation, interactive visual editing, speech recognition, machine translation, and neural speech dubbing.
 
 - **Canonical Subtitle Domain Model & Timing (Completed in STEP 16):**
   - **Microsecond Precision:** Cues and tracks represent time exclusively via `MediaTimeUs` ($t \ge 0$), completely eliminating floating-point rounding drifts.
@@ -119,10 +119,18 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - **Native Desktop Security & Provenance:** Subtitle file import enforces `SourceProvenance::SubtitleFileDialog` via `rfd`, 10 MB bounded file size limits, 20,000 max cue limits, and explicit binding to authorized media assets without media file mutation.
   - **Safe Atomic Export & Versioned Persistence:** Native export to compliant `.srt` and `.vtt` formats with atomic write/rename guarantees; versioned `.omwsub` project document format for multi-track persistence and reopening.
   - **Live Preview Caption Overlay & Time Sync:** Synchronized plain-text subtitle rendering in video preview monitor with CC visibility toggle and click-to-seek cue list navigation ($O(\log N)$ binary search lookup).
-- **Interactive Subtitle Editor & Retiming (Planned STEP 17–18):**
-  - Subtitle cues modeled as microsecond intervals (`SourceRange`), perfectly synchronized with the canonical EDL engine.
-  - Interactive cue manipulation: splitting, merging, retiming, and text editing with real-time waveform visualization.
+- **Professional Subtitle Timeline Editor (Completed in STEP 17):**
+  - **Visual Cue Blocks:** Timeline cue blocks aligned with the shared time ruler and audio waveform canvas on a dedicated `S1 Subtitle` lane.
+  - **Direct Manipulation:** Body dragging for time translation; left and right edge boundary handles for start and end resizing.
+  - **Deterministic Snapping Engine:** Snaps to current playhead, neighboring cue start/end boundaries, and timeline grid with visual amber guides and configurable threshold.
+  - **Split & Merge:** Split cues at playhead with clean Unicode/Bengali word and newline division; merge adjacent cues with deterministic text concatenation.
+  - **Precise Timing Inspector:** `HH:MM:SS.mmm` controls, duration display, nudge buttons (-100ms, +100ms, -500ms, +500ms), and playhead sync buttons ("Start @ Playhead", "End @ Playhead").
+  - **Dialogue Text Editor:** Multiline text editor with live character counts, reading speed (chars/sec), and non-blocking readability warnings (>42 chars/line).
+  - **Multi-Cue Batch Editing:** Ctrl/Cmd-click and Shift-click range selection, batch nudge timing shifts with atomic negative-time rejection, and batch deletion.
+  - **Multi-Level Undo/Redo:** 50-step deterministic history stack with `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`, and `Ctrl/Cmd+Y` shortcuts, designed to never intercept native text input undo events.
+  - **Autosave & Crash Recovery:** Dirty state tracking with debounced snapshots and automatic recovery prompts on launch protecting against abrupt crashes or power loss.
 - **Local AI Transcription (Speech-to-Text — Planned STEP 19):**
+
   - Fully offline, local Whisper inference (e.g., via `whisper.cpp` / ONNX runtime).
   - Emits word-level and phrase-level timestamped tokens directly into the subtitle cue list.
   - Zero external network requests or third-party cloud dependencies.

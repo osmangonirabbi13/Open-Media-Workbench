@@ -1,12 +1,14 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import type { MediaAsset } from "../../types/media";
-import type { SubtitleDocument } from "../../types/subtitles";
+import type { SubtitleDocument, SubtitleOperation } from "../../types/subtitles";
 import { MediaLibraryPanel } from "../../components/editor/MediaLibraryPanel";
 import { PreviewPanel } from "../../components/editor/PreviewPanel";
 import { TimelinePanel } from "../../components/editor/TimelinePanel";
 import { LocalizationInspector } from "./LocalizationInspector";
 import { LAYOUT_BOUNDS } from "../../types/preferences";
 import { findActiveCues } from "../../lib/subtitles";
+import { applySubtitleOperation } from "../../lib/subtitleOperations";
+import { saveAutosaveSnapshot } from "../../lib/subtitleAutosave";
 
 export interface LocalizationWorkspaceProps {
   mediaPanelWidth: number;
@@ -20,6 +22,8 @@ export interface LocalizationWorkspaceProps {
   onToggleSnap: () => void;
 }
 
+const MAX_UNDO_STACK_SIZE = 50;
+
 export function LocalizationWorkspace({
   mediaPanelWidth,
   timelineDeckHeight,
@@ -32,16 +36,21 @@ export function LocalizationWorkspace({
   onToggleSnap,
 }: LocalizationWorkspaceProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [inspectorWidth, setInspectorWidth] = useState<number>(360);
+  const [inspectorWidth, setInspectorWidth] = useState<number>(380);
 
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
   const [isDraggingInspector, setIsDraggingInspector] = useState(false);
 
-  // Subtitle document and track state
+  // Subtitle document, track state, and multi-selection
   const [subtitleDoc, setSubtitleDoc] = useState<SubtitleDocument | null>(null);
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
   const [subtitlesVisible, setSubtitlesVisible] = useState<boolean>(true);
+  const [selectedCueIds, setSelectedCueIds] = useState<string[]>([]);
+
+  // Multi-level undo/redo history stacks
+  const [undoStack, setUndoStack] = useState<SubtitleDocument[]>([]);
+  const [redoStack, setRedoStack] = useState<SubtitleDocument[]>([]);
 
   // Synchronized playback state shared between PreviewPanel and TimelinePanel
   const [playbackTime, setPlaybackTime] = useState<{
@@ -94,6 +103,134 @@ export function LocalizationWorkspace({
     setSubtitleDoc({ ...subtitleDoc, tracks: updatedTracks });
   };
 
+  // Applies an operation to the subtitle document with undo recording & autosave
+  const handleApplyOperation = useCallback(
+    (op: SubtitleOperation) => {
+      if (!subtitleDoc) return;
+
+      try {
+        const nextDoc = applySubtitleOperation(subtitleDoc, op);
+
+        // Push current state to undo history
+        setUndoStack((prev) => [...prev.slice(-MAX_UNDO_STACK_SIZE + 1), subtitleDoc]);
+        setRedoStack([]); // Clear redo stack on new action
+        setSubtitleDoc(nextDoc);
+
+        // Autosave snapshot
+        saveAutosaveSnapshot(nextDoc, selectedAsset?.id);
+      } catch (err) {
+        console.error("Failed to apply subtitle operation:", err);
+      }
+    },
+    [subtitleDoc, selectedAsset?.id]
+  );
+
+  // Undo edit
+  const handleUndo = useCallback(() => {
+    if (undoStack.length === 0 || !subtitleDoc) return;
+
+    const previousDoc = undoStack[undoStack.length - 1];
+    setUndoStack((prev) => prev.slice(0, -1));
+    setRedoStack((prev) => [...prev, subtitleDoc]);
+    setSubtitleDoc(previousDoc);
+
+    saveAutosaveSnapshot(previousDoc, selectedAsset?.id);
+  }, [undoStack, subtitleDoc, selectedAsset?.id]);
+
+  // Redo edit
+  const handleRedo = useCallback(() => {
+    if (redoStack.length === 0 || !subtitleDoc) return;
+
+    const nextDoc = redoStack[redoStack.length - 1];
+    setRedoStack((prev) => prev.slice(0, -1));
+    setUndoStack((prev) => [...prev, subtitleDoc]);
+    setSubtitleDoc(nextDoc);
+
+    saveAutosaveSnapshot(nextDoc, selectedAsset?.id);
+  }, [redoStack, subtitleDoc, selectedAsset?.id]);
+
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Protect native inputs/textareas
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      // Undo / Redo
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key.toLowerCase() === "z") {
+          e.preventDefault();
+          if (e.shiftKey) {
+            handleRedo();
+          } else {
+            handleUndo();
+          }
+        } else if (e.key.toLowerCase() === "y") {
+          e.preventDefault();
+          handleRedo();
+        }
+      }
+
+      // Delete selected cues
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (selectedCueIds.length > 0 && activeTrack) {
+          e.preventDefault();
+          if (selectedCueIds.length === 1) {
+            handleApplyOperation({
+              type: "deleteCue",
+              payload: { trackId: activeTrack.id, cueId: selectedCueIds[0] },
+            });
+          } else {
+            handleApplyOperation({
+              type: "deleteCues",
+              payload: { trackId: activeTrack.id, cueIds: selectedCueIds },
+            });
+          }
+          setSelectedCueIds([]);
+        }
+      }
+
+      // Split shortcut ('c' or Ctrl+\)
+      if (
+        (e.key.toLowerCase() === "c" && !e.ctrlKey && !e.metaKey) ||
+        ((e.ctrlKey || e.metaKey) && e.key === "\\")
+      ) {
+        if (selectedCueIds.length === 1 && activeTrack) {
+          const cue = activeTrack.cues.find((c) => c.id === selectedCueIds[0]);
+          const currentMicros = Math.round(playbackTime.currentTime * 1_000_000);
+          if (cue && currentMicros > cue.startUs && currentMicros < cue.endUs) {
+            e.preventDefault();
+            handleApplyOperation({
+              type: "splitCue",
+              payload: {
+                trackId: activeTrack.id,
+                cueId: cue.id,
+                splitTimeUs: currentMicros,
+              },
+            });
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    activeTrack,
+    handleApplyOperation,
+    handleRedo,
+    handleUndo,
+    playbackTime.currentTime,
+    selectedCueIds,
+  ]);
+
   // Horizontal Splitter Dragging (Media Panel Width)
   const handleHorizontalPointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
     e.preventDefault();
@@ -110,13 +247,13 @@ export function LocalizationWorkspace({
 
     const handlePointerUp = (upEvent: PointerEvent): void => {
       setIsDraggingHorizontal(false);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
       try {
-        e.currentTarget.releasePointerCapture(upEvent.pointerId);
+        (e.target as HTMLDivElement).releasePointerCapture(upEvent.pointerId);
       } catch {
         // Ignored
       }
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -139,20 +276,20 @@ export function LocalizationWorkspace({
 
     const handlePointerUp = (upEvent: PointerEvent): void => {
       setIsDraggingVertical(false);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
       try {
-        e.currentTarget.releasePointerCapture(upEvent.pointerId);
+        (e.target as HTMLDivElement).releasePointerCapture(upEvent.pointerId);
       } catch {
         // Ignored
       }
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
   };
 
-  // Right Inspector Splitter Dragging
+  // Inspector Splitter Dragging (Inspector Width)
   const handleInspectorPointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -162,21 +299,20 @@ export function LocalizationWorkspace({
     const startWidth = inspectorWidth;
 
     const handlePointerMove = (moveEvent: PointerEvent): void => {
-      // Dragging left increases inspector width (right-anchored)
       const delta = startX - moveEvent.clientX;
-      const clamped = Math.min(Math.max(startWidth + delta, 260), 480);
-      setInspectorWidth(clamped);
+      const newWidth = Math.max(280, Math.min(520, startWidth + delta));
+      setInspectorWidth(newWidth);
     };
 
     const handlePointerUp = (upEvent: PointerEvent): void => {
       setIsDraggingInspector(false);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
       try {
-        e.currentTarget.releasePointerCapture(upEvent.pointerId);
+        (e.target as HTMLDivElement).releasePointerCapture(upEvent.pointerId);
       } catch {
         // Ignored
       }
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -185,22 +321,13 @@ export function LocalizationWorkspace({
 
   return (
     <div
-      id="workspace-panel-localization"
-      role="tabpanel"
-      aria-labelledby="workspace-tab-localization"
       ref={containerRef}
-      className={`flex-1 flex min-h-0 relative select-none bg-zinc-950 text-zinc-100 ${
-        isDraggingHorizontal || isDraggingInspector
-          ? "cursor-col-resize"
-          : isDraggingVertical
-            ? "cursor-row-resize"
-            : ""
-      }`}
+      className="flex h-full w-full bg-zinc-950 overflow-hidden select-none"
     >
       {/* 1. Left: Media Library Panel */}
       <div
         style={{ width: `${mediaPanelWidth}px` }}
-        className="shrink-0 h-full overflow-hidden"
+        className="shrink-0 h-full overflow-hidden border-r border-zinc-800/80"
       >
         <MediaLibraryPanel
           selectedAsset={selectedAsset}
@@ -208,11 +335,11 @@ export function LocalizationWorkspace({
         />
       </div>
 
-      {/* Horizontal Splitter (Media Library) */}
+      {/* Horizontal Splitter Handle */}
       <div
         role="separator"
         tabIndex={0}
-        aria-label="Media Library panel width resize handle"
+        aria-label="Media library width resize handle"
         aria-orientation="vertical"
         aria-valuenow={mediaPanelWidth}
         aria-valuemin={LAYOUT_BOUNDS.MEDIA_MIN_WIDTH}
@@ -225,20 +352,21 @@ export function LocalizationWorkspace({
         <div className="w-0.5 h-6 rounded-full bg-zinc-700/60 pointer-events-none" />
       </div>
 
-      {/* 2. Center: Video Preview & Waveform Timeline */}
-      <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden">
-        {/* Upper Preview Canvas */}
+      {/* 2. Center: Video Preview & Timeline */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Top Video Preview Panel */}
         <div className="flex-1 min-h-0 overflow-hidden">
           <PreviewPanel
-            timecodeFormat={timecodeFormat}
             asset={selectedAsset}
+            timecodeFormat={timecodeFormat}
             onPlaybackTimeChange={handlePlaybackTimeChange}
             onRegisterSeek={handleRegisterSeek}
             activeSubtitleCues={activeCues}
             subtitlesVisible={subtitlesVisible}
-            onToggleSubtitlesVisible={() => setSubtitlesVisible((v) => !v)}
+            onToggleSubtitlesVisible={() => setSubtitlesVisible(!subtitlesVisible)}
           />
         </div>
+
 
         {/* Vertical Splitter Handle */}
         <div
@@ -270,6 +398,33 @@ export function LocalizationWorkspace({
             currentTime={playbackTime.currentTime}
             duration={playbackTime.duration}
             onSeek={handleTimelineSeek}
+            subtitleTrack={activeTrack}
+            selectedCueIds={selectedCueIds}
+            onSelectCues={setSelectedCueIds}
+            onMoveCue={(cueId, deltaUs) => {
+              if (activeTrack) {
+                handleApplyOperation({
+                  type: "moveCue",
+                  payload: { trackId: activeTrack.id, cueId, deltaUs },
+                });
+              }
+            }}
+            onResizeCueStart={(cueId, newStartUs) => {
+              if (activeTrack) {
+                handleApplyOperation({
+                  type: "resizeCueStart",
+                  payload: { trackId: activeTrack.id, cueId, newStartUs },
+                });
+              }
+            }}
+            onResizeCueEnd={(cueId, newEndUs) => {
+              if (activeTrack) {
+                handleApplyOperation({
+                  type: "resizeCueEnd",
+                  payload: { trackId: activeTrack.id, cueId, newEndUs },
+                });
+              }
+            }}
           />
         </div>
       </div>
@@ -281,8 +436,8 @@ export function LocalizationWorkspace({
         aria-label="Localization inspector width resize handle"
         aria-orientation="vertical"
         aria-valuenow={inspectorWidth}
-        aria-valuemin={260}
-        aria-valuemax={480}
+        aria-valuemin={280}
+        aria-valuemax={520}
         onPointerDown={handleInspectorPointerDown}
         className={`w-1.5 shrink-0 bg-zinc-900 hover:bg-indigo-600/70 transition-colors cursor-col-resize relative flex items-center justify-center focus-visible:outline-none focus-visible:bg-indigo-500 ${
           isDraggingInspector ? "bg-indigo-600 shadow-md shadow-indigo-600/50" : ""
@@ -301,6 +456,13 @@ export function LocalizationWorkspace({
           document={subtitleDoc}
           activeTrack={activeTrack}
           currentTime={playbackTime.currentTime}
+          selectedCueIds={selectedCueIds}
+          onSelectCues={setSelectedCueIds}
+          onApplyOperation={handleApplyOperation}
+          canUndo={undoStack.length > 0}
+          canRedo={redoStack.length > 0}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
           onDocumentChange={setSubtitleDoc}
           onActiveTrackChange={setActiveTrackId}
           onToggleTrackVisibility={handleToggleTrackVisibility}

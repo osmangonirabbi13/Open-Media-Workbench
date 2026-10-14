@@ -8,8 +8,9 @@ use opentake_core::editing::time::MediaTimeUs;
 use opentake_core::localization::subtitles::{
     export_subtitles_to_string, load_subtitle_document, parse_subtitles_from_str,
     save_subtitle_document, validate_document, validate_track, SubtitleDocument, SubtitleFinding,
-    SubtitleFormat, SubtitleTrack, MAX_SUBTITLE_FILE_SIZE,
+    SubtitleFormat, SubtitleOperation, SubtitleTrack, MAX_SUBTITLE_FILE_SIZE,
 };
+
 use opentake_core::media::authorization::SourceProvenance;
 
 use super::media_import::MediaLibraryState;
@@ -382,6 +383,31 @@ pub async fn open_subtitle_project(
     }))
 }
 
+/// Response payload containing mutated document and updated validation findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubtitleOperationResponse {
+    pub document: SubtitleDocument,
+    pub findings: Vec<SubtitleFinding>,
+}
+
+/// Applies an atomic subtitle editing operation to a SubtitleDocument and revalidates it.
+#[tauri::command]
+pub fn apply_subtitle_operation_command(
+    mut document: SubtitleDocument,
+    operation: SubtitleOperation,
+    media_duration_us: Option<i64>,
+) -> Result<SubtitleOperationResponse, String> {
+    document
+        .apply_operation(operation)
+        .map_err(|e| e.to_string())?;
+
+    let dur = media_duration_us.map(MediaTimeUs::from_micros);
+    let findings = validate_document(&document, dur);
+
+    Ok(SubtitleOperationResponse { document, findings })
+}
+
 /// Runs validation rules against a given SubtitleDocument.
 #[tauri::command]
 pub fn validate_subtitle_document_command(
@@ -394,6 +420,7 @@ pub fn validate_subtitle_document_command(
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use opentake_core::localization::subtitles::SubtitleCue;
 
@@ -442,5 +469,32 @@ mod tests {
         assert!(json.contains("\"fileName\":\"test.bn.srt\""));
         assert!(json.contains("\"fileSizeBytes\":120"));
         assert!(json.contains("\"filePath\":\"/path/to/test.bn.srt\""));
+    }
+
+    #[test]
+    fn test_apply_subtitle_operation_command() {
+        let mut doc = SubtitleDocument::new(Some("test-asset".to_string()));
+        let mut track = SubtitleTrack::new("tr-1", "en", "English", SubtitleFormat::Srt);
+        track.cues.push(
+            SubtitleCue::new(
+                "c-1",
+                MediaTimeUs::from_micros(1_000_000),
+                MediaTimeUs::from_micros(5_000_000),
+                "Initial text",
+            )
+            .unwrap(),
+        );
+        doc.add_track(track);
+
+        let op = SubtitleOperation::UpdateCueText {
+            track_id: "tr-1".to_string(),
+            cue_id: "c-1".to_string(),
+            text: "Mutated text".to_string(),
+        };
+
+        let res = apply_subtitle_operation_command(doc, op, Some(10_000_000))
+            .expect("Operation should succeed");
+        assert_eq!(res.document.tracks[0].cues[0].text, "Mutated text");
+        assert!(res.findings.is_empty());
     }
 }
