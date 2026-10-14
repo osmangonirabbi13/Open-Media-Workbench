@@ -6,6 +6,7 @@ import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import { RecoveryWorkflowPanel } from "./RecoveryWorkflowPanel";
 import { LAYOUT_BOUNDS } from "../../types/preferences";
 import { FilmIcon, WrenchIcon } from "../../components/ui/Icons";
+import type { DiagnosticReport } from "../../types/repair";
 
 export interface RepairWorkspaceProps {
   mediaPanelWidth: number;
@@ -23,7 +24,16 @@ export function RepairWorkspace({
   onMediaPanelWidthChange,
 }: RepairWorkspaceProps): React.ReactElement {
   const [activeWorkflowStep, setActiveWorkflowStep] = useState<number>(1);
+  const [currentReport, setCurrentReport] = useState<DiagnosticReport | null>(null);
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
+
+  // Sync workflow step when report completes
+  const handleReportChange = (report: DiagnosticReport | null) => {
+    setCurrentReport(report);
+    if (report && report.analysisStatus === "completed") {
+      setActiveWorkflowStep(3);
+    }
+  };
 
   // Determine playability
   const isPlayable =
@@ -119,6 +129,7 @@ export function RepairWorkspace({
         <RecoveryWorkflowPanel
           asset={selectedAsset}
           activeStep={activeWorkflowStep}
+          report={currentReport}
           onStepChange={setActiveWorkflowStep}
         />
 
@@ -131,7 +142,11 @@ export function RepairWorkspace({
               <span className="text-[10px] text-zinc-500">Inspection View</span>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto">
-              <DiagnosticsPanel asset={selectedAsset} />
+              <DiagnosticsPanel
+                asset={selectedAsset}
+                onAssetImported={onSelectAsset}
+                onReportChange={handleReportChange}
+              />
             </div>
           </div>
 

@@ -1,26 +1,53 @@
 import React from "react";
 import type { MediaAsset } from "../../types/media";
+import type { DiagnosticReport } from "../../types/repair";
 import { CheckIcon, WrenchIcon } from "../../components/ui/Icons";
 import { Button } from "../../components/ui/Button";
 
 export interface RecoveryWorkflowPanelProps {
   asset: MediaAsset | null;
   activeStep: number;
+  report?: DiagnosticReport | null;
   onStepChange?: (step: number) => void;
 }
 
 export function RecoveryWorkflowPanel({
   asset,
   activeStep = 1,
+  report,
   onStepChange,
 }: RecoveryWorkflowPanelProps): React.ReactElement {
+  const isInspected = report !== null && report !== undefined;
+
   const steps = [
-    { number: 1, title: "Select Media", status: asset ? "complete" : activeStep === 1 ? "current" : "upcoming" },
-    { number: 2, title: "Inspect Container", status: asset && activeStep > 2 ? "complete" : activeStep === 2 ? "current" : "upcoming" },
-    { number: 3, title: "Choose Recovery Method", status: asset && activeStep > 3 ? "complete" : activeStep === 3 ? "current" : "upcoming" },
-    { number: 4, title: "Validate Stream", status: activeStep === 4 ? "current" : "upcoming" },
-    { number: 5, title: "Export Salvaged Media", status: activeStep === 5 ? "current" : "upcoming" },
+    {
+      number: 1,
+      title: "Select Media",
+      status: asset ? "complete" : activeStep === 1 ? "current" : "upcoming",
+    },
+    {
+      number: 2,
+      title: "Inspect Container",
+      status: isInspected ? "complete" : asset ? "current" : "upcoming",
+    },
+    {
+      number: 3,
+      title: "Choose Recovery Method",
+      status: isInspected && activeStep >= 3 ? "current" : "upcoming",
+    },
+    {
+      number: 4,
+      title: "Validate Stream",
+      status: activeStep === 4 ? "current" : "upcoming",
+    },
+    {
+      number: 5,
+      title: "Export Salvaged Media",
+      status: activeStep === 5 ? "current" : "upcoming",
+    },
   ];
+
+  const primaryRecommendation = report?.recommendations?.[0];
 
   return (
     <div className="p-4 border-b border-zinc-800 bg-zinc-900/40 select-none">
@@ -69,17 +96,26 @@ export function RecoveryWorkflowPanel({
         })}
       </ol>
 
-      {/* Recovery Methods Selection (Disabled state for STEP 11) */}
+      {/* Recovery Methods Selection (Disabled state for STEP 12) */}
       <div className="mt-4 pt-3 border-t border-zinc-800/60 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center space-x-2">
           <span className="text-xs text-zinc-400 font-medium">Recovery Engine:</span>
           <select
             disabled
-            className="text-xs bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-500 cursor-not-allowed"
+            className="text-xs bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-300 cursor-not-allowed"
+            value={primaryRecommendation?.strategyId || "default"}
+            onChange={() => {}}
           >
-            <option>Reference MOOV Reconstruction (Scheduled STEP 13)</option>
-            <option>FFmpeg Container Re-indexing (Scheduled STEP 13)</option>
-            <option>Raw Stream Demux & Salvage (Scheduled STEP 14)</option>
+            {primaryRecommendation ? (
+              <option value={primaryRecommendation.strategyId}>
+                {primaryRecommendation.title} (Scheduled STEP {primaryRecommendation.targetStep})
+              </option>
+            ) : (
+              <option value="default">Awaiting Diagnostic Inspection</option>
+            )}
+            <option value="REFERENCE_BASED_RECONSTRUCTION">Reference MOOV Reconstruction (Scheduled STEP 14)</option>
+            <option value="CONTAINER_REMUX">Lossless Container Remux (Scheduled STEP 13)</option>
+            <option value="RAW_STREAM_SALVAGE">Raw Stream Demux & Salvage (Scheduled STEP 13)</option>
           </select>
         </div>
 
@@ -88,7 +124,7 @@ export function RecoveryWorkflowPanel({
             size="xs"
             variant="secondary"
             disabled
-            title="Backend salvage engine will be implemented in STEP 13–14"
+            title="Backend salvage and reconstruction engines will be implemented in STEPS 13–14"
           >
             Execute Recovery (Scheduled STEP 13)
           </Button>

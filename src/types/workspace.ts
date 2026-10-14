@@ -43,7 +43,7 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceId, WorkspaceDefinition> = {
         id: "corruption_diagnostics",
         label: "Deep Container Diagnostics",
         description: "Atom hierarchy parsing, sample table inspection & PTS/DTS validation",
-        status: "planned",
+        status: "available",
         roadmapStep: 12,
       },
       {

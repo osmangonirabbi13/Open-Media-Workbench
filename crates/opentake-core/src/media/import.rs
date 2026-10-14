@@ -8,9 +8,10 @@ use tokio::sync::{RwLock, Semaphore};
 use tokio_util::sync::CancellationToken;
 
 use super::authorization::{MediaAuthorizationRegistry, SourceProvenance};
-use super::compatibility::MediaCompatibility;
+use super::compatibility::{CompatibilityStatus, MediaCompatibility};
 use super::error::MediaEngineError;
 use super::identity::{MediaAsset, SourceIdentity};
+use super::metadata::{ContainerMetadata, MediaMetadata};
 use super::probe::probe_media_file;
 
 /// Maximum allowable single file size for safe import inspection (500 GiB).
@@ -236,6 +237,105 @@ impl MediaLibrarySession {
             .await;
 
         self.import_internal(validated, cancellation).await
+    }
+
+    /// Imports a candidate file specifically for Repair Studio diagnosis.
+    ///
+    /// Even if FFprobe fails to inspect the container (e.g. missing moov atom or truncated headers),
+    /// the asset is safely registered and assigned an authorized asset ID so the diagnostic engine
+    /// can perform forensic inspection without bypassing security authorization.
+    pub async fn import_authorized_repair_file(
+        &self,
+        candidate_path: &Path,
+        provenance: SourceProvenance,
+        cancellation: Option<&CancellationToken>,
+    ) -> Result<MediaAsset, MediaEngineError> {
+        let validated = validate_media_file_path(candidate_path)?;
+
+        self.authorization_registry
+            .authorize(
+                validated.canonical_path.clone(),
+                provenance,
+                validated.file_size,
+                validated.modified_epoch_ms,
+            )
+            .await;
+
+        if let Some(token) = cancellation {
+            if token.is_cancelled() {
+                return Err(MediaEngineError::Cancelled {
+                    command: "import_repair_file".to_string(),
+                });
+            }
+        }
+
+        if let Some(existing) = self
+            .find_duplicate(&validated.canonical_path_str, validated.file_size)
+            .await
+        {
+            return Ok(existing);
+        }
+
+        // Try probing, but fall back safely if the file is corrupted
+        let (metadata, compatibility) = match probe_media_file(
+            self.ffprobe_path.as_ref(),
+            &validated.canonical_path,
+            validated.file_size,
+            cancellation,
+        )
+        .await
+        {
+            Ok(meta) => {
+                let compat = MediaCompatibility::evaluate(&meta);
+                (meta, compat)
+            }
+            Err(probe_err) => {
+                let ext = candidate_path
+                    .extension()
+                    .and_then(|e| e.to_str())
+                    .unwrap_or("unknown")
+                    .to_lowercase();
+                let fallback_meta = MediaMetadata {
+                    container: ContainerMetadata {
+                        format_name: ext,
+                        format_long_name: Some(format!("Damaged / Corrupted ({probe_err})")),
+                        duration_micros: None,
+                        start_time_micros: None,
+                        bitrate_bps: None,
+                        size_bytes: validated.file_size,
+                        stream_count: 0,
+                    },
+                    video_streams: Vec::new(),
+                    audio_streams: Vec::new(),
+                    other_streams: Vec::new(),
+                };
+                let fallback_compat = MediaCompatibility {
+                    overall: CompatibilityStatus::Invalid,
+                    container_status: CompatibilityStatus::Invalid,
+                    video_status: CompatibilityStatus::Invalid,
+                    audio_status: CompatibilityStatus::Invalid,
+                    can_inspect: true,
+                    can_edit_future: false,
+                    warnings: vec![format!("Probe failed: {probe_err}")],
+                };
+                (fallback_meta, fallback_compat)
+            }
+        };
+
+        let source = SourceIdentity::new(
+            validated.canonical_path_str,
+            validated.file_size,
+            validated.modified_epoch_ms,
+        );
+
+        let asset = MediaAsset::new(source, metadata, compatibility);
+
+        {
+            let mut write = self.assets.write().await;
+            write.push(asset.clone());
+        }
+
+        Ok(asset)
     }
 
     /// Ingests a candidate file path, strictly validating that it has been pre-authorized.

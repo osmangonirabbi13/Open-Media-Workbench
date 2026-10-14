@@ -37,7 +37,7 @@ test("Workspace capabilities: distinguishes available vs planned roadmap steps",
   assert.equal(ingestion?.status, "available");
 
   assert.ok(diagnostics);
-  assert.equal(diagnostics?.status, "planned");
+  assert.equal(diagnostics?.status, "available");
   assert.equal(diagnostics?.roadmapStep, 12);
 
   assert.ok(moovRepair);

@@ -2,11 +2,13 @@ pub mod commands;
 pub mod protocol;
 
 pub use commands::{
-    cancel_preview_proxy, cancel_waveform_analysis, clear_media_library, get_app_info,
-    get_media_engine_status, get_media_library_assets, get_media_playback_url, get_proxy_status,
-    get_waveform_segment, get_waveform_status, import_files_by_path, pick_and_import_files,
-    remove_media_library_asset, request_preview_proxy, request_waveform_analysis, AppInfo,
-    MediaEngineState, MediaLibraryState, PlaybackState, WaveformState,
+    cancel_media_diagnostics, cancel_preview_proxy, cancel_waveform_analysis, clear_media_library,
+    export_diagnostic_report, get_app_info, get_diagnostic_report, get_media_engine_status,
+    get_media_library_assets, get_media_playback_url, get_proxy_status, get_waveform_segment,
+    get_waveform_status, import_files_by_path, pick_and_import_files, pick_and_import_repair_asset,
+    remove_media_library_asset, request_preview_proxy, request_waveform_analysis,
+    run_media_diagnostics, AppInfo, MediaEngineState, MediaLibraryState, PlaybackState,
+    RepairDiagnosticsState, WaveformState,
 };
 
 /// Desktop application entry point.
@@ -17,6 +19,7 @@ pub fn run() {
         .manage(commands::MediaLibraryState::default())
         .manage(commands::PlaybackState::default())
         .manage(commands::WaveformState::default())
+        .manage(commands::RepairDiagnosticsState::default())
         .register_uri_scheme_protocol("opentake-media", |app, req| {
             protocol::media::handle_media_protocol(app, req)
         })
@@ -36,6 +39,11 @@ pub fn run() {
             commands::waveform::request_waveform_analysis,
             commands::waveform::cancel_waveform_analysis,
             commands::waveform::get_waveform_segment,
+            commands::repair::run_media_diagnostics,
+            commands::repair::cancel_media_diagnostics,
+            commands::repair::get_diagnostic_report,
+            commands::repair::export_diagnostic_report,
+            commands::repair::pick_and_import_repair_asset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

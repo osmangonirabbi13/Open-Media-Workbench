@@ -3,7 +3,7 @@
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%2010%20Product%20Rebrand%20Complete-success.svg)](docs/reports/STEP_10_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2012%20Diagnostics%20Engine%20Complete-success.svg)](docs/reports/STEP_12_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 Open Media Workbench is a free, open-source, offline-first desktop application designed for media recovery and local AI localization. Built with Tauri 2, Rust, and React 19, the workbench provides content creators, archivists, and video professionals with an uncompromising local-first studio that processes all media strictly on-device without cloud telemetry or mandatory accounts.
@@ -14,30 +14,50 @@ Open Media Workbench is a free, open-source, offline-first desktop application d
 
 Open Media Workbench unifies two specialized studio workspaces under a single high-performance desktop shell, sharing a common Rust media processing core:
 
-1. **Repair Studio** *(Planned)*
-   - Video corruption diagnosis (ISO BMFF atom analysis, broken container headers)
-   - Truncated MP4/MOV recovery (unfinalized recordings salvage via reference file reconstruction)
-   - Recoverable elementary stream extraction and container re-indexing
-   - Safe, non-destructive repair validation with synchronized A/B playback
+1. **Repair Studio** *(Active Development — STEP 12 Diagnostics Complete)*
+   - **Video Corruption Diagnostics (Implemented):**
+     - **Container Identification:** Fast magic byte validation for MP4/MOV, MKV (EBML), and AVI (RIFF) with extension mismatch detection.
+     - **ISO BMFF Structural Inspection:** Bounded, memory-safe atom parser (`ftyp`, `moov`, `mdat`, `moof`, `free/skip`) handling 32-bit, 64-bit extended sizes, and size-0 atoms without loading sample payloads into memory.
+     - **Resilient Stream Probing:** FFprobe metadata inventory that handles unfinalized or missing headers gracefully without crashing.
+     - **Quick vs Deep Scan Modes:** Instant structural inspection (<100ms) or bounded 30-second decode scan (`-f null -`) identifying non-monotonic DTS jumps, macroblock concealment, and corrupt NAL slices.
+     - **Evidence-Based Findings:** Structured codes (`MP4_MOOV_MISSING`, `TIMESTAMP_NON_MONOTONIC_DTS`) with concrete observed evidence strings and confidence scores.
+     - **Sanitized Diagnostic JSON Export:** Privacy-preserving report export with native save destination (scrubs internal user directory paths).
+     - **Cooperative Cancellation:** Responsive background job management with leak-free child process termination.
+   - **Future Repair Engines (Scheduled for STEPS 13 & 14):**
+     - Lossless container remuxing & elementary stream salvage (STEP 13).
+     - Reference-based MOOV atom reconstruction using a working donor file (STEP 14).
 
-2. **Localization Studio** *(Planned)*
+2. **Localization Studio** *(Planned — STEP 11 Desktop UI Ready)*
    - Interactive subtitle editor and timing adjustment
    - Local, privacy-first AI speech-to-text transcription (Whisper)
    - On-device multilingual translation
    - Synchronized neural speech synthesis (voice dubbing)
    - Multi-track preview and dubbed video/subtitle export
 
-*Note: The Repair and Localization studios are planned feature milestones. STEPS 1–9 have established and verified the underlying media core, FFmpeg integration, custom protocol streaming, waveform pipeline, and canonical non-destructive EDL engine.*
+---
+
+## ⚠️ Important Diagnostics & Safety Disclaimers
+
+> [!WARNING]
+> **Video Repair Is NOT Implemented Yet**  
+> STEP 12 implements forensic diagnostics only. No actual stream repair, atom reconstruction, or container re-muxing is executed in this step. All repair buttons remain disabled until the repair engines are implemented in STEPS 13 and 14.
+
+> [!NOTE]
+> **Deep Scan Is Bounded**  
+> Deep diagnostics executes a bounded 30-second decode sample to identify bitstream defects and timestamp discontinuities quickly. It does **not** decode the entire media file and does **not** prove or guarantee that subsequent uninspected sections of the file are healthy.
+
+> [!IMPORTANT]
+> **Hardware-Dependent Scan Duration & Absolute Read-Only Guarantee**  
+> - Diagnostic execution duration varies depending on media container complexity, disk I/O speed, and CPU decoder capabilities.
+> - **Zero-Byte Mutation Guarantee:** Original source files are opened strictly in read-only mode. The workbench never alters, overwrites, truncates, or moves source media files.
 
 ---
 
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 10 Completed (Product Rebranding, Licensing Audit & Safe Migration)**  
-> The project has completed its initial foundation and media milestones (STEPS 1–9), establishing the Tauri 2 desktop shell, secure managed-process media engine (`opentake-core::media`), custom byte-range media streaming (`opentake-media://`), multi-resolution audio waveform caching, and microsecond non-destructive EDL interval algebra (`opentake-core::editing`).
-> 
-> STEP 10 establishes the official product identity as **Open Media Workbench**, completes an exhaustive licensing and supply chain audit ([`docs/architecture/LICENSING_AND_DISTRIBUTION.md`](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/LICENSING_AND_DISTRIBUTION.md)), defines the dual-workspace architecture ([`docs/architecture/OPEN_MEDIA_WORKBENCH.md`](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/OPEN_MEDIA_WORKBENCH.md)), and maintains 100% backwards-compatibility with existing tests and internal cache identifiers. Next: **STEP 11**.
+> **Project State: STEP 12 Completed (Video Corruption Diagnostics Engine)**  
+> The dual-workspace desktop UI (STEP 11) and production-grade video corruption diagnostics engine (STEP 12) are fully implemented and verified with 133 automated Rust tests and 28 TypeScript unit tests. Next milestone: **STEP 13 (Lossless Remuxing & Stream Salvage Engine)**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)

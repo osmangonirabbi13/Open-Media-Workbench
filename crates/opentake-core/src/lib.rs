@@ -7,6 +7,7 @@
 
 pub mod editing;
 pub mod media;
+pub mod repair;
 
 use serde::{Deserialize, Serialize};
 

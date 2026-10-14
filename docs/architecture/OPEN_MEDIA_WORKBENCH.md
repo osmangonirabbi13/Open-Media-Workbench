@@ -79,16 +79,21 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
 
 ## 3. Studio Boundaries & Functional Allocation
 
-### 3.1 Repair Studio (Planned Workspace 1)
+### 3.1 Repair Studio (Workspace 1)
 **Objective:** Ingest broken, incomplete, or corrupted video files and recover playable media streams without destructive writes.
 
-- **Ingestion & Diagnostics Boundary:**
-  - Tolerant parser capable of reading partial containers (e.g., MP4/MOV files missing the `moov` atom header due to recording power loss or crash).
-  - Diagnostic report generator identifying missing atoms, unclosed sample tables (`stbl`), damaged chunk offsets (`stco`/`co64`), or non-conforming bitstreams.
-- **Salvage Engine:**
-  - Reference-file reconstruction: extracts codec configuration records (`avcC`, `mp4a`) from a valid reference clip recorded with identical settings and synthesizes a reconstructed `moov` atom.
-  - Raw packet demuxer: recovers orphaned H.264/H.265 NAL units and AAC ADTS frames directly from `mdat` chunks.
-  - Container re-indexing: wraps salvaged elementary streams into compliant MP4 or MKV containers.
+- **Ingestion & Diagnostics Boundary (Completed in STEP 12):**
+  - **Read-Only Forensic Inspection:** Zero mutation of original media files; strict verification of source provenance and media library authorization.
+  - **Signature & Container Identification (`repair::container`):** Magic byte detection for MP4/MOV, MKV EBML, and AVI RIFF with extension mismatch detection.
+  - **Bounded ISO BMFF Atom Scanner (`repair::iso_bmff`):** Memory-bounded scan of top-level boxes (`ftyp`, `moov`, `mdat`, `free/skip`, `moof`, `sidx`). Safely handles 64-bit extended box sizes, size-zero boxes extending to EOF, and truncated headers with checked arithmetic.
+  - **Stream Track Inspection (`repair::streams`):** Probes stream dimensions, timebases, and VFR detection via managed FFprobe, converting probe errors (like `moov atom not found`) into structured diagnostic findings without crashing.
+  - **Bounded Decode & Timestamp Verification (`repair::timestamps`):** Null-sink test decode (`-f null -`) scanning up to 30s for non-monotonic DTS jumps, macroblock concealment, and corrupted NAL units.
+  - **Evidence-Based Recommendations (`repair::report`):** Suggests loss-less remuxing (STEP 13), reference-based MOOV reconstruction (STEP 14), or stream salvage (STEP 13) with explicit target steps and disabled execution.
+  - **Sanitized Report Export:** Native user-directed export of versioned JSON diagnostic reports with sanitized paths.
+- **Salvage Engine (Planned STEPS 13–14):**
+  - Reference-file reconstruction: extracts codec configuration records (`avcC`, `mp4a`) from a valid reference clip recorded with identical settings and synthesizes a reconstructed `moov` atom (STEP 14).
+  - Raw packet demuxer: recovers orphaned H.264/H.265 NAL units and AAC ADTS frames directly from `mdat` chunks (STEP 13).
+  - Container re-indexing: wraps salvaged elementary streams into compliant MP4 or MKV containers (STEP 13).
 - **Validation & Split Preview:**
   - Leverages the shared custom-protocol player to present side-by-side A/B comparison of damaged vs salvaged media before export confirmation.
 
