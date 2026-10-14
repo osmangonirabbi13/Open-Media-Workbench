@@ -14,6 +14,9 @@ uuid = { version = "1.15", features = ["v4", "serde"] }
 tokio = { version = "1.43", features = ["process", "sync", "time", "macros", "io-util", "rt"] }
 tokio-util = "0.7"
 libc = "0.2"
+sha2 = "0.10"
 
 [dev-dependencies]
 tokio = { version = "1.43", features = ["rt-multi-thread", "macros"] }
+tempfile = "3"
+

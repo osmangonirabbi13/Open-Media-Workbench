@@ -55,6 +55,34 @@ pub enum MediaEngineError {
     #[error("Failed to reap or clean up child process PID {pid}: {reason}")]
     ProcessCleanupFailed { pid: u32, reason: String },
 
+    #[error("File at '{path}' was not found")]
+    FileNotFound { path: String },
+
+    #[error("Path '{path}' is not a regular file")]
+    NotARegularFile { path: String },
+
+    #[error("File at '{path}' is empty (0 bytes)")]
+    EmptyFile { path: String },
+
+    #[error("File at '{path}' ({size_bytes} bytes) exceeds maximum supported import size ({limit_bytes} bytes)")]
+    FileTooLarge {
+        path: String,
+        size_bytes: u64,
+        limit_bytes: u64,
+    },
+
+    #[error("Invalid media file path '{path}': {reason}")]
+    InvalidPath { path: String, reason: String },
+
+    #[error("Media file at '{path}' appears corrupted or unreadable: {details}")]
+    CorruptMedia { path: String, details: String },
+
+    #[error("Media file at '{path}' contains no audio or video streams")]
+    NoStreamsFound { path: String },
+
+    #[error("File at '{path}' has already been imported into this session")]
+    DuplicateFile { path: String },
+
     #[error("Internal media engine error: {0}")]
     Internal(String),
 }
@@ -76,6 +104,14 @@ impl MediaEngineError {
             Self::OutputLimitExceeded { .. } => "OUTPUT_LIMIT_EXCEEDED",
             Self::OutputParseFailed { .. } => "OUTPUT_PARSE_FAILED",
             Self::ProcessCleanupFailed { .. } => "PROCESS_CLEANUP_FAILED",
+            Self::FileNotFound { .. } => "FILE_NOT_FOUND",
+            Self::NotARegularFile { .. } => "NOT_A_REGULAR_FILE",
+            Self::EmptyFile { .. } => "EMPTY_FILE",
+            Self::FileTooLarge { .. } => "FILE_TOO_LARGE",
+            Self::InvalidPath { .. } => "INVALID_PATH",
+            Self::CorruptMedia { .. } => "CORRUPT_MEDIA",
+            Self::NoStreamsFound { .. } => "NO_STREAMS_FOUND",
+            Self::DuplicateFile { .. } => "DUPLICATE_FILE",
             Self::Internal(_) => "INTERNAL_ERROR",
         }
     }
@@ -106,7 +142,7 @@ impl MediaEngineError {
                 "Failed to launch background media diagnostic process.".to_string()
             }
             Self::PermissionDenied { .. } => {
-                "Permission denied while attempting to execute media binary.".to_string()
+                "Permission denied while attempting to access or execute media file.".to_string()
             }
             Self::Timeout { duration_ms, .. } => {
                 format!("Media tool execution timed out after {} ms.", duration_ms)
@@ -127,6 +163,31 @@ impl MediaEngineError {
             Self::ProcessCleanupFailed { .. } => {
                 "Warning: An orphaned media process could not be terminated cleanly.".to_string()
             }
+            Self::FileNotFound { .. } => "The selected media file does not exist.".to_string(),
+            Self::NotARegularFile { .. } => {
+                "The selected path is a directory or special device, not a regular file."
+                    .to_string()
+            }
+            Self::EmptyFile { .. } => "The selected media file is empty (0 bytes).".to_string(),
+            Self::FileTooLarge {
+                size_bytes,
+                limit_bytes,
+                ..
+            } => format!(
+                "The media file size ({} MB) exceeds the maximum allowed import size ({} MB).",
+                size_bytes / (1024 * 1024),
+                limit_bytes / (1024 * 1024)
+            ),
+            Self::InvalidPath { reason, .. } => {
+                format!("Invalid file selection: {reason}")
+            }
+            Self::CorruptMedia { details, .. } => {
+                format!("The media file could not be read or is corrupted: {details}")
+            }
+            Self::NoStreamsFound { .. } => {
+                "The media file contains no detectable video or audio streams.".to_string()
+            }
+            Self::DuplicateFile { .. } => "This file is already in your media library.".to_string(),
             Self::Internal(msg) => format!("Media engine error: {msg}"),
         }
     }

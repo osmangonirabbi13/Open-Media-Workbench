@@ -1,8 +1,26 @@
 pub mod capabilities;
+pub mod compatibility;
 pub mod discovery;
 pub mod error;
+pub mod identity;
+pub mod import;
+pub mod metadata;
+pub mod probe;
 pub mod process;
 pub mod version;
+
+pub use compatibility::{CompatibilityStatus, MediaCompatibility};
+pub use error::MediaEngineError;
+pub use identity::{MediaAsset, SourceIdentity};
+pub use import::{
+    validate_media_file_path, ImportJobStatus, MediaLibrarySession, ValidatedFile,
+    MAX_CONCURRENT_PROBE_JOBS, MAX_IMPORT_FILE_SIZE_BYTES,
+};
+pub use metadata::{
+    normalize_ffprobe_json, AudioStreamMetadata, ContainerMetadata, MediaMetadata,
+    OtherStreamMetadata, Rational, VideoStreamMetadata,
+};
+pub use probe::probe_media_file;
 
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -11,7 +29,6 @@ use tokio::sync::RwLock;
 
 use self::capabilities::{MediaEngineCompatibility, MediaEngineStatus, ToolStatus};
 use self::discovery::{discover_tool, DiscoveryConfig, ToolType};
-use self::error::MediaEngineError;
 use self::process::{run_managed_process, ProcessSpec};
 use self::version::parse_version_output;
 
