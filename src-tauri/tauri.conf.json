@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "OpenTake",
+  "productName": "Open Media Workbench",
   "version": "0.1.0-alpha.1",
   "identifier": "org.opentake.app",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "OpenTake",
+        "title": "Open Media Workbench",
         "width": 1280,
         "height": 800,
         "minWidth": 900,

@@ -1,20 +1,43 @@
-# OpenTake
+# Open Media Workbench
 
-> **Free AI Video Editing Studio — Automatic Silence Removal & Rough-Cut Desktop Studio**
+> **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%209%20EDL%20Engine%20Complete-success.svg)](docs/reports/STEP_09_REPORT.md)
-[![Roadmap](https://img.shields.io/badge/Roadmap-32%20Steps%20Approved-success.svg)](docs/roadmap/DEVELOPMENT_ROADMAP.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2010%20Product%20Rebrand%20Complete-success.svg)](docs/reports/STEP_10_REPORT.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
-OpenTake is a free, open-source, offline-first desktop application designed to streamline spoken-word video editing. It provides content creators, podcasters, educators, and video editors with a fast, privacy-preserving studio to automatically detect and eliminate dead air, review cuts on an interactive timeline, and export high-quality, watermark-free MP4 videos.
+Open Media Workbench is a free, open-source, offline-first desktop application designed for media recovery and local AI localization. Built with Tauri 2, Rust, and React 19, the workbench provides content creators, archivists, and video professionals with an uncompromising local-first studio that processes all media strictly on-device without cloud telemetry or mandatory accounts.
+
+---
+
+## 🏛️ Product Architecture: Dual Studio Model
+
+Open Media Workbench unifies two specialized studio workspaces under a single high-performance desktop shell, sharing a common Rust media processing core:
+
+1. **Repair Studio** *(Planned)*
+   - Video corruption diagnosis (ISO BMFF atom analysis, broken container headers)
+   - Truncated MP4/MOV recovery (unfinalized recordings salvage via reference file reconstruction)
+   - Recoverable elementary stream extraction and container re-indexing
+   - Safe, non-destructive repair validation with synchronized A/B playback
+
+2. **Localization Studio** *(Planned)*
+   - Interactive subtitle editor and timing adjustment
+   - Local, privacy-first AI speech-to-text transcription (Whisper)
+   - On-device multilingual translation
+   - Synchronized neural speech synthesis (voice dubbing)
+   - Multi-track preview and dubbed video/subtitle export
+
+*Note: The Repair and Localization studios are planned feature milestones. STEPS 1–9 have established and verified the underlying media core, FFmpeg integration, custom protocol streaming, waveform pipeline, and canonical non-destructive EDL engine.*
 
 ---
 
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 9 Completed (Canonical EDL & Non-Destructive Cut List Model)**  
-> Milestone 3 (Editing Engine) has kicked off! OpenTake now features a canonical, headless, Rust-owned Edit Decision List (EDL) engine (`crates/opentake-core::editing`). It implements integer microsecond half-open intervals (`MediaTimeUs`, `SourceRange`), immutable domain operations (`cut_source_range`, `restore_source_range`, `keep_only`, `cut_timeline_range`), deterministic interval normalization, $O(\log N)$ bidirectional coordinate mapping (`TimelineIndex`), and extensive unit/property-based verification. Next: **STEP 10 (Visual Timeline & Manual Editing)**.
+> **Project State: STEP 10 Completed (Product Rebranding, Licensing Audit & Safe Migration)**  
+> The project has completed its initial foundation and media milestones (STEPS 1–9), establishing the Tauri 2 desktop shell, secure managed-process media engine (`opentake-core::media`), custom byte-range media streaming (`opentake-media://`), multi-resolution audio waveform caching, and microsecond non-destructive EDL interval algebra (`opentake-core::editing`).
+> 
+> STEP 10 establishes the official product identity as **Open Media Workbench**, completes an exhaustive licensing and supply chain audit ([`docs/architecture/LICENSING_AND_DISTRIBUTION.md`](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/LICENSING_AND_DISTRIBUTION.md)), defines the dual-workspace architecture ([`docs/architecture/OPEN_MEDIA_WORKBENCH.md`](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/OPEN_MEDIA_WORKBENCH.md)), and maintains 100% backwards-compatibility with existing tests and internal cache identifiers. Next: **STEP 11**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)

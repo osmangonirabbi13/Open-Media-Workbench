@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { CloseIcon, OpenTakeLogo } from "../ui/Icons";
+import { CloseIcon, OpenMediaWorkbenchLogo } from "../ui/Icons";
 import { Button } from "../ui/Button";
 import { IconButton } from "../ui/IconButton";
 import type { AppInfo } from "../../types/ipc";
@@ -58,12 +58,12 @@ export function AboutDialog({
         {/* Header */}
         <div className="h-12 shrink-0 flex items-center justify-between px-5 border-b border-zinc-800 bg-zinc-900/60">
           <div className="flex items-center space-x-2.5">
-            <OpenTakeLogo size={20} />
+            <OpenMediaWorkbenchLogo size={20} />
             <h2
               id="about-dialog-title"
               className="text-sm font-semibold text-zinc-100 tracking-tight"
             >
-              About OpenTake
+              About Open Media Workbench
             </h2>
           </div>
           <IconButton
@@ -78,9 +78,9 @@ export function AboutDialog({
         {/* Content */}
         <div className="p-6 space-y-5 text-xs text-zinc-300">
           <div>
-            <h3 className="text-base font-bold text-zinc-100 tracking-tight">OpenTake</h3>
+            <h3 className="text-base font-bold text-zinc-100 tracking-tight">Open Media Workbench</h3>
             <p className="text-zinc-400 mt-1 leading-relaxed">
-              Free AI Video Editing Studio — Automatic Silence Removal & Rough-Cut Desktop Studio.
+              Free, open-source, offline-first desktop media recovery and AI localization studio.
             </p>
           </div>
 

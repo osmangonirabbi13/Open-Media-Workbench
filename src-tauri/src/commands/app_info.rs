@@ -15,7 +15,7 @@ pub struct AppInfo {
 #[tauri::command]
 pub fn get_app_info() -> AppInfo {
     AppInfo {
-        app_name: "OpenTake".to_string(),
+        app_name: "Open Media Workbench".to_string(),
         app_version: env!("CARGO_PKG_VERSION").to_string(),
         core_version: opentake_core::CORE_VERSION.to_string(),
         os_name: std::env::consts::OS.to_string(),
@@ -30,7 +30,7 @@ mod tests {
     #[test]
     fn test_get_app_info_returns_valid_data() {
         let info = get_app_info();
-        assert_eq!(info.app_name, "OpenTake");
+        assert_eq!(info.app_name, "Open Media Workbench");
         assert_eq!(info.core_version, opentake_core::CORE_VERSION);
         assert!(!info.app_version.is_empty());
         assert!(!info.os_name.is_empty());
@@ -41,7 +41,7 @@ mod tests {
     fn test_app_info_serialization_camel_case() {
         let info = get_app_info();
         let json = serde_json::to_string(&info).expect("Failed to serialize AppInfo");
-        assert!(json.contains("\"appName\":\"OpenTake\""));
+        assert!(json.contains("\"appName\":\"Open Media Workbench\""));
         assert!(json.contains("\"coreVersion\":"));
         assert!(json.contains("\"backendReady\":true"));
     }

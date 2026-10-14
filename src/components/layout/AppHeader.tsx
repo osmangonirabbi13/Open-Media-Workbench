@@ -1,5 +1,5 @@
 import React from "react";
-import { InfoIcon, OpenTakeLogo, ResetIcon, SettingsIcon } from "../ui/Icons";
+import { InfoIcon, OpenMediaWorkbenchLogo, ResetIcon, SettingsIcon } from "../ui/Icons";
 import { IconButton } from "../ui/IconButton";
 import { StatusBadge } from "../ui/StatusBadge";
 import type { AppInfo, IpcState } from "../../types/ipc";
@@ -33,8 +33,8 @@ export function AppHeader({
       {/* Left: Branding & Project Workspace State */}
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
-          <OpenTakeLogo size={22} />
-          <span className="font-semibold text-sm tracking-tight text-zinc-100">OpenTake</span>
+          <OpenMediaWorkbenchLogo size={22} />
+          <span className="font-semibold text-sm tracking-tight text-zinc-100">Open Media Workbench</span>
         </div>
 
         <div className="h-4 w-[1px] bg-zinc-800" aria-hidden="true" />
@@ -78,7 +78,7 @@ export function AppHeader({
         {/* About App */}
         <IconButton
           icon={<InfoIcon size={14} />}
-          label="About OpenTake"
+          label="About Open Media Workbench"
           size="sm"
           variant="subtle"
           onClick={onOpenAbout}

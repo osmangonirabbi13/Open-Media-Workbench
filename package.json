@@ -1,5 +1,6 @@
 {
   "name": "opentake",
+  "description": "Free, open-source, offline-first desktop media recovery and AI localization studio.",
   "private": true,
   "version": "0.1.0-alpha.1",
   "type": "module",

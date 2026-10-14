@@ -28,7 +28,7 @@ export function AppStatusBar({
           />
           <span className="font-mono text-zinc-300">
             {ipcState.status === "success"
-              ? `OpenTake v${ipcState.data.appVersion} (${ipcState.data.osName})`
+              ? `${ipcState.data.appName} v${ipcState.data.appVersion} (${ipcState.data.osName})`
               : "Backend Initializing"}
           </span>
         </div>

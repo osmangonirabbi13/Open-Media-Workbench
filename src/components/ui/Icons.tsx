@@ -5,7 +5,7 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
   size?: number;
 }
 
-export function OpenTakeLogo({ size = 20, className = "", ...props }: IconProps): React.ReactElement {
+export function OpenMediaWorkbenchLogo({ size = 20, className = "", ...props }: IconProps): React.ReactElement {
   return (
     <svg
       width={size}
@@ -26,6 +26,8 @@ export function OpenTakeLogo({ size = 20, className = "", ...props }: IconProps)
     </svg>
   );
 }
+
+export const OpenTakeLogo = OpenMediaWorkbenchLogo;
 
 export function SettingsIcon({ size = 16, className = "", ...props }: IconProps): React.ReactElement {
   return (

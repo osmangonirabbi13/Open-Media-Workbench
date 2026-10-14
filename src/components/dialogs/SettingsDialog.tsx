@@ -256,7 +256,7 @@ export function SettingsDialog({
                     Application Theme
                   </h3>
                   <p className="text-zinc-400 leading-relaxed mb-4">
-                    OpenTake is optimized for low-fatigue studio color grading and editing.
+                    Open Media Workbench is optimized for low-fatigue studio color grading and editing.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-4 rounded-xl border border-indigo-500/60 bg-zinc-900 flex items-center justify-between">
@@ -306,7 +306,7 @@ export function SettingsDialog({
                       Local Media Processing Engine
                     </h3>
                     <p className="text-zinc-400 text-xs mt-0.5">
-                      OpenTake uses local FFmpeg and FFprobe binaries for media ingestion, inspection, and export.
+                      Open Media Workbench uses local FFmpeg and FFprobe binaries for media ingestion, inspection, and export.
                     </p>
                   </div>
                   {onRefreshMediaStatus && (
@@ -468,7 +468,7 @@ export function SettingsDialog({
                 </div>
 
                 <p className="text-zinc-400 leading-relaxed">
-                  OpenTake adheres to an uncompromising offline-first standard designed for complete creator sovereignty.
+                  Open Media Workbench adheres to an uncompromising offline-first standard designed for complete creator sovereignty.
                 </p>
 
                 <div className="space-y-2.5 pt-2">
@@ -503,9 +503,9 @@ export function SettingsDialog({
             {activeTab === "about" && (
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-100">OpenTake</h3>
+                  <h3 className="text-sm font-semibold text-zinc-100">Open Media Workbench</h3>
                   <p className="text-zinc-400 text-xs mt-0.5">
-                    Free AI Video Editing Studio — Automatic Silence Removal & Rough-Cut Studio
+                    Free, open-source, offline-first desktop media recovery and AI localization studio.
                   </p>
                 </div>
 
