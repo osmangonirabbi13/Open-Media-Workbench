@@ -5,6 +5,8 @@
 //! export filtergraph compilation, and project persistence without any
 //! dependency on Tauri, WebViews, or UI frameworks.
 
+pub mod media;
+
 use serde::{Deserialize, Serialize};
 
 /// Current semantic version of the core domain engine.

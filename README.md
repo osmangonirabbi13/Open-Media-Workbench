@@ -3,7 +3,7 @@
 > **Free AI Video Editing Studio — Automatic Silence Removal & Rough-Cut Desktop Studio**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%204%20App%20Shell%20Complete-success.svg)](docs/reports/STEP_04_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%205%20Media%20Infrastructure%20Complete-success.svg)](docs/reports/STEP_05_REPORT.md)
 [![Roadmap](https://img.shields.io/badge/Roadmap-32%20Steps%20Approved-success.svg)](docs/roadmap/DEVELOPMENT_ROADMAP.md)
 
 OpenTake is a free, open-source, offline-first desktop application designed to streamline spoken-word video editing. It provides content creators, podcasters, educators, and video editors with a fast, privacy-preserving studio to automatically detect and eliminate dead air, review cuts on an interactive timeline, and export high-quality, watermark-free MP4 videos.
@@ -13,8 +13,8 @@ OpenTake is a free, open-source, offline-first desktop application designed to s
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 4 Completed (App Shell, Navigation & Design System)**  
-> The professional desktop editor shell is live! OpenTake now features a multi-deck responsive studio layout (Header, Media Library, 16:9 Preview Canvas, Timeline Deck, Status Bar), resizable panels with keyboard accessibility and local persistence, unified design tokens, and Settings/About dialogs. Next: **STEP 5 (FFmpeg/FFprobe Integration)**.
+> **Project State: STEP 5 Completed (FFmpeg/FFprobe Integration)**  
+> Secure media infrastructure is live! OpenTake now features automated local executable discovery, tool identity verification, version & capability inspection, managed async process execution with timeout/cancellation/process-group reaping, and settings diagnostics. Next: **STEP 6 (File Import & Metadata Inspection)**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)
@@ -129,6 +129,7 @@ All architectural specifications, requirements, and roadmaps are tracked within 
 - [Step 2 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_02_REPORT.md)
 - [Step 3 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_03_REPORT.md)
 - [Step 4 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_04_REPORT.md)
+- [Step 5 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_05_REPORT.md)
 
 ---
 
@@ -142,8 +143,8 @@ Milestone 1 — Foundation (Days 1–4)
   └── STEP 4: App Shell, Navigation & Design System          ◄ [COMPLETED]
 
 Milestone 2 — Media Foundation (Days 5–8)
-  ├── STEP 5: FFmpeg/FFprobe Integration                      ◄ [NEXT]
-  ├── STEP 6: File Import & Metadata Inspection
+  ├── STEP 5: FFmpeg/FFprobe Integration                      ◄ [COMPLETED]
+  ├── STEP 6: File Import & Metadata Inspection               ◄ [NEXT]
   ├── STEP 7: Playback & Seeking Foundation
   └── STEP 8: Audio Waveform Generation
 

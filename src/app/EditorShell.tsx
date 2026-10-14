@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "../components/layout/AppHeader";
 import { AppStatusBar } from "../components/layout/AppStatusBar";
 import { ResizableWorkspace } from "../components/layout/ResizableWorkspace";
 import { SettingsDialog } from "../components/dialogs/SettingsDialog";
 import { AboutDialog } from "../components/dialogs/AboutDialog";
 import { useWorkspacePreferences } from "../hooks/useWorkspacePreferences";
+import { getMediaEngineStatus } from "../lib/mediaEngine";
 import type { AppInfo, IpcState } from "../types/ipc";
+import type { MediaEngineStatus } from "../types/mediaEngine";
 
 export interface EditorShellProps {
   ipcState: IpcState<AppInfo>;
@@ -27,6 +29,33 @@ export function EditorShell({
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+
+  // Media Engine Diagnostic State
+  const [mediaStatus, setMediaStatus] = useState<MediaEngineStatus | null>(null);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaError, setMediaError] = useState<string | null>(null);
+
+  const fetchMediaEngineDiagnostics = useCallback(async (forceRefresh: boolean = false): Promise<void> => {
+    if (ipcState.status !== "success") return;
+    setMediaLoading(true);
+    setMediaError(null);
+    try {
+      const status = await getMediaEngineStatus(forceRefresh);
+      setMediaStatus(status);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setMediaError(msg);
+    } finally {
+      setMediaLoading(false);
+    }
+  }, [ipcState.status]);
+
+  // Load diagnostics when backend comes online
+  useEffect(() => {
+    if (ipcState.status === "success") {
+      void fetchMediaEngineDiagnostics(false);
+    }
+  }, [ipcState.status, fetchMediaEngineDiagnostics]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -114,6 +143,10 @@ export function EditorShell({
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         appInfo={appInfoData}
+        mediaStatus={mediaStatus}
+        mediaLoading={mediaLoading}
+        mediaError={mediaError}
+        onRefreshMediaStatus={() => void fetchMediaEngineDiagnostics(true)}
         preferences={preferences}
         onResetLayout={resetLayout}
         onSetTimecodeFormat={setTimecodeFormat}

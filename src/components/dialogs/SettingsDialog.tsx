@@ -9,23 +9,32 @@ import { Button } from "../ui/Button";
 import { IconButton } from "../ui/IconButton";
 import type { AppInfo } from "../../types/ipc";
 import type { WorkspacePreferences } from "../../types/preferences";
+import type { MediaEngineStatus } from "../../types/mediaEngine";
 
 export interface SettingsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   appInfo?: AppInfo;
+  mediaStatus?: MediaEngineStatus | null;
+  mediaLoading?: boolean;
+  mediaError?: string | null;
+  onRefreshMediaStatus?: () => void;
   preferences: WorkspacePreferences;
   onResetLayout: () => void;
   onSetTimecodeFormat: (format: "timecode" | "frames") => void;
   onToggleSnap: () => void;
 }
 
-type SettingsTab = "appearance" | "workspace" | "privacy" | "about";
+type SettingsTab = "workspace" | "appearance" | "media" | "privacy" | "about";
 
 export function SettingsDialog({
   isOpen,
   onClose,
   appInfo,
+  mediaStatus,
+  mediaLoading,
+  mediaError,
+  onRefreshMediaStatus,
   preferences,
   onResetLayout,
   onSetTimecodeFormat,
@@ -95,7 +104,7 @@ export function SettingsDialog({
           {/* Sidebar Tabs */}
           <nav
             aria-label="Settings Categories"
-            className="w-44 shrink-0 border-r border-zinc-800/80 bg-zinc-900/30 p-2.5 flex flex-col space-y-1"
+            className="w-48 shrink-0 border-r border-zinc-800/80 bg-zinc-900/30 p-2.5 flex flex-col space-y-1"
           >
             <button
               type="button"
@@ -118,6 +127,17 @@ export function SettingsDialog({
               }`}
             >
               Appearance & Theme
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("media")}
+              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                activeTab === "media"
+                  ? "bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+              }`}
+            >
+              Media Engine (FFmpeg)
             </button>
             <button
               type="button"
@@ -274,6 +294,166 @@ export function SettingsDialog({
                     Native system typography stack with zero remote font downloads. Reduced motion media queries respected automatically.
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* MEDIA ENGINE (FFMPEG) TAB */}
+            {activeTab === "media" && (
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-100">
+                      Local Media Processing Engine
+                    </h3>
+                    <p className="text-zinc-400 text-xs mt-0.5">
+                      OpenTake uses local FFmpeg and FFprobe binaries for media ingestion, inspection, and export.
+                    </p>
+                  </div>
+                  {onRefreshMediaStatus && (
+                    <Button
+                      variant="secondary"
+                      size="xs"
+                      onClick={onRefreshMediaStatus}
+                      disabled={mediaLoading}
+                      icon={<ResetIcon size={12} />}
+                    >
+                      {mediaLoading ? "Probing..." : "Re-scan"}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Overall Status Badge */}
+                <div className="p-3 rounded-lg border border-zinc-800 bg-zinc-900/70 flex items-center justify-between">
+                  <span className="text-zinc-400 font-medium">Toolchain Compatibility:</span>
+                  {mediaLoading ? (
+                    <span className="text-amber-400 font-semibold flex items-center space-x-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                      <span>Checking local binaries...</span>
+                    </span>
+                  ) : mediaStatus ? (
+                    <span className="flex items-center space-x-1.5">
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          mediaStatus.overall_status === "ready"
+                            ? "bg-emerald-400 shadow-sm shadow-emerald-400/50"
+                            : mediaStatus.overall_status === "degraded"
+                              ? "bg-amber-400"
+                              : "bg-rose-400"
+                        }`}
+                      />
+                      <span
+                        className={`font-semibold capitalize ${
+                          mediaStatus.overall_status === "ready"
+                            ? "text-emerald-400"
+                            : mediaStatus.overall_status === "degraded"
+                              ? "text-amber-400"
+                              : "text-rose-400"
+                        }`}
+                      >
+                        {mediaStatus.overall_status === "ready"
+                          ? "Ready (Verified Operational)"
+                          : mediaStatus.overall_status}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500 font-medium">Not Checked</span>
+                  )}
+                </div>
+
+                {mediaError && (
+                  <div className="p-3 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs">
+                    {mediaError}
+                  </div>
+                )}
+
+                {/* Tools Grid */}
+                {mediaStatus && (
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    {/* FFmpeg Card */}
+                    <div className="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/40 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-zinc-200">FFmpeg</span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            mediaStatus.ffmpeg.available
+                              ? "bg-emerald-950 text-emerald-300 border border-emerald-800/50"
+                              : "bg-rose-950 text-rose-300 border border-rose-800/50"
+                          }`}
+                        >
+                          {mediaStatus.ffmpeg.available ? "Discovered" : "Missing"}
+                        </span>
+                      </div>
+                      <div className="font-mono text-[11px] text-zinc-400 space-y-1">
+                        <div>
+                          <span className="text-zinc-500 block">Version:</span>
+                          <span className="text-zinc-200">
+                            {mediaStatus.ffmpeg.version || "Unavailable"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-zinc-500 block">Location:</span>
+                          <span className="text-zinc-300 break-all text-[10px]">
+                            {mediaStatus.ffmpeg.executable_path || "None"}
+                          </span>
+                        </div>
+                        <div className="pt-1 flex space-x-2 text-[10px]">
+                          <span className={mediaStatus.ffmpeg.is_gpl ? "text-emerald-400" : "text-zinc-500"}>
+                            GPL: {mediaStatus.ffmpeg.is_gpl ? "Yes" : "No"}
+                          </span>
+                          <span className="text-zinc-600">•</span>
+                          <span className={mediaStatus.ffmpeg.has_libx264 ? "text-emerald-400" : "text-amber-400"}>
+                            libx264: {mediaStatus.ffmpeg.has_libx264 ? "Supported" : "Missing"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* FFprobe Card */}
+                    <div className="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/40 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-zinc-200">FFprobe</span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            mediaStatus.ffprobe.available
+                              ? "bg-emerald-950 text-emerald-300 border border-emerald-800/50"
+                              : "bg-rose-950 text-rose-300 border border-rose-800/50"
+                          }`}
+                        >
+                          {mediaStatus.ffprobe.available ? "Discovered" : "Missing"}
+                        </span>
+                      </div>
+                      <div className="font-mono text-[11px] text-zinc-400 space-y-1">
+                        <div>
+                          <span className="text-zinc-500 block">Version:</span>
+                          <span className="text-zinc-200">
+                            {mediaStatus.ffprobe.version || "Unavailable"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-zinc-500 block">Location:</span>
+                          <span className="text-zinc-300 break-all text-[10px]">
+                            {mediaStatus.ffprobe.executable_path || "None"}
+                          </span>
+                        </div>
+                        <div className="pt-1 text-[10px] text-zinc-400">
+                          Format Inspection Engine
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Warnings */}
+                {mediaStatus && mediaStatus.warnings.length > 0 && (
+                  <div className="p-3 rounded-lg border border-amber-900/60 bg-amber-950/20 text-amber-300 text-xs space-y-1">
+                    <span className="font-semibold block">Toolchain Advisory:</span>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      {mediaStatus.warnings.map((w) => (
+                        <li key={w}>{w}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
