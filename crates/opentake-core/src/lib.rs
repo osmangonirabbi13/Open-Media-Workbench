@@ -5,6 +5,7 @@
 //! export filtergraph compilation, and project persistence without any
 //! dependency on Tauri, WebViews, or UI frameworks.
 
+pub mod editing;
 pub mod media;
 
 use serde::{Deserialize, Serialize};

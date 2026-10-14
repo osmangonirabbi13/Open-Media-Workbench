@@ -19,4 +19,6 @@ sha2 = "0.10"
 [dev-dependencies]
 tokio = { version = "1.43", features = ["rt-multi-thread", "macros"] }
 tempfile = "3"
+proptest = "1"
+
 

@@ -334,8 +334,7 @@ impl WaveformData {
 
         let start_idx =
             ((start_offset_sec * lod.bins_per_second).floor() as usize).min(lod.bins.len());
-        let end_idx =
-            ((end_offset_sec * lod.bins_per_second).ceil() as usize).min(lod.bins.len());
+        let end_idx = ((end_offset_sec * lod.bins_per_second).ceil() as usize).min(lod.bins.len());
 
         let raw_slice = if start_idx < end_idx {
             &lod.bins[start_idx..end_idx]
