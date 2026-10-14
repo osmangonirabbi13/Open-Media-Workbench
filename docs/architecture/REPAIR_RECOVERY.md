@@ -118,9 +118,9 @@ The Repair Studio Recovery Pipeline provides deterministic, non-destructive, and
 
 ---
 
-## 6. Clear Technical Separation from STEP 14
+## 6. Relationship Between Operations
 
-- **STEP 13 (Implemented):**
+- **Standard Remux & Stream Salvage (STEP 13):**
   Recovers media using standard FFmpeg demuxing, stream copy, conservative stream isolation, and timestamp reconstruction on files with demuxable headers.
-- **STEP 14 (Planned Next):**
-  Addresses unfinalized recordings (power failure, camera crash, interrupted stream) where the crucial `moov` atom was never written to disk. STEP 14 will inspect raw sample data in `mdat`, parse codec parameters from a healthy reference file recorded on the same device, and synthesize a compatible `moov` index.
+- **Reference-Based Reconstruction (STEP 14 Implemented):**
+  Addresses unfinalized recordings (power failure, camera crash, interrupted stream) where the crucial `moov` atom was never written to disk. STEP 14 inspects raw sample data in `mdat`, parses codec parameters (SPS/PPS, timescale) from a healthy reference file recorded on the same device, and synthesizes a compatible `moov` index and valid sample tables (`stbl`). See [docs/architecture/MP4_RECONSTRUCTION_ENGINE.md](MP4_RECONSTRUCTION_ENGINE.md) for full specification.

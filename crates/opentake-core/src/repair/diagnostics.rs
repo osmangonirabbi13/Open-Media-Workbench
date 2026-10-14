@@ -331,14 +331,14 @@ fn synthesize_recommendations(
         recs.push(RepairRecommendation {
             strategy_id: "REFERENCE_BASED_RECONSTRUCTION".to_string(),
             title: "Reference-Based MP4/MOV Reconstruction".to_string(),
-            description: "The container media payload (mdat) is present, but the crucial index atom (moov) is missing (likely an unfinalized or interrupted recording). In STEP 14, a healthy donor file recorded on the same device can be used to synthesize a matching moov header and reconstruct track indexes.".to_string(),
+            description: "The container media payload (mdat) is present, but the index atom (moov) is missing (unfinalized or interrupted recording). A healthy reference recording from the same device can be used to synthesize a matching moov header and reconstruct track indexes.".to_string(),
             confidence: "High".to_string(),
             required_evidence: vec![
                 "mdat payload atom detected".to_string(),
                 "moov atom absent from container".to_string(),
             ],
             target_step: 14,
-            available_now: false,
+            available_now: true,
         });
     }
 

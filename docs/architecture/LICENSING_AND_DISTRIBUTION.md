@@ -138,7 +138,7 @@ Because `--enable-gpl` and `--enable-libx264` are activated, the effective licen
 | **Rust Dependencies** | Integrated (Steps 1–9) | MIT / Apache-2.0 | Maintain lockfile integrity |
 | **Frontend Dependencies** | Integrated (Steps 1–9) | MIT / Apache-2.0 | Maintain lockfile integrity |
 | **FFmpeg / FFprobe** | External Subprocess | GPLv2+ / GPLv3 (Host) | Rely on system path; defer bundling to packaging step |
-| **Untrunc Recovery Logic** | Future (Step 11+) | GPL-2.0+ (Upstream) | Target native Rust re-implementation in core |
+| **Untrunc / Atom Reconstructor** | Integrated (Step 14) | Safe Rust Native (`GPL-3.0+`) / Untrunc Subprocess (`GPL-2.0+`) | Primary native safe Rust implementation in core; optional external CLI adapter |
 | **Whisper Transcription** | Future (Step 11+) | MIT (Engine & Weights) | Explicit opt-in model downloads only |
 | **Translation Engine** | Future (Step 11+) | MIT / MPL 2.0 | Exclude non-commercial (`-NC`) datasets |
 | **Neural TTS (Piper)** | Future (Step 11+) | MIT (Engine) | Strict voice-model license filter allowlist |

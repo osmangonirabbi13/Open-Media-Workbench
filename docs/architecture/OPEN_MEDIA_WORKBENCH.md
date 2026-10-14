@@ -97,9 +97,9 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - **Bounded Output Validation (`repair::validation`):** Three-stage output verification (file size, container recognition, stream loss check, and bounded decode test).
   - **Secure Application Staging & No-Clobber Finalization (`repair::recovery`):** Isolated staging directory execution, strict no-overwrite protection, and symlink attack prevention.
   - **Asset Integration & Privacy-Preserving Reporting (`repair::recovery_report`):** Registers validated output into the active media library as a new authorized asset for instant preview, with sanitized JSON report export.
-- **Reference Reconstruction (Scheduled for STEP 14):**
-  - Reference-based MOOV atom reconstruction: extracts track and codec configuration from a healthy donor file recorded on the same device to reconstruct missing sample tables in unfinalized recordings.
-- **Validation & Split Preview:**
+- **Reference-Based Reconstruction (Completed in STEP 14):**
+  - Reference-based MOOV atom reconstruction (`repair::reconstruction`, `repair::reference`): extracts track and codec configuration (SPS/PPS parameter sets, timescale) from a healthy donor file recorded on the same device to synthesize missing sample tables (`stbl`) in unfinalized or interrupted recordings.
+  - Dual authorization verification through `MediaAuthorizationRegistry`, built-in safe Rust reconstructor with pluggable external `untrunc` adapter, bounded decode validation, and zero-byte source/reference immutability.
   - Leverages the shared custom-protocol player to present side-by-side comparison of damaged vs salvaged media before export confirmation.
 
 ### 3.2 Localization Studio (Planned Workspace 2)

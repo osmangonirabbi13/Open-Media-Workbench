@@ -3,8 +3,17 @@ import assert from "node:assert/strict";
 import {
   runMediaDiagnostics,
   cancelMediaDiagnostics,
+  pickAndImportReferenceAsset,
+  analyzeReferenceCompatibility,
+  startMp4Reconstruction,
 } from "./repair";
-import type { DiagnosticReport, DiagnosticFinding, RepairRecommendation } from "../types/repair";
+import type {
+  DiagnosticReport,
+  DiagnosticFinding,
+  RepairRecommendation,
+  ReferenceCompatibilityReport,
+  ReconstructionReport,
+} from "../types/repair";
 
 test("Repair Diagnostics: executes mock scan when outside Tauri desktop", async () => {
   const report = await runMediaDiagnostics("asset-mock-123", "quick");
@@ -183,4 +192,103 @@ test("Recovery Pipeline Data Contract: validates RecoveryReport structure", () =
   assert.equal(report.processingStatus, "completed");
   assert.equal(report.validation.isPlayable, true);
   assert.equal(report.limitations.length, 1);
+});
+
+test("Reconstruction Pipeline: executes mock reconstruction job in browser environment", async () => {
+  const refAsset = await pickAndImportReferenceAsset();
+  assert.ok(refAsset);
+  assert.equal(refAsset.fileName, "mock_reference.mp4");
+
+  const compat = await analyzeReferenceCompatibility("damaged-1", refAsset.id);
+  assert.equal(compat.compatibility, "compatible");
+  assert.ok(compat.tracks.length > 0);
+
+  const job = await startMp4Reconstruction({
+    damagedAssetId: "damaged-1",
+    referenceAssetId: refAsset.id,
+    outputContainerPreference: "mp4",
+  });
+
+  assert.ok(job.jobId.startsWith("mock-reconst-"));
+  assert.equal(job.status, "completed");
+  assert.ok(job.report);
+  assert.equal(job.report.validation.passed, true);
+  assert.equal(job.report.validation.isPlayable, true);
+});
+
+test("Reconstruction Data Contracts: validates ReferenceCompatibilityReport and ReconstructionReport", () => {
+  const compat: ReferenceCompatibilityReport = {
+    schemaVersion: 1,
+    referenceAssetId: "ref-456",
+    damagedAssetId: "dam-123",
+    referenceContainer: "MP4",
+    damagedContainer: "MP4",
+    tracks: [
+      {
+        trackId: 0,
+        mediaType: "video",
+        codecName: "h264",
+        codecProfile: "High",
+        resolution: "1920x1080",
+        frameRate: 30,
+        timebase: "1/15360",
+        sampleRate: null,
+        channels: null,
+        extradataSize: 42,
+      },
+    ],
+    compatibility: "compatible",
+    summary: "Compatible donor reference",
+    warnings: [],
+    unknownFields: [],
+  };
+
+  assert.equal(compat.schemaVersion, 1);
+  assert.equal(compat.compatibility, "compatible");
+  assert.equal(compat.tracks[0].codecName, "h264");
+
+  const reconstReport: ReconstructionReport = {
+    schemaVersion: 1,
+    operationId: "op-123",
+    engineName: "Built-in Safe Rust Reconstructor",
+    engineVersion: "1.0.0-native",
+    damagedAssetId: "dam-123",
+    referenceAssetId: "ref-456",
+    damagedFileName: "unfinalized.mp4",
+    referenceFileName: "ref.mp4",
+    referenceCompatibility: compat,
+    attemptedMode: "SPS/PPS Donor Injection",
+    reconstructedStreams: [
+      {
+        index: 0,
+        streamType: "video",
+        codecName: "h264",
+        durationSeconds: 12.5,
+      },
+    ],
+    recoveredDurationSeconds: 12.5,
+    validation: {
+      passed: true,
+      isPlayable: true,
+      validationLevel: "sampledDecode",
+      streamsPresent: ["h264"],
+      streamsExpected: ["h264"],
+      streamLossDetected: false,
+      outputDurationSeconds: 12.5,
+      details: "Validation passed",
+      warnings: [],
+    },
+    outputFileSizeBytes: 1048576,
+    outputFilePath: "/staging/output.mp4",
+    processingStatus: "completed",
+    failureDetails: null,
+    warnings: [],
+    uncertainties: [],
+    startedAtEpochMs: 1700000000000,
+    completedAtEpochMs: 1700000001000,
+  };
+
+  assert.equal(reconstReport.engineName, "Built-in Safe Rust Reconstructor");
+  assert.equal(reconstReport.validation.isPlayable, true);
+  assert.equal(reconstReport.reconstructedStreams.length, 1);
 });

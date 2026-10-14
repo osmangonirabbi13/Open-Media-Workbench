@@ -3,7 +3,7 @@
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%2013%20Recovery%20Pipeline%20Complete-success.svg)](docs/reports/STEP_13_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2014%20Reconstruction%20Engine%20Complete-success.svg)](docs/reports/STEP_14_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 Open Media Workbench is a free, open-source, offline-first desktop application designed for media recovery and local AI localization. Built with Tauri 2, Rust, and React 19, the workbench provides content creators, archivists, and video professionals with an uncompromising local-first studio that processes all media strictly on-device without cloud telemetry or mandatory accounts.
@@ -14,7 +14,7 @@ Open Media Workbench is a free, open-source, offline-first desktop application d
 
 Open Media Workbench unifies two specialized studio workspaces under a single high-performance desktop shell, sharing a common Rust media processing core:
 
-1. **Repair Studio** *(Active Development — STEPS 12 & 13 Complete)*
+1. **Repair Studio** *(Active Development — STEPS 12, 13 & 14 Complete)*
    - **Video Corruption Diagnostics (STEP 12):**
      - **Container Identification:** Fast magic byte validation for MP4/MOV, MKV (EBML), and AVI (RIFF) with extension mismatch detection.
      - **ISO BMFF Structural Inspection:** Bounded, memory-safe atom parser (`ftyp`, `moov`, `mdat`, `moof`, `free/skip`) handling 32-bit, 64-bit extended sizes, and size-0 atoms without loading sample payloads into memory.
@@ -32,8 +32,14 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Zero-Byte Source Mutation:** Original source media files are strictly read-only and never modified, renamed, or truncated under any circumstances.
      - **Recovered Asset Preview Integration:** Validated outputs are registered into the active media library as new authorized assets and immediately playable in the desktop preview player.
      - **Versioned Recovery Reports:** Structured JSON reports detailing processing status, stream inventories, observed errors, duration deltas, and known limitations.
-   - **Future Reference Reconstruction (Scheduled for STEP 14):**
-     - Reference-based MOOV atom reconstruction for unfinalized or interrupted recordings missing required sample tables.
+   - **Interrupted MP4/MOV Reconstruction Engine (STEP 14 Implemented):**
+     - **Reference-Based Reconstruction:** Recovers unfinalized or interrupted recordings missing the index atom (`moov`) by pairing the damaged file with an authorized healthy reference recording from the same device and configuration.
+     - **Donor Compatibility Analysis:** Pre-flight inspection comparing container family, video codec, profile, resolution, frame rate, timebase, and audio channels before attempting reconstruction.
+     - **Dual Independent Authorization:** Both damaged and reference media files must be independently authorized via native file dialogs and verified through `MediaAuthorizationRegistry`. Arbitrary filesystem paths from untrusted IPC callers are strictly rejected.
+     - **Built-in Safe Rust Reconstructor:** Out-of-the-box native reconstruction engine that extracts donor SPS/PPS parameter sets, scans damaged `mdat` payloads for length-prefixed and Annex-B NAL units, synthesizes sample tables, and produces compliant, playable ISO BMFF containers without requiring external C++ tools or third-party binary downloads.
+     - **Pluggable Engine Adapter:** Extensible architecture supporting both the native safe Rust engine and external `untrunc` CLI tools if discovered on system `$PATH`.
+     - **Zero-Byte Source & Reference Immutability:** Pre- and post-recovery SHA-256 hashes confirm both the damaged source and reference recording remain 100% byte-identical.
+     - **Bounded Output Validation:** Reconstructed candidates are inspected for container recognition, stream inventory, and bounded decode playback testing (`-f null -`).
 
 2. **Localization Studio** *(Planned — STEP 11 Desktop UI Ready)*
    - Interactive subtitle editor and timing adjustment
@@ -48,27 +54,31 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 
 > [!IMPORTANT]
 > **Zero-Byte Source Mutation Guarantee**
-> All recovery operations execute on read-only file descriptors. Output files are generated in an isolated temporary staging location. Source media files are **never** modified, overwritten, truncated, or moved.
+> All recovery and reconstruction operations execute strictly on read-only file descriptors. Output files are generated in an isolated temporary staging location. Source and reference media files are **never** modified, overwritten, truncated, or moved.
 
 > [!NOTE]
 > **Lossless Stream Copy vs Re-encoding**
-> The STEP 13 recovery pipeline strictly copies valid compressed packets (`-c copy`) without lossy re-encoding or transcoding. If an elementary stream is unreadable or corrupted at the packet level, it is not silently transcoded into degraded quality.
+> The recovery and reconstruction engines prioritize lossless stream copy (`-c copy`) without generational loss. Damaged bitstream packets are preserved or isolated; content is never silently transcoded into degraded quality.
+
+> [!TIP]
+> **Reference Video Requirements**
+> For reference-based reconstruction, use a working, finalized video recorded on the exact same camera or software (e.g. same smartphone, OBS profile, drone, or action camera) with matching resolution and frame rate. The donor file provides the missing SPS/PPS codec configuration and timescale required to rebuild the movie index.
 
 > [!WARNING]
-> **Missing MOOV Atom Boundary (STEP 14 Required)**
-> MP4 and MOV files that lack a `moov` atom (e.g. power-loss during recording) cannot be demuxed or remuxed by standard FFmpeg commands because sample chunk offsets are absent. The recovery engine honestly flags this condition as requiring **STEP 14 Reference-Based Reconstruction** using a donor file recorded on the same device.
+> **Unsupported Recovery Cases (Best-Effort Policy)**
+> Open Media Workbench makes no universal recovery promises. Files with empty `mdat` payloads (0 bytes of media data), encrypted or DRM-protected content, or proprietary camera-specific raw bitstreams cannot be reconstructed.
 
 > [!TIP]
 > **Strict No-Clobber Export Safety**
-> When saving recovered media to user storage, Open Media Workbench requires native OS file dialog confirmation, forbids writing over the original source file, and rejects attempts to overwrite existing files or write to symlinks.
+> When saving recovered media to user storage, Open Media Workbench requires native OS file dialog confirmation, forbids writing over the original source or reference files, and rejects attempts to overwrite existing files or write to symlinks.
 
 ---
 
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 13 Completed (Safe Media Remux & Stream Salvage Pipeline)**
-> The dual-workspace desktop UI (STEP 11), video corruption diagnostics engine (STEP 12), and safe recovery pipeline (STEP 13) are fully implemented and verified with **145 automated Rust tests** and **30 TypeScript unit tests**. Next milestone: **STEP 14 (Reference-Based MP4/MOV moov Reconstruction)**.
+> **Project State: STEP 14 Completed (Interrupted MP4/MOV Reconstruction Engine)**
+> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), and reference-based reconstruction engine (STEP 14) are fully implemented and verified with **151 automated Rust tests** and **32 TypeScript unit tests**. Next milestone: **STEP 15**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)
@@ -121,3 +131,4 @@ cargo build -p opentake-desktop
 Open Media Workbench is distributed under the **GNU General Public License v3.0 or later (GPL-3.0-or-later)**.
 - See [LICENSE](LICENSE) for the full license text.
 - See [docs/architecture/LICENSING_AND_DISTRIBUTION.md](docs/architecture/LICENSING_AND_DISTRIBUTION.md) for licensing architecture and compliance invariants.
+- See [docs/architecture/MP4_RECONSTRUCTION_ENGINE.md](docs/architecture/MP4_RECONSTRUCTION_ENGINE.md) for reconstruction engine architecture and licensing evidence.

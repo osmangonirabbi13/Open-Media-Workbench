@@ -76,7 +76,8 @@ export interface DiagnosticReport {
 export type RecoveryMethod =
   | "losslessRemux"
   | "streamSalvage"
-  | "timestampRebuild";
+  | "timestampRebuild"
+  | "referenceReconstruction";
 
 export type RecoveryStatus =
   | "queued"
@@ -161,3 +162,90 @@ export interface RecoveryJobStatus {
   report?: RecoveryReport | null;
   errorMessage?: string | null;
 }
+
+// ==========================================
+// STEP 14 — Reference-Based Reconstruction Types
+// ==========================================
+
+export type ReferenceCompatibilityClassification =
+  | "compatible"
+  | "plausiblyCompatible"
+  | "incompatible"
+  | "insufficientEvidence";
+
+export interface ReferenceTrackInfo {
+  trackId: number;
+  mediaType: string;
+  codecName: string;
+  codecProfile?: string | null;
+  resolution?: string | null;
+  frameRate?: number | null;
+  timebase?: string | null;
+  sampleRate?: number | null;
+  channels?: number | null;
+  extradataSize: number;
+}
+
+export interface ReferenceCompatibilityReport {
+  schemaVersion: number;
+  referenceAssetId: string;
+  damagedAssetId: string;
+  referenceContainer: string;
+  damagedContainer: string;
+  tracks: ReferenceTrackInfo[];
+  compatibility: ReferenceCompatibilityClassification;
+  summary: string;
+  warnings: string[];
+  unknownFields: string[];
+}
+
+export interface ReconstructionEngineCapability {
+  engineId: string;
+  name: string;
+  version: string;
+  isAvailable: boolean;
+  description: string;
+}
+
+export interface ReconstructionRequest {
+  damagedAssetId: string;
+  referenceAssetId: string;
+  outputContainerPreference?: string | null;
+  selectedEngine?: string | null;
+  diagnosticReportId?: string | null;
+}
+
+export interface ReconstructionReport {
+  schemaVersion: number;
+  operationId: string;
+  engineName: string;
+  engineVersion: string;
+  damagedAssetId: string;
+  referenceAssetId: string;
+  damagedFileName: string;
+  referenceFileName: string;
+  referenceCompatibility: ReferenceCompatibilityReport;
+  attemptedMode: string;
+  reconstructedStreams: StreamReportInfo[];
+  recoveredDurationSeconds?: number | null;
+  validation: RecoveryValidationResult;
+  outputFileSizeBytes?: number | null;
+  outputFilePath?: string | null;
+  processingStatus: RecoveryStatus;
+  failureDetails?: string | null;
+  warnings: string[];
+  uncertainties: string[];
+  startedAtEpochMs: number;
+  completedAtEpochMs: number;
+}
+
+export interface ReconstructionJobStatus {
+  jobId: string;
+  damagedAssetId: string;
+  referenceAssetId: string;
+  status: RecoveryStatus;
+  stageMessage: string;
+  report?: ReconstructionReport | null;
+  errorMessage?: string | null;
+}
+
