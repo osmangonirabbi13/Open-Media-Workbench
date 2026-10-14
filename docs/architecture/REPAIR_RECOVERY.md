@@ -124,3 +124,6 @@ The Repair Studio Recovery Pipeline provides deterministic, non-destructive, and
   Recovers media using standard FFmpeg demuxing, stream copy, conservative stream isolation, and timestamp reconstruction on files with demuxable headers.
 - **Reference-Based Reconstruction (STEP 14 Implemented):**
   Addresses unfinalized recordings (power failure, camera crash, interrupted stream) where the crucial `moov` atom was never written to disk. STEP 14 inspects raw sample data in `mdat`, parses codec parameters (SPS/PPS, timescale) from a healthy reference file recorded on the same device, and synthesizes a compatible `moov` index and valid sample tables (`stbl`). See [docs/architecture/MP4_RECONSTRUCTION_ENGINE.md](MP4_RECONSTRUCTION_ENGINE.md) for full specification.
+- **Unified Review, Validation & Reporting (STEP 15 Implemented):**
+  Synthesizes output from all recovery methods into a cohesive `RecoveryReview`. Supports secure candidate preview under `SourceProvenance::StagedRecoveryCandidate`, multi-mode before/after playback, on-demand full decode validation, persistent recovery attempt history, and standalone offline HTML/JSON report export. See [docs/architecture/REPAIR_REVIEW_AND_REPORTING.md](REPAIR_REVIEW_AND_REPORTING.md).
+

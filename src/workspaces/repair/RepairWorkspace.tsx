@@ -4,6 +4,7 @@ import { MediaLibraryPanel } from "../../components/editor/MediaLibraryPanel";
 import { PreviewPanel } from "../../components/editor/PreviewPanel";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import { RecoveryWorkflowPanel } from "./RecoveryWorkflowPanel";
+import { RecoveryReviewPanel } from "./RecoveryReviewPanel";
 import { LAYOUT_BOUNDS } from "../../types/preferences";
 import { FilmIcon, WrenchIcon } from "../../components/ui/Icons";
 import type { DiagnosticReport } from "../../types/repair";
@@ -26,6 +27,11 @@ export function RepairWorkspace({
   const [activeWorkflowStep, setActiveWorkflowStep] = useState<number>(1);
   const [currentReport, setCurrentReport] = useState<DiagnosticReport | null>(null);
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
+
+  // Recovery Review & Candidate State
+  const [candidateAsset, setCandidateAsset] = useState<MediaAsset | null>(null);
+  const [activeReviewJobId, setActiveReviewJobId] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState<boolean>(false);
 
   // Sync workflow step when report completes
   const handleReportChange = (report: DiagnosticReport | null) => {
@@ -131,7 +137,16 @@ export function RepairWorkspace({
           activeStep={activeWorkflowStep}
           report={currentReport}
           onStepChange={setActiveWorkflowStep}
-          onAssetRecovered={(newAsset) => onSelectAsset(newAsset)}
+          onAssetRecovered={(newAsset) => {
+            onSelectAsset(newAsset);
+            setIsReviewOpen(false);
+          }}
+          onReviewCandidate={(jobId, candidate) => {
+            setActiveReviewJobId(jobId);
+            setCandidateAsset(candidate);
+            setIsReviewOpen(true);
+            setActiveWorkflowStep(4);
+          }}
         />
 
         {/* Lower Split: Left Diagnostics & Right Preview Validation */}
@@ -139,7 +154,7 @@ export function RepairWorkspace({
           {/* Diagnostics Inspector */}
           <div className="h-full overflow-hidden flex flex-col">
             <div className="h-8 px-4 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between shrink-0">
-              <span className="text-xs font-semibold text-zinc-300">Container & Stream Diagnostics</span>
+              <span className="text-xs font-semibold text-zinc-300">Container &amp; Stream Diagnostics</span>
               <span className="text-[10px] text-zinc-500">Inspection View</span>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto">
@@ -153,41 +168,67 @@ export function RepairWorkspace({
 
           {/* Validation & Preview Area */}
           <div className="h-full overflow-hidden flex flex-col bg-zinc-950/60">
-            <div className="h-8 px-4 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between shrink-0">
-              <span className="text-xs font-semibold text-zinc-300">Validation & Playback Preview</span>
-              <span className="text-[10px] text-zinc-500">
-                {isPlayable ? "Playable Stream" : "Awaiting Repair"}
-              </span>
-            </div>
-
-            <div className="flex-1 min-h-0 relative flex items-center justify-center overflow-hidden p-2">
-              {isPlayable ? (
-                <div className="w-full h-full">
-                  <PreviewPanel
-                    timecodeFormat={timecodeFormat}
-                    asset={selectedAsset}
-                  />
-                </div>
-              ) : selectedAsset ? (
-                <div className="max-w-md p-6 rounded-xl border border-amber-900/50 bg-amber-950/20 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-amber-900/40 text-amber-400 mx-auto flex items-center justify-center">
-                    <WrenchIcon size={24} />
+            {isReviewOpen || candidateAsset || activeReviewJobId ? (
+              <RecoveryReviewPanel
+                timecodeFormat={timecodeFormat}
+                sourceAsset={selectedAsset}
+                candidateAsset={candidateAsset}
+                activeJobId={activeReviewJobId}
+                onAssetFinalized={(finalized) => {
+                  onSelectAsset(finalized);
+                  setIsReviewOpen(false);
+                }}
+                onCloseReview={() => {
+                  setIsReviewOpen(false);
+                }}
+              />
+            ) : (
+              <>
+                <div className="h-8 px-4 border-b border-zinc-800 bg-zinc-900/60 flex items-center justify-between shrink-0">
+                  <span className="text-xs font-semibold text-zinc-300">Validation &amp; Playback Preview</span>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setIsReviewOpen(true)}
+                      className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium"
+                    >
+                      Recovery History
+                    </button>
+                    <span className="text-[10px] text-zinc-500">
+                      {isPlayable ? "Playable Stream" : "Awaiting Repair"}
+                    </span>
                   </div>
-                  <h4 className="text-sm font-semibold text-amber-200">Unplayable or Corrupted Container</h4>
-                  <p className="text-xs text-amber-300/80 leading-relaxed">
-                    This file cannot be decoded directly by the playback bridge. Use the Recovery Workflow above to diagnose missing atom headers and reconstruct a playable stream (Scheduled for STEP 13).
-                  </p>
                 </div>
-              ) : (
-                <div className="text-center text-zinc-500 p-6 space-y-2">
-                  <FilmIcon size={36} className="mx-auto text-zinc-600" />
-                  <h4 className="text-xs font-semibold text-zinc-400">Preview Idle</h4>
-                  <p className="text-[11px] max-w-xs">
-                    Select a damaged or candidate video file from the library to inspect its contents.
-                  </p>
+
+                <div className="flex-1 min-h-0 relative flex items-center justify-center overflow-hidden p-2">
+                  {isPlayable ? (
+                    <div className="w-full h-full">
+                      <PreviewPanel
+                        timecodeFormat={timecodeFormat}
+                        asset={selectedAsset}
+                      />
+                    </div>
+                  ) : selectedAsset ? (
+                    <div className="max-w-md p-6 rounded-xl border border-amber-900/50 bg-amber-950/20 text-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-amber-900/40 text-amber-400 mx-auto flex items-center justify-center">
+                        <WrenchIcon size={24} />
+                      </div>
+                      <h4 className="text-sm font-semibold text-amber-200">Unplayable or Corrupted Container</h4>
+                      <p className="text-xs text-amber-300/80 leading-relaxed">
+                        This file cannot be decoded directly by the playback bridge. Use the Guided Media Recovery Workflow above to diagnose missing atom headers and reconstruct a playable stream.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center text-zinc-500 p-6 space-y-2">
+                      <FilmIcon size={36} className="mx-auto text-zinc-600" />
+                      <h4 className="text-xs font-semibold text-zinc-400">Preview Idle</h4>
+                      <p className="text-[11px] max-w-xs">
+                        Select a damaged or candidate video file from the library to inspect its contents.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>

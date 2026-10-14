@@ -3,7 +3,7 @@
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%2014%20Reconstruction%20Engine%20Complete-success.svg)](docs/reports/STEP_14_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2015%20Recovery%20Review%20Complete-success.svg)](docs/reports/STEP_15_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 Open Media Workbench is a free, open-source, offline-first desktop application designed for media recovery and local AI localization. Built with Tauri 2, Rust, and React 19, the workbench provides content creators, archivists, and video professionals with an uncompromising local-first studio that processes all media strictly on-device without cloud telemetry or mandatory accounts.
@@ -40,6 +40,13 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Pluggable Engine Adapter:** Extensible architecture supporting both the native safe Rust engine and external `untrunc` CLI tools if discovered on system `$PATH`.
      - **Zero-Byte Source & Reference Immutability:** Pre- and post-recovery SHA-256 hashes confirm both the damaged source and reference recording remain 100% byte-identical.
      - **Bounded Output Validation:** Reconstructed candidates are inspected for container recognition, stream inventory, and bounded decode playback testing (`-f null -`).
+   - **Professional Recovery Preview, Validation & Reports (STEP 15 Implemented):**
+     - **Secure Staged Candidate Preview:** Preview recovered media safely prior to final export using `SourceProvenance::StagedRecoveryCandidate` and opaque custom protocol tokens (`opentake-media://`) without exposing staging filesystem paths or expanding Tauri capabilities.
+     - **Multi-Mode Before/After Comparison Player:** Side-by-side synchronized comparison (`Original | Recovered`) with linked or independent seek modes, as well as single recovered-only and original-only views. Unplayable originals are handled honestly: metadata and diagnostic findings remain visible while recovered candidate plays independently.
+     - **Advanced Multi-Tier Output Validation:** Distinguishes `MetadataOnly`, `SampledDecode` (with explicit disclosure of sample duration and coverage), and user-initiated on-demand `FullDecode` (verifying 100% of bitstream frames without unbounded automatic execution).
+     - **Timeline Difference & Integrity Review:** Compares stream durations and start offsets using verified timestamp evidence; missing nominal durations (e.g. missing moov) are never fabricated or converted to misleading recovery percentages.
+     - **Persistent Local Recovery History:** Crash-safe, atomic versioned JSON ledger tracking up to 50 previous recovery attempts with status, validation levels, timestamps, and manual history clear action. No cloud telemetry or private path leakage.
+     - **Sanitized JSON & Standalone Offline HTML Reports:** User-initiated report export featuring stable machine-readable finding codes, strict Content-Security-Policy, offline embedded dark CSS, XSS escaping, and path privacy sanitization (redacting home directories to `~` and masking temporary staging paths).
 
 2. **Localization Studio** *(Planned — STEP 11 Desktop UI Ready)*
    - Interactive subtitle editor and timing adjustment
@@ -77,8 +84,8 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 14 Completed (Interrupted MP4/MOV Reconstruction Engine)**
-> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), and reference-based reconstruction engine (STEP 14) are fully implemented and verified with **151 automated Rust tests** and **32 TypeScript unit tests**. Next milestone: **STEP 15**.
+> **Project State: STEP 15 Completed (Professional Recovery Preview, Validation & Reports)**
+> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), and professional recovery review/preview/reporting pipeline (STEP 15) are fully implemented and verified with **159 automated Rust tests** and **37 TypeScript unit tests**. Next milestone: **STEP 16**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)

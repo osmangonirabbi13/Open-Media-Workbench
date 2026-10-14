@@ -7,10 +7,14 @@ import type {
   ReconstructionJobStatus,
   ReconstructionReport,
   ReconstructionRequest,
+  RecoveryHistoryEntry,
   RecoveryJobStatus,
   RecoveryReport,
   RecoveryRequest,
+  RecoveryReview,
   ReferenceCompatibilityReport,
+  ValidationLevel,
+  ValidationSummary,
 } from "../types/repair";
 import type { MediaAsset } from "../types/media";
 
@@ -701,4 +705,365 @@ export async function exportReconstructionReport(
     throw new Error(`Reconstruction report export failed: ${message}`);
   }
 }
+
+// ==========================================
+// STEP 15 — Professional Repair Preview, Validation & Reports
+// ==========================================
+
+/**
+ * Registers a validated recovery or reconstruction candidate into the active media library
+ * under StagedRecoveryCandidate provenance so it can be previewed securely via opentake-media://.
+ */
+export async function registerRecoveryCandidatePreview(
+  jobId: string
+): Promise<MediaAsset> {
+  if (!isTauriEnvironment()) {
+    // Mock browser fallback
+    return {
+      id: `mock-candidate-${jobId}`,
+      fileName: `recovered_${jobId}.mp4`,
+      importedAtEpochMs: Date.now(),
+      source: {
+        canonicalPath: `/mock/staging/recovered_${jobId}.mp4`,
+        fileSize: 1024 * 1024 * 5,
+        modifiedEpochMs: Date.now(),
+        identityHint: `mock-hint-${jobId}`,
+      },
+      metadata: {
+        container: {
+          formatName: "mp4",
+          formatLongName: "QuickTime / MOV / MP4",
+          durationMicros: 8000000,
+          startTimeMicros: 0,
+          bitrateBps: 1500000,
+          sizeBytes: 1024 * 1024 * 5,
+          streamCount: 2,
+        },
+        videoStreams: [
+          {
+            streamIndex: 0,
+            codecName: "h264",
+            codecLongName: "H.264 / AVC",
+            width: 1920,
+            height: 1080,
+            isVfrSuspect: false,
+            nominalFrameRate: { num: 30, den: 1 },
+            durationMicros: 8000000,
+          },
+        ],
+        audioStreams: [
+          {
+            streamIndex: 1,
+            codecName: "aac",
+            codecLongName: "AAC (Advanced Audio Coding)",
+            sampleRate: 48000,
+            channels: 2,
+            channelLayout: "stereo",
+            bitrateBps: 128000,
+            durationMicros: 8000000,
+          },
+        ],
+        otherStreams: [],
+      },
+      compatibility: {
+        overall: "supported",
+        containerStatus: "supported",
+        videoStatus: "supported",
+        audioStatus: "supported",
+        canInspect: true,
+        canEditFuture: true,
+        warnings: [],
+      },
+    };
+  }
+
+  try {
+    return await invoke<MediaAsset>("register_recovery_candidate_preview", {
+      jobId,
+    });
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : JSON.stringify(err);
+    throw new Error(`Failed to register recovery candidate for preview: ${message}`);
+  }
+}
+
+/**
+ * Retrieves the comprehensive RecoveryReview for a completed recovery or reconstruction job.
+ */
+export async function getRecoveryReview(
+  jobId: string
+): Promise<RecoveryReview> {
+  if (!isTauriEnvironment()) {
+    return {
+      schemaVersion: 1,
+      reviewId: `rev_${jobId}`,
+      sourceAssetId: "mock-source-asset",
+      recoveryJobId: jobId,
+      recoveryMethod: "Lossless Remux",
+      recoveryStatus: "completed",
+      outputAssetId: `mock-candidate-${jobId}`,
+      outputCandidateId: `mock-candidate-${jobId}`,
+      sourceSummary: {
+        fileName: "damaged_source.mp4",
+        fileSizeBytes: 1024 * 1024 * 5,
+        containerFormat: "mp4",
+        durationSeconds: 8.0,
+        streams: [],
+        isPlayable: false,
+      },
+      outputSummary: {
+        fileName: `recovered_${jobId}.mp4`,
+        fileSizeBytes: 1024 * 1024 * 5,
+        containerFormat: "mp4",
+        durationSeconds: 8.0,
+        streams: [
+          {
+            index: 0,
+            streamType: "video",
+            codecName: "h264",
+            durationSeconds: 8.0,
+            resolution: "1920x1080",
+          },
+        ],
+        isPlayable: true,
+      },
+      validationSummary: {
+        level: "sampledDecode",
+        overallOutcome: "passed",
+        containerChecks: [
+          {
+            code: "CONTAINER_EXISTS_NONEMPTY",
+            outcome: "passed",
+            title: "Container Integrity",
+            message: "Output container verified (5.0 MB).",
+          },
+        ],
+        streamChecks: [
+          {
+            code: "STREAM_INVENTORY_DETECTED",
+            outcome: "passed",
+            title: "Stream Inventory",
+            message: "Found 1 video stream.",
+          },
+        ],
+        timestampChecks: [
+          {
+            code: "TIMESTAMPS_CONTINUOUS",
+            outcome: "passed",
+            title: "Timestamp Regularity",
+            message: "Timestamps monotonic.",
+          },
+        ],
+        decodeChecks: [
+          {
+            code: "DECODE_SAMPLED_PASSED",
+            outcome: "passed",
+            title: "Sampled Bitstream Decode",
+            message: "Initial 8.0s sample decoded with zero errors.",
+          },
+        ],
+        audioChecks: [],
+        durationComparison: {
+          sourceDurationSeconds: null,
+          recoveredDurationSeconds: 8.0,
+          differenceSeconds: null,
+          isSourceDurationUnknown: true,
+          explanation: "Original duration missing from damaged header.",
+        },
+        inspectionCoverage: "Initial 8-second window verified via FFmpeg null-sink decode.",
+      },
+      timelineEvidence: {
+        sourceDurationSeconds: null,
+        recoveredDurationSeconds: 8.0,
+        videoStartOffsetSeconds: 0.0,
+        audioStartOffsetSeconds: null,
+        avDriftSeconds: null,
+        knownDecodeFailures: [],
+        uninspectedRegionsNote: "Frames beyond 8s sample window remain unverified.",
+      },
+      warnings: [],
+      limitations: [
+        "Playback capability does not guarantee 100% of original recorded frames were recovered.",
+      ],
+      createdAtEpochMs: Date.now(),
+    };
+  }
+
+  try {
+    return await invoke<RecoveryReview>("get_recovery_review", { jobId });
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : JSON.stringify(err);
+    throw new Error(`Failed to retrieve recovery review: ${message}`);
+  }
+}
+
+/**
+ * Runs explicit advanced validation (e.g. fullDecode) on a staged candidate file.
+ */
+export async function runAdvancedOutputValidation(
+  jobId: string,
+  level: ValidationLevel
+): Promise<ValidationSummary> {
+  if (!isTauriEnvironment()) {
+    return {
+      level,
+      overallOutcome: "passed",
+      containerChecks: [
+        {
+          code: "CONTAINER_EXISTS_NONEMPTY",
+          outcome: "passed",
+          title: "Container Integrity",
+          message: "Output container verified.",
+        },
+      ],
+      streamChecks: [],
+      timestampChecks: [],
+      decodeChecks: [
+        {
+          code: level === "fullDecode" ? "DECODE_FULL_PASSED" : "DECODE_SAMPLED_PASSED",
+          outcome: "passed",
+          title: level === "fullDecode" ? "Full Bitstream Decode" : "Sampled Bitstream Decode",
+          message: "Bitstream decoded cleanly with 0 errors.",
+        },
+      ],
+      audioChecks: [],
+      durationComparison: {
+        sourceDurationSeconds: null,
+        recoveredDurationSeconds: 8.0,
+        differenceSeconds: null,
+        isSourceDurationUnknown: true,
+        explanation: "Duration established from stream decode.",
+      },
+      inspectionCoverage:
+        level === "fullDecode"
+          ? "Full file decode verified from 0:00 to end of stream."
+          : "Sampled decode verified.",
+    };
+  }
+
+  try {
+    return await invoke<ValidationSummary>("run_advanced_output_validation", {
+      jobId,
+      level,
+    });
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : JSON.stringify(err);
+    throw new Error(`Advanced validation failed: ${message}`);
+  }
+}
+
+/**
+ * Exports a RecoveryReview as either a standalone HTML document or sanitized JSON.
+ */
+export async function exportRecoveryReviewReport(
+  jobId: string,
+  format: "json" | "html"
+): Promise<string> {
+  if (!isTauriEnvironment()) {
+    if (typeof document !== "undefined") {
+      const blob = new Blob([`Mock report export for ${jobId} (${format})`], {
+        type: format === "html" ? "text/html" : "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `recovery_report_${jobId}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    return `mock_export_${jobId}.${format}`;
+  }
+
+  try {
+    return await invoke<string>("export_recovery_review_report", {
+      jobId,
+      format,
+    });
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : JSON.stringify(err);
+    throw new Error(`Failed to export recovery review report: ${message}`);
+  }
+}
+
+/**
+ * Retrieves persisted recovery history records.
+ */
+export async function getRecoveryHistory(): Promise<RecoveryHistoryEntry[]> {
+  if (!isTauriEnvironment()) {
+    return [
+      {
+        jobId: "mock-hist-1",
+        sourceAssetId: "mock-asset-1",
+        sourceFileName: "damaged_clip.mp4",
+        recoveryMethod: "Lossless Container Remux",
+        attemptDateTimeEpochMs: Date.now() - 3600000,
+        finalStatus: "completed",
+        validationLevel: "sampledDecode",
+        validationOutcome: "passed",
+        outputAvailable: true,
+        outputFileName: "recovered_damaged_clip.mp4",
+        reportExported: false,
+        sourceDurationSeconds: 15.0,
+        recoveredDurationSeconds: 15.0,
+        limitations: ["Remuxed without re-encoding"],
+      },
+    ];
+  }
+
+  try {
+    return await invoke<RecoveryHistoryEntry[]>("get_recovery_history");
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : JSON.stringify(err);
+    throw new Error(`Failed to retrieve recovery history: ${message}`);
+  }
+}
+
+/**
+ * Clears past recovery history records.
+ */
+export async function clearRecoveryHistory(): Promise<boolean> {
+  if (!isTauriEnvironment()) {
+    return true;
+  }
+
+  try {
+    return await invoke<boolean>("clear_recovery_history");
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : JSON.stringify(err);
+    throw new Error(`Failed to clear recovery history: ${message}`);
+  }
+}
+
 

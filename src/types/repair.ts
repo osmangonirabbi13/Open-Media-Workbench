@@ -249,3 +249,96 @@ export interface ReconstructionJobStatus {
   errorMessage?: string | null;
 }
 
+// ==========================================
+// STEP 15 — Professional Repair Preview, Validation & Reports
+// ==========================================
+
+export type ValidationOutcome =
+  | "passed"
+  | "warning"
+  | "failed"
+  | "inconclusive"
+  | "notChecked";
+
+export interface CheckItem {
+  code: string;
+  outcome: ValidationOutcome;
+  title: string;
+  message: string;
+}
+
+export interface DurationComparison {
+  sourceDurationSeconds?: number | null;
+  recoveredDurationSeconds?: number | null;
+  differenceSeconds?: number | null;
+  isSourceDurationUnknown: boolean;
+  explanation: string;
+}
+
+export interface TimelineEvidence {
+  sourceDurationSeconds?: number | null;
+  recoveredDurationSeconds?: number | null;
+  videoStartOffsetSeconds?: number | null;
+  audioStartOffsetSeconds?: number | null;
+  avDriftSeconds?: number | null;
+  knownDecodeFailures: string[];
+  uninspectedRegionsNote?: string | null;
+}
+
+export interface ValidationSummary {
+  level: ValidationLevel;
+  overallOutcome: ValidationOutcome;
+  containerChecks: CheckItem[];
+  streamChecks: CheckItem[];
+  timestampChecks: CheckItem[];
+  decodeChecks: CheckItem[];
+  audioChecks: CheckItem[];
+  durationComparison: DurationComparison;
+  inspectionCoverage: string;
+}
+
+export interface AssetMediaSummary {
+  fileName: string;
+  fileSizeBytes?: number | null;
+  containerFormat: string;
+  durationSeconds?: number | null;
+  streams: StreamReportInfo[];
+  isPlayable: boolean;
+}
+
+export interface RecoveryReview {
+  schemaVersion: number;
+  reviewId: string;
+  sourceAssetId: string;
+  recoveryJobId: string;
+  recoveryMethod: string;
+  recoveryStatus: RecoveryStatus;
+  outputAssetId?: string | null;
+  outputCandidateId?: string | null;
+  sourceSummary: AssetMediaSummary;
+  outputSummary?: AssetMediaSummary | null;
+  validationSummary: ValidationSummary;
+  timelineEvidence?: TimelineEvidence | null;
+  warnings: string[];
+  limitations: string[];
+  createdAtEpochMs: number;
+}
+
+export interface RecoveryHistoryEntry {
+  jobId: string;
+  sourceAssetId: string;
+  sourceFileName: string;
+  recoveryMethod: string;
+  attemptDateTimeEpochMs: number;
+  finalStatus: RecoveryStatus;
+  validationLevel: ValidationLevel;
+  validationOutcome: ValidationOutcome;
+  outputAvailable: boolean;
+  outputFileName?: string | null;
+  reportExported: boolean;
+  sourceDurationSeconds?: number | null;
+  recoveredDurationSeconds?: number | null;
+  limitations: string[];
+}
+
+

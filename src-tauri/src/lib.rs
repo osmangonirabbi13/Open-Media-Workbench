@@ -58,6 +58,12 @@ pub fn run() {
             commands::repair::cancel_mp4_reconstruction,
             commands::repair::get_reconstruction_capabilities,
             commands::repair::export_reconstruction_report,
+            commands::repair::register_recovery_candidate_preview,
+            commands::repair::get_recovery_review,
+            commands::repair::run_advanced_output_validation,
+            commands::repair::export_recovery_review_report,
+            commands::repair::get_recovery_history,
+            commands::repair::clear_recovery_history,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

@@ -16,6 +16,8 @@ pub enum SourceProvenance {
     NativeFileDialog,
     /// User explicitly dropped the file onto the application window via OS desktop drag-and-drop.
     NativeWindowDrop,
+    /// Staged recovery candidate generated safely in app-owned staging.
+    StagedRecoveryCandidate,
 }
 
 /// An authorization record granting OpenTake permission to inspect and stream a specific file.

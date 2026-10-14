@@ -17,10 +17,12 @@ pub use playback::{
 };
 pub use repair::{
     analyze_reference_compatibility, cancel_media_diagnostics, cancel_media_recovery,
-    cancel_mp4_reconstruction, export_diagnostic_report, export_reconstruction_report,
-    export_recovery_report, finalize_recovered_asset, get_diagnostic_report,
-    get_reconstruction_capabilities, get_reconstruction_status, get_recovery_status,
-    pick_and_import_reference_asset, pick_and_import_repair_asset, run_media_diagnostics,
+    cancel_mp4_reconstruction, clear_recovery_history, export_diagnostic_report,
+    export_reconstruction_report, export_recovery_report, export_recovery_review_report,
+    finalize_recovered_asset, get_diagnostic_report, get_reconstruction_capabilities,
+    get_reconstruction_status, get_recovery_history, get_recovery_review, get_recovery_status,
+    pick_and_import_reference_asset, pick_and_import_repair_asset,
+    register_recovery_candidate_preview, run_advanced_output_validation, run_media_diagnostics,
     start_media_recovery, start_mp4_reconstruction, ReconstructionJobStatus, RecoveryJobStatus,
     RepairDiagnosticsState,
 };

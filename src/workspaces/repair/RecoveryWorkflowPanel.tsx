@@ -22,6 +22,7 @@ import {
   getReconstructionStatus,
   cancelMp4Reconstruction,
   exportReconstructionReport,
+  registerRecoveryCandidatePreview,
 } from "../../lib/repair";
 
 export interface RecoveryWorkflowPanelProps {
@@ -30,6 +31,7 @@ export interface RecoveryWorkflowPanelProps {
   report?: DiagnosticReport | null;
   onStepChange?: (step: number) => void;
   onAssetRecovered?: (newAsset: MediaAsset) => void;
+  onReviewCandidate?: (jobId: string, candidateAsset: MediaAsset | null) => void;
 }
 
 export function RecoveryWorkflowPanel({
@@ -38,6 +40,7 @@ export function RecoveryWorkflowPanel({
   report,
   onStepChange,
   onAssetRecovered,
+  onReviewCandidate,
 }: RecoveryWorkflowPanelProps): React.ReactElement {
   const isInspected = report !== null && report !== undefined;
 
@@ -293,6 +296,16 @@ export function RecoveryWorkflowPanel({
         const msg = err instanceof Error ? err.message : String(err);
         setErrorMessage(`Report export failed: ${msg}`);
       }
+    }
+  };
+
+  const handleOpenReview = async () => {
+    if (!activeJobId) return;
+    try {
+      const candidate = await registerRecoveryCandidatePreview(activeJobId);
+      onReviewCandidate?.(activeJobId, candidate);
+    } catch {
+      onReviewCandidate?.(activeJobId, null);
     }
   };
 
@@ -659,6 +672,15 @@ export function RecoveryWorkflowPanel({
               </Button>
 
               <div className="flex items-center space-x-2">
+                <Button
+                  size="xs"
+                  variant="secondary"
+                  disabled={!activeOutputReport.validation.isPlayable}
+                  onClick={handleOpenReview}
+                >
+                  Review, Compare &amp; Validate
+                </Button>
+
                 <Button
                   size="xs"
                   variant="primary"

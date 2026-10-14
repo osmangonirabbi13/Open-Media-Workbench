@@ -180,3 +180,14 @@ The reconstruction engine extracts codec parameters and track headers from the r
 - **Integration Test:** End-to-end synthesis of an unfinalized MP4 missing `moov` with genuine video/audio payload + matching reference -> successful reconstruction -> full decode verification via FFmpeg null-sink.
 - **Negative Tests:** Incompatible reference rejection, missing `mdat` rejection, identical file rejection, symlink attack rejection, unauthorized asset ID rejection.
 - **Hash Invariance:** Pre- and post-test SHA-256 checks on both damaged and reference files.
+
+---
+
+## 8. Integration with Recovery Review & Reporting (STEP 15)
+
+Reconstruction outputs flow directly into the unified STEP 15 review pipeline:
+- **Candidate Preview:** Reconstructed candidates are authorized under `SourceProvenance::StagedRecoveryCandidate` and rendered via `opentake-media://`.
+- **Review Generation:** `RecoveryReview::from_reconstruction_report()` converts donor compatibility, synthesized stream tables, and bounded decode checks into standard review evidence.
+- **Unplayable Original Mode:** Because the unfinalized source file lacks a `moov` atom, the player presents the reconstructed file alongside donor and source metadata, without pretending synchronized dual-stream scrubbing is possible.
+- **Persistent History & Reports:** Reconstructions are automatically journaled in `RecoveryHistoryStore` and exportable to privacy-sanitized HTML and JSON recovery reports.
+

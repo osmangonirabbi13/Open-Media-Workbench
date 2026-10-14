@@ -10,13 +10,16 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use opentake_core::media::authorization::SourceProvenance;
+use opentake_core::media::compatibility::CompatibilityStatus;
 use opentake_core::media::identity::MediaAsset;
 use opentake_core::repair::{
     analyze_reference_compatibility as analyze_ref_compat, discover_reconstruction_capabilities,
-    finalize_recovered_file, run_diagnostics, run_reconstruction_pipeline, run_recovery_pipeline,
+    finalize_recovered_file, generate_recovery_html_report, generate_recovery_json_report,
+    run_diagnostics, run_reconstruction_pipeline, run_recovery_pipeline, validate_recovery_output,
     AnalysisMode, DiagnosticReport, ReconstructionEngineCapability, ReconstructionReport,
-    ReconstructionRequest, ReconstructionStatus, RecoveryReport, RecoveryRequest, RecoveryStatus,
-    ReferenceCompatibilityReport,
+    ReconstructionRequest, ReconstructionStatus, RecoveryHistoryEntry, RecoveryHistoryStore,
+    RecoveryMethod, RecoveryReport, RecoveryRequest, RecoveryReview, RecoveryStatus,
+    ReferenceCompatibilityReport, ValidationLevel, ValidationOutcome, ValidationSummary,
 };
 
 use super::media_import::MediaLibraryState;
@@ -57,6 +60,8 @@ pub struct RepairDiagnosticsState {
     pub reconstruction_cancellations: Arc<Mutex<HashMap<String, CancellationToken>>>,
     /// Map of job_id -> (staged_file_path, source_canonical_path) for safe finalization
     pub staged_outputs: Arc<RwLock<HashMap<String, (PathBuf, PathBuf)>>>,
+    /// Map of job_id -> registered candidate asset ID for preview
+    pub candidate_assets: Arc<RwLock<HashMap<String, String>>>,
 }
 
 /// Request options for media diagnostics.
@@ -189,6 +194,7 @@ pub async fn get_diagnostic_report(
 #[tauri::command]
 pub async fn start_media_recovery(
     request: RecoveryRequest,
+    app: tauri::AppHandle,
     library: State<'_, MediaLibraryState>,
     repair_state: State<'_, RepairDiagnosticsState>,
 ) -> Result<RecoveryJobStatus, String> {
@@ -256,6 +262,7 @@ pub async fn start_media_recovery(
     let background_asset = asset.clone();
     let background_request = request.clone();
     let background_state = repair_state.inner().clone();
+    let app_handle = app.clone();
 
     tokio::spawn(async move {
         let pipeline_result = run_recovery_pipeline(
@@ -306,6 +313,39 @@ pub async fn start_media_recovery(
                     RecoveryStatus::Cancelled => "Recovery was cancelled by user.".to_string(),
                     _ => "Recovery finished.".to_string(),
                 };
+
+                let history_entry = RecoveryHistoryEntry {
+                    job_id: report.job_id.clone(),
+                    source_asset_id: report.source_asset_id.clone(),
+                    source_file_name: report.source_file_name.clone(),
+                    recovery_method: match report.recovery_method {
+                        RecoveryMethod::LosslessRemux => "Lossless Remux".to_string(),
+                        RecoveryMethod::StreamSalvage => "Stream Salvage".to_string(),
+                        RecoveryMethod::TimestampRebuild => "Timestamp Rebuild".to_string(),
+                    },
+                    attempt_date_time_epoch_ms: report.completed_at_epoch_ms,
+                    final_status: status,
+                    validation_level: report.validation.validation_level,
+                    validation_outcome: if report.validation.passed {
+                        if !report.warnings.is_empty() {
+                            ValidationOutcome::Warning
+                        } else {
+                            ValidationOutcome::Passed
+                        }
+                    } else {
+                        ValidationOutcome::Failed
+                    },
+                    output_available: is_playable,
+                    output_file_name: Some(format!(
+                        "recovered_{}.{}",
+                        report.job_id, report.actual_output_container
+                    )),
+                    report_exported: false,
+                    source_duration_seconds: report.source_duration_seconds,
+                    recovered_duration_seconds: report.output_duration_seconds,
+                    limitations: report.limitations.clone(),
+                };
+                record_recovery_history(Some(&app_handle), history_entry);
 
                 let mut jobs = background_state.recovery_jobs.write().await;
                 jobs.insert(
@@ -642,6 +682,7 @@ pub async fn analyze_reference_compatibility(
 #[tauri::command]
 pub async fn start_mp4_reconstruction(
     request: ReconstructionRequest,
+    app: tauri::AppHandle,
     library: State<'_, MediaLibraryState>,
     repair_state: State<'_, RepairDiagnosticsState>,
 ) -> Result<ReconstructionJobStatus, String> {
@@ -725,6 +766,7 @@ pub async fn start_mp4_reconstruction(
     let background_ref_asset = reference_asset.clone();
     let background_request = request.clone();
     let background_state = repair_state.inner().clone();
+    let app_handle = app.clone();
 
     tokio::spawn(async move {
         let pipeline_result = run_reconstruction_pipeline(
@@ -777,6 +819,38 @@ pub async fn start_mp4_reconstruction(
                     ReconstructionStatus::Cancelled => "Reconstruction was cancelled by user.".to_string(),
                     _ => "Reconstruction finished.".to_string(),
                 };
+
+                let history_entry = RecoveryHistoryEntry {
+                    job_id: report.operation_id.clone(),
+                    source_asset_id: report.damaged_asset_id.clone(),
+                    source_file_name: report.damaged_file_name.clone(),
+                    recovery_method: "Reference-Based MP4 Reconstruction".to_string(),
+                    attempt_date_time_epoch_ms: report.completed_at_epoch_ms,
+                    final_status: match report.processing_status {
+                        ReconstructionStatus::Completed => RecoveryStatus::Completed,
+                        ReconstructionStatus::Partial => RecoveryStatus::Partial,
+                        ReconstructionStatus::Failed => RecoveryStatus::Failed,
+                        ReconstructionStatus::Cancelled => RecoveryStatus::Cancelled,
+                        _ => RecoveryStatus::Running,
+                    },
+                    validation_level: report.validation.validation_level,
+                    validation_outcome: if report.validation.passed {
+                        if !report.warnings.is_empty() {
+                            ValidationOutcome::Warning
+                        } else {
+                            ValidationOutcome::Passed
+                        }
+                    } else {
+                        ValidationOutcome::Failed
+                    },
+                    output_available: is_playable,
+                    output_file_name: Some(format!("recovered_{}.mp4", report.operation_id)),
+                    report_exported: false,
+                    source_duration_seconds: None,
+                    recovered_duration_seconds: report.recovered_duration_seconds,
+                    limitations: report.uncertainties.clone(),
+                };
+                record_recovery_history(Some(&app_handle), history_entry);
 
                 let mut jobs = background_state.reconstruction_jobs.write().await;
                 jobs.insert(
@@ -898,6 +972,284 @@ pub async fn export_reconstruction_report(report: ReconstructionReport) -> Resul
         .map_err(|e| format!("Failed to write report to {}: {e}", target_path.display()))?;
 
     Ok(target_path.to_string_lossy().to_string())
+}
+
+fn get_history_file_path(app: Option<&tauri::AppHandle>) -> PathBuf {
+    use tauri::Manager;
+    if let Some(app) = app {
+        if let Ok(dir) = app.path().app_data_dir() {
+            let _ = fs::create_dir_all(&dir);
+            return dir.join("recovery_history.json");
+        }
+    }
+    if let Some(home) = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")) {
+        let dir = PathBuf::from(home).join(".open-media-workbench");
+        let _ = fs::create_dir_all(&dir);
+        return dir.join("recovery_history.json");
+    }
+    std::env::temp_dir().join("open_media_workbench_recovery_history.json")
+}
+
+fn record_recovery_history(app: Option<&tauri::AppHandle>, entry: RecoveryHistoryEntry) {
+    let history_file = get_history_file_path(app);
+    let mut store = RecoveryHistoryStore::load_from_file(&history_file);
+    store.add_entry(entry);
+    let _ = store.save_to_file(&history_file);
+}
+
+fn mark_history_report_exported(app: Option<&tauri::AppHandle>, job_id: &str) {
+    let history_file = get_history_file_path(app);
+    let mut store = RecoveryHistoryStore::load_from_file(&history_file);
+    if let Some(entry) = store.entries.iter_mut().find(|e| e.job_id == job_id) {
+        entry.report_exported = true;
+        let _ = store.save_to_file(&history_file);
+    }
+}
+
+/// Registers a validated recovery or reconstruction candidate from app-owned staging
+/// into the active MediaLibrarySession under `SourceProvenance::StagedRecoveryCandidate`.
+/// Returns the resulting MediaAsset so the frontend can preview it via opentake-media://.
+#[tauri::command]
+pub async fn register_recovery_candidate_preview(
+    job_id: String,
+    library: State<'_, MediaLibraryState>,
+    repair_state: State<'_, RepairDiagnosticsState>,
+) -> Result<MediaAsset, String> {
+    // 1. Check if already registered
+    {
+        let candidates = repair_state.candidate_assets.read().await;
+        if let Some(asset_id) = candidates.get(&job_id) {
+            if let Some(asset) = library.session.get_asset_by_id(asset_id).await {
+                return Ok(asset);
+            }
+        }
+    }
+
+    // 2. Look up staged output
+    let (staged_path, _) = {
+        let staged = repair_state.staged_outputs.read().await;
+        staged
+            .get(&job_id)
+            .cloned()
+            .ok_or_else(|| "No validated recovery output found for this job ID".to_string())?
+    };
+
+    if !staged_path.exists() {
+        return Err("Staged recovery file does not exist on disk".to_string());
+    }
+
+    // 3. Register under StagedRecoveryCandidate provenance
+    let asset = library
+        .session
+        .import_authorized_repair_file(
+            &staged_path,
+            SourceProvenance::StagedRecoveryCandidate,
+            None,
+        )
+        .await
+        .map_err(|e| format!("Failed to register recovery candidate for preview: {e}"))?;
+
+    // 4. Save mapping
+    {
+        let mut candidates = repair_state.candidate_assets.write().await;
+        candidates.insert(job_id, asset.id.clone());
+    }
+
+    Ok(asset)
+}
+
+/// Returns the unified RecoveryReview for a completed recovery or reconstruction job.
+#[tauri::command]
+pub async fn get_recovery_review(
+    job_id: String,
+    library: State<'_, MediaLibraryState>,
+    repair_state: State<'_, RepairDiagnosticsState>,
+) -> Result<RecoveryReview, String> {
+    let candidate_asset_id = {
+        let candidates = repair_state.candidate_assets.read().await;
+        candidates.get(&job_id).cloned()
+    };
+
+    // 1. Check recovery jobs
+    {
+        let rec_jobs = repair_state.recovery_jobs.read().await;
+        if let Some(rec_job) = rec_jobs.get(&job_id) {
+            if let Some(report) = &rec_job.report {
+                let source_is_playable = if let Some(source_asset) = library
+                    .session
+                    .get_asset_by_id(&report.source_asset_id)
+                    .await
+                {
+                    source_asset.compatibility.overall == CompatibilityStatus::Supported
+                        || source_asset.compatibility.overall
+                            == CompatibilityStatus::SupportedWithLimitations
+                } else {
+                    false
+                };
+
+                return Ok(RecoveryReview::from_recovery_report(
+                    report,
+                    source_is_playable,
+                    candidate_asset_id,
+                ));
+            }
+        }
+    }
+
+    // 2. Check reconstruction jobs
+    {
+        let recon_jobs = repair_state.reconstruction_jobs.read().await;
+        if let Some(recon_job) = recon_jobs.get(&job_id) {
+            if let Some(report) = &recon_job.report {
+                return Ok(RecoveryReview::from_reconstruction_report(
+                    report,
+                    candidate_asset_id,
+                ));
+            }
+        }
+    }
+
+    Err(format!(
+        "No completed recovery or reconstruction report found for job ID '{job_id}'"
+    ))
+}
+
+/// Runs explicit on-demand validation (e.g. FullDecode) on a staged candidate file.
+#[tauri::command]
+pub async fn run_advanced_output_validation(
+    job_id: String,
+    level: String,
+    repair_state: State<'_, RepairDiagnosticsState>,
+) -> Result<ValidationSummary, String> {
+    let (staged_path, _) = {
+        let staged = repair_state.staged_outputs.read().await;
+        staged
+            .get(&job_id)
+            .cloned()
+            .ok_or_else(|| "No validated recovery output found for this job ID".to_string())?
+    };
+
+    let val_level = match level.as_str() {
+        "metadataOnly" => ValidationLevel::MetadataOnly,
+        "fullDecode" => ValidationLevel::FullDecode,
+        _ => ValidationLevel::SampledDecode,
+    };
+
+    let outcome = validate_recovery_output(&staged_path, 1, 0, val_level, None).await;
+
+    // Update stored report's validation outcome
+    {
+        let mut rec_jobs = repair_state.recovery_jobs.write().await;
+        if let Some(job) = rec_jobs.get_mut(&job_id) {
+            if let Some(report) = &mut job.report {
+                report.validation = outcome.validation_result.clone();
+                report.processing_status = outcome.status;
+            }
+        }
+    }
+    {
+        let mut recon_jobs = repair_state.reconstruction_jobs.write().await;
+        if let Some(job) = recon_jobs.get_mut(&job_id) {
+            if let Some(report) = &mut job.report {
+                report.validation = outcome.validation_result.clone();
+            }
+        }
+    }
+
+    let review = if let Some(rec_job) = repair_state.recovery_jobs.read().await.get(&job_id) {
+        if let Some(rep) = &rec_job.report {
+            RecoveryReview::from_recovery_report(rep, false, None)
+        } else {
+            return Err("Report missing".to_string());
+        }
+    } else if let Some(recon_job) = repair_state.reconstruction_jobs.read().await.get(&job_id) {
+        if let Some(rep) = &recon_job.report {
+            RecoveryReview::from_reconstruction_report(rep, None)
+        } else {
+            return Err("Report missing".to_string());
+        }
+    } else {
+        return Err("Job not found".to_string());
+    };
+
+    Ok(review.validation_summary)
+}
+
+/// Exports a RecoveryReview as either standalone HTML or sanitized JSON.
+#[tauri::command]
+pub async fn export_recovery_review_report(
+    job_id: String,
+    format: String,
+    app: tauri::AppHandle,
+    library: State<'_, MediaLibraryState>,
+    repair_state: State<'_, RepairDiagnosticsState>,
+) -> Result<String, String> {
+    let review = get_recovery_review(job_id.clone(), library, repair_state).await?;
+
+    let is_html = format.to_lowercase() == "html";
+    let (content, ext, filter_name) = if is_html {
+        (
+            generate_recovery_html_report(&review),
+            "html",
+            "HTML Document (*.html)",
+        )
+    } else {
+        let json = generate_recovery_json_report(&review)
+            .map_err(|e| format!("Failed to serialize report: {e}"))?;
+        (json, "json", "JSON File (*.json)")
+    };
+
+    let default_filename = format!("recovery_report_{}.{}", review.recovery_job_id, ext);
+
+    let dialog = rfd::AsyncFileDialog::new()
+        .set_title("Export Recovery Report")
+        .set_file_name(&default_filename)
+        .add_filter(filter_name, &[ext]);
+
+    let handle = dialog.save_file().await;
+    let Some(file) = handle else {
+        return Err("Export cancelled by user".to_string());
+    };
+
+    let target_path = file.path().to_path_buf();
+    fs::write(&target_path, content.as_bytes())
+        .map_err(|e| format!("Failed to write export file: {e}"))?;
+
+    mark_history_report_exported(Some(&app), &job_id);
+
+    Ok(sanitize_privacy_string(&target_path.to_string_lossy()))
+}
+
+/// Retrieves persistent recovery history records.
+#[tauri::command]
+pub async fn get_recovery_history(
+    app: tauri::AppHandle,
+    repair_state: State<'_, RepairDiagnosticsState>,
+) -> Result<Vec<RecoveryHistoryEntry>, String> {
+    let history_file = get_history_file_path(Some(&app));
+    let store = RecoveryHistoryStore::load_from_file(&history_file);
+    let staged = repair_state.staged_outputs.read().await;
+
+    let mut entries = store.entries;
+    for entry in &mut entries {
+        if let Some((staged_path, _)) = staged.get(&entry.job_id) {
+            entry.output_available = staged_path.exists();
+        }
+    }
+
+    Ok(entries)
+}
+
+/// Clears all past recovery history records from disk.
+#[tauri::command]
+pub async fn clear_recovery_history(app: tauri::AppHandle) -> Result<bool, String> {
+    let history_file = get_history_file_path(Some(&app));
+    let mut store = RecoveryHistoryStore::load_from_file(&history_file);
+    store.clear();
+    store
+        .save_to_file(&history_file)
+        .map_err(|e| format!("Failed to clear history: {e}"))?;
+    Ok(true)
 }
 
 #[cfg(test)]

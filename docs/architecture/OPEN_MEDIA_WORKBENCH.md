@@ -100,7 +100,14 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
 - **Reference-Based Reconstruction (Completed in STEP 14):**
   - Reference-based MOOV atom reconstruction (`repair::reconstruction`, `repair::reference`): extracts track and codec configuration (SPS/PPS parameter sets, timescale) from a healthy donor file recorded on the same device to synthesize missing sample tables (`stbl`) in unfinalized or interrupted recordings.
   - Dual authorization verification through `MediaAuthorizationRegistry`, built-in safe Rust reconstructor with pluggable external `untrunc` adapter, bounded decode validation, and zero-byte source/reference immutability.
-  - Leverages the shared custom-protocol player to present side-by-side comparison of damaged vs salvaged media before export confirmation.
+- **Recovery Review, Preview & Reporting (Completed in STEP 15):**
+  - Unified `RecoveryReview` domain model synthesizing diagnostic, recovery, and reconstruction evidence.
+  - Safe candidate preview via `SourceProvenance::StagedRecoveryCandidate` and opaque streaming tokens.
+  - Multi-mode player with side-by-side (`Original | Recovered`), recovered-only, and original-only playback with honest unplayable-original fallback.
+  - Multi-tier validation inspector (`MetadataOnly`, `SampledDecode`, and on-demand `FullDecode`).
+  - Timeline difference analysis without fabricated percentages or invented durations.
+  - Crash-safe, atomic versioned JSON history ledger (up to 50 attempts).
+  - Standalone offline HTML and machine-readable JSON report export with home directory and staging path privacy sanitization.
 
 ### 3.2 Localization Studio (Planned Workspace 2)
 **Objective:** End-to-end subtitle generation, speech recognition, machine translation, and neural speech dubbing.

@@ -6,6 +6,12 @@ import {
   pickAndImportReferenceAsset,
   analyzeReferenceCompatibility,
   startMp4Reconstruction,
+  registerRecoveryCandidatePreview,
+  getRecoveryReview,
+  runAdvancedOutputValidation,
+  exportRecoveryReviewReport,
+  getRecoveryHistory,
+  clearRecoveryHistory,
 } from "./repair";
 import type {
   DiagnosticReport,
@@ -13,6 +19,8 @@ import type {
   RepairRecommendation,
   ReferenceCompatibilityReport,
   ReconstructionReport,
+  RecoveryReview,
+  RecoveryHistoryEntry,
 } from "../types/repair";
 
 test("Repair Diagnostics: executes mock scan when outside Tauri desktop", async () => {
@@ -292,3 +300,139 @@ test("Reconstruction Data Contracts: validates ReferenceCompatibilityReport and 
   assert.equal(reconstReport.validation.isPlayable, true);
   assert.equal(reconstReport.reconstructedStreams.length, 1);
 });
+
+test("Recovery Review: registers mock preview asset and returns review data", async () => {
+  const asset = await registerRecoveryCandidatePreview("job-test-123");
+  assert.equal(asset.id, "mock-candidate-job-test-123");
+
+  const review = await getRecoveryReview("job-test-123");
+  assert.equal(review.schemaVersion, 1);
+  assert.equal(review.recoveryJobId, "job-test-123");
+  assert.equal(review.recoveryMethod, "Lossless Remux");
+  assert.equal(review.recoveryStatus, "completed");
+  assert.ok(review.sourceSummary);
+  assert.ok(review.outputSummary);
+  assert.equal(review.validationSummary.overallOutcome, "passed");
+  assert.equal(review.timelineEvidence?.recoveredDurationSeconds, 8.0);
+  assert.equal(review.limitations.length, 1);
+});
+
+test("Recovery Review: runs advanced full decode validation in mock environment", async () => {
+  const summary = await runAdvancedOutputValidation("job-test-123", "fullDecode");
+  assert.equal(summary.level, "fullDecode");
+  assert.equal(summary.overallOutcome, "passed");
+  assert.ok(summary.inspectionCoverage.includes("Full file decode"));
+  assert.ok(summary.decodeChecks.some((c) => c.title === "Full Bitstream Decode"));
+});
+
+test("Recovery Review: exports HTML and JSON reports", async () => {
+  const jsonPath = await exportRecoveryReviewReport("job-test-123", "json");
+  assert.ok(jsonPath);
+  assert.ok(jsonPath.endsWith(".json"));
+
+  const htmlPath = await exportRecoveryReviewReport("job-test-123", "html");
+  assert.ok(htmlPath);
+  assert.ok(htmlPath.endsWith(".html"));
+});
+
+test("Recovery History: queries and clears history entries in mock environment", async () => {
+  const history: RecoveryHistoryEntry[] = await getRecoveryHistory();
+  assert.ok(Array.isArray(history));
+  assert.ok(history.length > 0);
+  assert.equal(history[0].recoveryMethod, "Lossless Container Remux");
+
+  const cleared = await clearRecoveryHistory();
+  assert.equal(cleared, true);
+});
+
+test("Recovery Review Data Contract: validates RecoveryReview structure", () => {
+  const review: RecoveryReview = {
+    schemaVersion: 1,
+    reviewId: "rev-999",
+    sourceAssetId: "dam-123",
+    recoveryJobId: "job-999",
+    recoveryMethod: "Stream Salvage",
+    recoveryStatus: "completed",
+    outputAssetId: "asset-rec-999",
+    outputCandidateId: "cand-999",
+    sourceSummary: {
+      fileName: "damaged.mp4",
+      fileSizeBytes: 5000000,
+      containerFormat: "QuickTime / MOV",
+      durationSeconds: 10.0,
+      streams: [
+        {
+          index: 0,
+          streamType: "video",
+          codecName: "h264",
+          durationSeconds: 10.0,
+        },
+      ],
+      isPlayable: false,
+    },
+    outputSummary: {
+      fileName: "recovered.mp4",
+      fileSizeBytes: 4800000,
+      containerFormat: "MP4",
+      durationSeconds: 10.0,
+      streams: [
+        {
+          index: 0,
+          streamType: "video",
+          codecName: "h264",
+          durationSeconds: 10.0,
+        },
+      ],
+      isPlayable: true,
+    },
+    validationSummary: {
+      level: "sampledDecode",
+      overallOutcome: "warning",
+      containerChecks: [
+        {
+          code: "CNT_VALID",
+          outcome: "passed",
+          title: "Container Structure",
+          message: "Valid MP4 header",
+        },
+      ],
+      streamChecks: [],
+      timestampChecks: [],
+      decodeChecks: [],
+      audioChecks: [
+        {
+          code: "AUD_ABSENT_INTENTIONAL",
+          outcome: "warning",
+          title: "Audio Presence",
+          message: "No audio stream present (video-only salvage)",
+        },
+      ],
+      durationComparison: {
+        sourceDurationSeconds: 10.0,
+        recoveredDurationSeconds: 10.0,
+        differenceSeconds: 0.0,
+        isSourceDurationUnknown: false,
+        explanation: "Durations match exactly",
+      },
+      inspectionCoverage: "Initial 8.0s inspected.",
+    },
+    timelineEvidence: {
+      sourceDurationSeconds: 10.0,
+      recoveredDurationSeconds: 10.0,
+      videoStartOffsetSeconds: 0.0,
+      audioStartOffsetSeconds: null,
+      avDriftSeconds: null,
+      knownDecodeFailures: [],
+      uninspectedRegionsNote: "Remainder unverified",
+    },
+    warnings: ["Audio track omitted"],
+    limitations: ["Salvaged stream only"],
+    createdAtEpochMs: 1700000000000,
+  };
+
+  assert.equal(review.schemaVersion, 1);
+  assert.equal(review.validationSummary.overallOutcome, "warning");
+  assert.equal(review.validationSummary.audioChecks[0].code, "AUD_ABSENT_INTENTIONAL");
+  assert.equal(review.timelineEvidence?.recoveredDurationSeconds, 10.0);
+});
+
