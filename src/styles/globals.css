@@ -2,12 +2,75 @@
 
 :root {
   color-scheme: dark;
+
+  /* Design Tokens - Surfaces */
+  --ot-bg-app: #09090b;
+  --ot-surface-panel: #111114;
+  --ot-surface-header: #16161a;
+  --ot-surface-elevated: #1a1a20;
+  --ot-surface-hover: #22222a;
+  --ot-surface-active: #2a2a34;
+
+  /* Design Tokens - Borders */
+  --ot-border-subtle: #1e1e24;
+  --ot-border-default: #272732;
+  --ot-border-active: #3b3b4a;
+
+  /* Design Tokens - Typography */
+  --ot-text-primary: #f4f4f5;
+  --ot-text-secondary: #a1a1aa;
+  --ot-text-muted: #71717a;
+  --ot-text-dim: #52525b;
+
+  /* Design Tokens - Accent & Brand */
+  --ot-accent: #6366f1;
+  --ot-accent-hover: #4f46e5;
+  --ot-accent-subtle: rgba(99, 102, 241, 0.12);
+
+  /* Design Tokens - Status */
+  --ot-status-online: #10b981;
+  --ot-status-connecting: #f59e0b;
+  --ot-status-offline: #f43f5e;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #09090b;
-  color: #fafafa;
+  background-color: var(--ot-bg-app);
+  color: var(--ot-text-primary);
+  overflow: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom subtle scrollbar for desktop app */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272732;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b3b4a;
+}
+
+/* Accessibility: Respect user reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
