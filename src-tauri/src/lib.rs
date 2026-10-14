@@ -2,12 +2,14 @@ pub mod commands;
 pub mod protocol;
 
 pub use commands::{
-    cancel_media_diagnostics, cancel_preview_proxy, cancel_waveform_analysis, clear_media_library,
-    export_diagnostic_report, get_app_info, get_diagnostic_report, get_media_engine_status,
-    get_media_library_assets, get_media_playback_url, get_proxy_status, get_waveform_segment,
-    get_waveform_status, import_files_by_path, pick_and_import_files, pick_and_import_repair_asset,
-    remove_media_library_asset, request_preview_proxy, request_waveform_analysis,
-    run_media_diagnostics, AppInfo, MediaEngineState, MediaLibraryState, PlaybackState,
+    cancel_media_diagnostics, cancel_media_recovery, cancel_preview_proxy,
+    cancel_waveform_analysis, clear_media_library, export_diagnostic_report,
+    export_recovery_report, finalize_recovered_asset, get_app_info, get_diagnostic_report,
+    get_media_engine_status, get_media_library_assets, get_media_playback_url, get_proxy_status,
+    get_recovery_status, get_waveform_segment, get_waveform_status, import_files_by_path,
+    pick_and_import_files, pick_and_import_repair_asset, remove_media_library_asset,
+    request_preview_proxy, request_waveform_analysis, run_media_diagnostics, start_media_recovery,
+    AppInfo, MediaEngineState, MediaLibraryState, PlaybackState, RecoveryJobStatus,
     RepairDiagnosticsState, WaveformState,
 };
 
@@ -44,6 +46,11 @@ pub fn run() {
             commands::repair::get_diagnostic_report,
             commands::repair::export_diagnostic_report,
             commands::repair::pick_and_import_repair_asset,
+            commands::repair::start_media_recovery,
+            commands::repair::get_recovery_status,
+            commands::repair::cancel_media_recovery,
+            commands::repair::finalize_recovered_asset,
+            commands::repair::export_recovery_report,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

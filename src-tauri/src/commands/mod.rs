@@ -16,8 +16,10 @@ pub use playback::{
     PlaybackInfo, PlaybackState, ProxyStateInfo, ProxyStatusResponse,
 };
 pub use repair::{
-    cancel_media_diagnostics, export_diagnostic_report, get_diagnostic_report,
-    pick_and_import_repair_asset, run_media_diagnostics, RepairDiagnosticsState,
+    cancel_media_diagnostics, cancel_media_recovery, export_diagnostic_report,
+    export_recovery_report, finalize_recovered_asset, get_diagnostic_report, get_recovery_status,
+    pick_and_import_repair_asset, run_media_diagnostics, start_media_recovery, RecoveryJobStatus,
+    RepairDiagnosticsState,
 };
 pub use waveform::{
     cancel_waveform_analysis, get_waveform_segment, get_waveform_status, request_waveform_analysis,

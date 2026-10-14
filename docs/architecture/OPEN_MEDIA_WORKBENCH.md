@@ -90,12 +90,17 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - **Bounded Decode & Timestamp Verification (`repair::timestamps`):** Null-sink test decode (`-f null -`) scanning up to 30s for non-monotonic DTS jumps, macroblock concealment, and corrupted NAL units.
   - **Evidence-Based Recommendations (`repair::report`):** Suggests loss-less remuxing (STEP 13), reference-based MOOV reconstruction (STEP 14), or stream salvage (STEP 13) with explicit target steps and disabled execution.
   - **Sanitized Report Export:** Native user-directed export of versioned JSON diagnostic reports with sanitized paths.
-- **Salvage Engine (Planned STEPS 13–14):**
-  - Reference-file reconstruction: extracts codec configuration records (`avcC`, `mp4a`) from a valid reference clip recorded with identical settings and synthesizes a reconstructed `moov` atom (STEP 14).
-  - Raw packet demuxer: recovers orphaned H.264/H.265 NAL units and AAC ADTS frames directly from `mdat` chunks (STEP 13).
-  - Container re-indexing: wraps salvaged elementary streams into compliant MP4 or MKV containers (STEP 13).
+- **Recovery Pipeline & Salvage Engine (Completed in STEP 13):**
+  - **Lossless Container Remux (`repair::remux`):** Pure stream copy (`-c copy`) of readable streams into clean, compliant containers (MP4, MKV, MOV, AVI) with faststart indexing, without lossy re-encoding.
+  - **Conservative Stream Salvage (`repair::salvage`):** Isolate intact video or audio tracks when sister streams suffer from severe defects or demux failures (Video-Only, Audio-Only, All Readable).
+  - **Timestamp Continuity Rebuild (`repair::remux`):** Controlled timestamp regeneration (`+genpts`, `avoid_negative_ts make_zero`) resolving non-monotonic DTS/PTS jumps and audio/video sync drift.
+  - **Bounded Output Validation (`repair::validation`):** Three-stage output verification (file size, container recognition, stream loss check, and bounded decode test).
+  - **Secure Application Staging & No-Clobber Finalization (`repair::recovery`):** Isolated staging directory execution, strict no-overwrite protection, and symlink attack prevention.
+  - **Asset Integration & Privacy-Preserving Reporting (`repair::recovery_report`):** Registers validated output into the active media library as a new authorized asset for instant preview, with sanitized JSON report export.
+- **Reference Reconstruction (Scheduled for STEP 14):**
+  - Reference-based MOOV atom reconstruction: extracts track and codec configuration from a healthy donor file recorded on the same device to reconstruct missing sample tables in unfinalized recordings.
 - **Validation & Split Preview:**
-  - Leverages the shared custom-protocol player to present side-by-side A/B comparison of damaged vs salvaged media before export confirmation.
+  - Leverages the shared custom-protocol player to present side-by-side comparison of damaged vs salvaged media before export confirmation.
 
 ### 3.2 Localization Studio (Planned Workspace 2)
 **Objective:** End-to-end subtitle generation, speech recognition, machine translation, and neural speech dubbing.

@@ -3,7 +3,7 @@
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%2012%20Diagnostics%20Engine%20Complete-success.svg)](docs/reports/STEP_12_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2013%20Recovery%20Pipeline%20Complete-success.svg)](docs/reports/STEP_13_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 Open Media Workbench is a free, open-source, offline-first desktop application designed for media recovery and local AI localization. Built with Tauri 2, Rust, and React 19, the workbench provides content creators, archivists, and video professionals with an uncompromising local-first studio that processes all media strictly on-device without cloud telemetry or mandatory accounts.
@@ -14,8 +14,8 @@ Open Media Workbench is a free, open-source, offline-first desktop application d
 
 Open Media Workbench unifies two specialized studio workspaces under a single high-performance desktop shell, sharing a common Rust media processing core:
 
-1. **Repair Studio** *(Active Development — STEP 12 Diagnostics Complete)*
-   - **Video Corruption Diagnostics (Implemented):**
+1. **Repair Studio** *(Active Development — STEPS 12 & 13 Complete)*
+   - **Video Corruption Diagnostics (STEP 12):**
      - **Container Identification:** Fast magic byte validation for MP4/MOV, MKV (EBML), and AVI (RIFF) with extension mismatch detection.
      - **ISO BMFF Structural Inspection:** Bounded, memory-safe atom parser (`ftyp`, `moov`, `mdat`, `moof`, `free/skip`) handling 32-bit, 64-bit extended sizes, and size-0 atoms without loading sample payloads into memory.
      - **Resilient Stream Probing:** FFprobe metadata inventory that handles unfinalized or missing headers gracefully without crashing.
@@ -23,9 +23,17 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Evidence-Based Findings:** Structured codes (`MP4_MOOV_MISSING`, `TIMESTAMP_NON_MONOTONIC_DTS`) with concrete observed evidence strings and confidence scores.
      - **Sanitized Diagnostic JSON Export:** Privacy-preserving report export with native save destination (scrubs internal user directory paths).
      - **Cooperative Cancellation:** Responsive background job management with leak-free child process termination.
-   - **Future Repair Engines (Scheduled for STEPS 13 & 14):**
-     - Lossless container remuxing & elementary stream salvage (STEP 13).
-     - Reference-based MOOV atom reconstruction using a working donor file (STEP 14).
+   - **Video Recovery Pipeline (STEP 13 Implemented):**
+     - **Lossless Container Remux:** Pure stream copy (`-c copy`) of readable elementary streams into freshly muxed, compliant containers (MP4, MKV, MOV, AVI) with `-movflags +faststart`.
+     - **Recoverable Stream Salvage:** Conservative isolation of intact video or audio tracks when sister streams suffer from corruption or unreadable data (Video-Only, Audio-Only, or All Readable Tracks).
+     - **Conservative Timestamp Rebuild:** Presentation timestamp regeneration (`+genpts`, `avoid_negative_ts make_zero`) resolving non-monotonic DTS/PTS jumps and audio/video desynchronization.
+     - **Post-Recovery Bounded Validation:** Three-stage output verification checking non-empty file size, container recognition, stream loss detection, and bounded FFmpeg null-sink decode test.
+     - **Secure Staging & Safe Finalization:** Recovery operations execute strictly in isolated, application-managed staging directories. Final output export enforces atomic no-clobber protection (preventing silent overwrites) and defends against symlink redirection attacks.
+     - **Zero-Byte Source Mutation:** Original source media files are strictly read-only and never modified, renamed, or truncated under any circumstances.
+     - **Recovered Asset Preview Integration:** Validated outputs are registered into the active media library as new authorized assets and immediately playable in the desktop preview player.
+     - **Versioned Recovery Reports:** Structured JSON reports detailing processing status, stream inventories, observed errors, duration deltas, and known limitations.
+   - **Future Reference Reconstruction (Scheduled for STEP 14):**
+     - Reference-based MOOV atom reconstruction for unfinalized or interrupted recordings missing required sample tables.
 
 2. **Localization Studio** *(Planned — STEP 11 Desktop UI Ready)*
    - Interactive subtitle editor and timing adjustment
@@ -36,28 +44,31 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 
 ---
 
-## ⚠️ Important Diagnostics & Safety Disclaimers
-
-> [!WARNING]
-> **Video Repair Is NOT Implemented Yet**  
-> STEP 12 implements forensic diagnostics only. No actual stream repair, atom reconstruction, or container re-muxing is executed in this step. All repair buttons remain disabled until the repair engines are implemented in STEPS 13 and 14.
-
-> [!NOTE]
-> **Deep Scan Is Bounded**  
-> Deep diagnostics executes a bounded 30-second decode sample to identify bitstream defects and timestamp discontinuities quickly. It does **not** decode the entire media file and does **not** prove or guarantee that subsequent uninspected sections of the file are healthy.
+## ⚠️ Important Recovery & Safety Guarantees
 
 > [!IMPORTANT]
-> **Hardware-Dependent Scan Duration & Absolute Read-Only Guarantee**  
-> - Diagnostic execution duration varies depending on media container complexity, disk I/O speed, and CPU decoder capabilities.
-> - **Zero-Byte Mutation Guarantee:** Original source files are opened strictly in read-only mode. The workbench never alters, overwrites, truncates, or moves source media files.
+> **Zero-Byte Source Mutation Guarantee**
+> All recovery operations execute on read-only file descriptors. Output files are generated in an isolated temporary staging location. Source media files are **never** modified, overwritten, truncated, or moved.
+
+> [!NOTE]
+> **Lossless Stream Copy vs Re-encoding**
+> The STEP 13 recovery pipeline strictly copies valid compressed packets (`-c copy`) without lossy re-encoding or transcoding. If an elementary stream is unreadable or corrupted at the packet level, it is not silently transcoded into degraded quality.
+
+> [!WARNING]
+> **Missing MOOV Atom Boundary (STEP 14 Required)**
+> MP4 and MOV files that lack a `moov` atom (e.g. power-loss during recording) cannot be demuxed or remuxed by standard FFmpeg commands because sample chunk offsets are absent. The recovery engine honestly flags this condition as requiring **STEP 14 Reference-Based Reconstruction** using a donor file recorded on the same device.
+
+> [!TIP]
+> **Strict No-Clobber Export Safety**
+> When saving recovered media to user storage, Open Media Workbench requires native OS file dialog confirmation, forbids writing over the original source file, and rejects attempts to overwrite existing files or write to symlinks.
 
 ---
 
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 12 Completed (Video Corruption Diagnostics Engine)**  
-> The dual-workspace desktop UI (STEP 11) and production-grade video corruption diagnostics engine (STEP 12) are fully implemented and verified with 133 automated Rust tests and 28 TypeScript unit tests. Next milestone: **STEP 13 (Lossless Remuxing & Stream Salvage Engine)**.
+> **Project State: STEP 13 Completed (Safe Media Remux & Stream Salvage Pipeline)**
+> The dual-workspace desktop UI (STEP 11), video corruption diagnostics engine (STEP 12), and safe recovery pipeline (STEP 13) are fully implemented and verified with **145 automated Rust tests** and **30 TypeScript unit tests**. Next milestone: **STEP 14 (Reference-Based MP4/MOV moov Reconstruction)**.
 
 - **Target Release:** v0.1.0 Beta
 - **Development Schedule:** ~30 days (engineering target)
@@ -69,10 +80,10 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 ## 🚀 Developer Quickstart
 
 ### Prerequisites (Ubuntu / Debian Linux)
-Ensure standard native build tools and WebKitGTK libraries are installed:
+Ensure standard native build tools, FFmpeg, and WebKitGTK libraries are installed:
 ```bash
 sudo apt update
-sudo apt install -y build-essential curl pkg-config libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+sudo apt install -y build-essential curl pkg-config libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev ffmpeg
 ```
 
 ### Installation & Local Run
@@ -95,157 +106,18 @@ npm run lint
 npm test
 npm run build
 
-# Rust workspace compilation, unit tests, and clippy
+# Rust workspace compilation, unit tests, clippy, and binary build
 cargo check --workspace
 cargo test --workspace
-cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
+cargo fmt --all -- --check
+cargo build -p opentake-desktop
 ```
 
 ---
 
-## 🎯 Core Principles
+## 📜 Licensing & Distribution
 
-- **100% Free Core:** No paywalls, artificial feature restrictions, or exported video limits.
-- **Open Source:** Transparent, community-driven development under proposed GPL-3.0.
-- **Privacy-First & Offline:** All video and audio processing happens entirely on your local machine. Zero mandatory accounts, zero cloud uploads.
-- **Zero Watermarks:** Your content belongs entirely to you.
-- **Non-Destructive Editing:** Your original raw recordings are strictly read-only and never modified.
-- **Focused Rough-Cut Workflow:** Built specifically to solve the repetitive, tedious rough-cut phase before final delivery or NLE finishing.
-
----
-
-## 📚 Documentation Index
-
-All architectural specifications, requirements, and roadmaps are tracked within the [`docs/`](file:///home/osmangoni/Downloads/OpenTake/docs) directory:
-
-### Requirements & Governance
-| Document | Description |
-|---|---|
-| [Product Requirements (PRD)](file:///home/osmangoni/Downloads/OpenTake/docs/requirements/PRODUCT_REQUIREMENTS.md) | Vision, target user personas, jobs to be done, primary workflows, and scenarios. |
-| [Release Scope & Feature Lock](file:///home/osmangoni/Downloads/OpenTake/docs/requirements/RELEASE_SCOPE.md) | Locked P0 features for v0.1.0 Beta; deferred P1 and P2 scope boundaries. |
-| [Acceptance Criteria](file:///home/osmangoni/Downloads/OpenTake/docs/requirements/ACCEPTANCE_CRITERIA.md) | Testable, measurable criteria and verification methods for every P0 requirement. |
-| [Risk Register](file:///home/osmangoni/Downloads/OpenTake/docs/requirements/RISK_REGISTER.md) | Tracking of legal, security, technical, and operational risks. |
-| [Development Roadmap](file:///home/osmangoni/Downloads/OpenTake/docs/roadmap/DEVELOPMENT_ROADMAP.md) | Complete 32-step engineering roadmap across 8 milestones with release gates. |
-
-### Technical Architecture Specifications
-| Document | Description |
-|---|---|
-| [Rust Workspace Architecture](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/RUST_WORKSPACE.md) | Two-tier workspace blueprint (`crates/opentake-core` + `src-tauri`), modules, error propagation. |
-| [Tauri 2 IPC & Security Contracts](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/TAURI_IPC_CONTRACTS.md) | Strongly typed request/response commands, 10 Hz throttled events, least-privilege capability model. |
-| [Media Ingestion & Probing](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/MEDIA_PIPELINE.md) | 10-stage ingestion flow, FFprobe normalization, fast header/footer Blake3 fingerprinting. |
-| [Timeline & EDL Model](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/TIMELINE_EDL.md) | Integer microsecond timebase (`i64`), frame/sample boundary snapping, interval algebra. |
-| [Video Playback Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/PLAYBACK_STRATEGY.md) | Hybrid two-tier preview: direct HTML5 video via asset bridge + 720p H.264 proxy fallback. |
-| [Audio Analysis & Waveforms](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/AUDIO_ANALYSIS.md) | Streaming 16kHz PCM decoding, multi-resolution LOD buckets, hysteresis silence DSP. |
-| [Export Engine Pipeline](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/EXPORT_PIPELINE.md) | 14-stage export flow, FFmpeg filtergraph compiler, CFR normalization, provisional ±25 ms sync gate. |
-| [Background Job Management](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/BACKGROUND_JOBS.md) | Async Tokio job state machine, process tree killing (PGID), cancellation cleanup. |
-| [Project Format Specification](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/PROJECT_FORMAT.md) | Versioned `.opentake` JSON schema (v1), atomic save with fsync, missing media relinking. |
-| [Cross-Platform Distribution](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/DISTRIBUTION_STRATEGY.md) | Packaging on Linux (AppImage/deb), Windows (NSIS), macOS (DMG), 10-point qualification matrix. |
-| [Future AI Extension Boundary](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/AI_EXTENSION_BOUNDARY.md) | Post-beta P1 whisper.cpp trait interface, explicit consent downloads, weights licensing. |
-| [Performance Budget](file:///home/osmangoni/Downloads/OpenTake/docs/architecture/PERFORMANCE_BUDGET.md) | Provisional engineering thresholds vs measured results, memory caps (< 500 MB). |
-| [Testing Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/testing/TEST_STRATEGY.md) | Multi-tier test pyramid, synthetic fixture specifications, AV sync measurement harness. |
-
-### Licensing & Supply Chain
-| Document | Description |
-|---|---|
-| [FFmpeg Licensing & Distribution](file:///home/osmangoni/Downloads/OpenTake/docs/licensing/FFMPEG_DISTRIBUTION.md) | Rigorous analysis of `--enable-gpl` and `libx264` obligations; sidecar packaging strategy. |
-| [Open-Source Project License](file:///home/osmangoni/Downloads/OpenTake/docs/licensing/OPEN_SOURCE_LICENSE.md) | Evaluation of MIT vs Apache vs GPL-3.0; recommendation of GPL-3.0-or-later. |
-| [Dependency Supply Chain Policy](file:///home/osmangoni/Downloads/OpenTake/docs/security/DEPENDENCY_POLICY.md) | License allowlist, cargo/npm audit gates, committed lockfiles, CI token hardening. |
-
-### Architecture Decision Records (ADRs)
-| ADR | Title & Link | Status |
-|---|---|---|
-| ADR-0001 | [Initial Desktop Architecture and Product Scope](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0001.md) | Proposed |
-| ADR-0002 | [Rust Workspace and Module Boundaries](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0002.md) | Proposed |
-| ADR-0003 | [Tauri IPC and Security Model](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0003.md) | Proposed |
-| ADR-0004 | [Timeline Timebase and EDL](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0004.md) | Proposed |
-| ADR-0005 | [Playback and Proxy Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0005.md) | Proposed |
-| ADR-0006 | [FFmpeg Process and Export Pipeline](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0006.md) | Proposed |
-| ADR-0007 | [Project Serialization and Recovery](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0007.md) | Proposed |
-| ADR-0008 | [FFmpeg Licensing and Distribution Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/licensing/FFMPEG_DISTRIBUTION.md) | Proposed |
-| ADR-0009 | [Background Jobs and Cancellation Protocol](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0009.md) | Proposed |
-| ADR-0010 | [Cross-Platform Release Strategy](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0010.md) | Proposed |
-| ADR-0011 | [Open-Source Licensing and Dependency Policy](file:///home/osmangoni/Downloads/OpenTake/docs/decisions/ADR-0011.md) | Proposed |
-
-### Milestone Execution Reports
-- [Step 1 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_01_REPORT.md)
-- [Step 2 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_02_REPORT.md)
-- [Step 3 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_03_REPORT.md)
-- [Step 4 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_04_REPORT.md)
-- [Step 5 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_05_REPORT.md)
-- [Step 6 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_06_REPORT.md)
-- [Step 7 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_07_REPORT.md)
-- [Step 8 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_08_REPORT.md)
-- [Step 9 Execution Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_09_REPORT.md)
-
----
-
-## 🗺️ 32-Step Development Roadmap at a Glance
-
-```
-Milestone 1 — Foundation (Days 1–4)
-  ├── STEP 1: Requirements, Scope Lock & Acceptance Baseline  ◄ [COMPLETED]
-  ├── STEP 2: Architecture & Licensing Decisions              ◄ [COMPLETED]
-  ├── STEP 3: Tauri + Rust + React Project Bootstrap          ◄ [COMPLETED]
-  └── STEP 4: App Shell, Navigation & Design System          ◄ [COMPLETED]
-
-Milestone 2 — Media Foundation (Days 5–8)
-  ├── STEP 5: FFmpeg/FFprobe Integration                      ◄ [COMPLETED]
-  ├── STEP 6: File Import & Metadata Inspection               ◄ [COMPLETED]
-  ├── STEP 7: Playback & Seeking Foundation                   ◄ [COMPLETED]
-  └── STEP 8: Audio Waveform Generation                       ◄ [COMPLETED]
-
-Milestone 3 — Editing Engine (Days 9–13)
-  ├── STEP 9: Non-Destructive Editing Data Model              ◄ [COMPLETED]
-  ├── STEP 10: Visual Timeline & Manual Editing               ◄ [NEXT]
-  ├── STEP 11: Undo/Redo & Keyboard Shortcuts
-  ├── STEP 12: Project Persistence & Reopen
-  └── STEP 13: Preview-to-Timeline Synchronization
-
-Milestone 4 — Automatic Editing (Days 14–17)
-  ├── STEP 14: Audio Analysis Pipeline
-  ├── STEP 15: Silence Detection Algorithm
-  ├── STEP 16: Smart Cut Generation
-  └── STEP 17: Automatic Edit Review UX
-
-Milestone 5 — Export Engine (Days 18–21)
-  ├── STEP 18: Export Timeline Compiler
-  ├── STEP 19: MP4 Export & Quality Presets
-  ├── STEP 20: Export Progress & Cancellation
-  └── STEP 21: Audio/Video Sync Validation
-
-Milestone 6 — Polish & Reliability (Days 22–25)
-  ├── STEP 22: Onboarding, Settings & UX Polish
-  ├── STEP 23: Performance, Memory & Large-File Safety
-  ├── STEP 24: Security & Dependency Audit
-  └── STEP 25: Automated Regression Tests
-
-Milestone 7 — Open Source & Distribution (Days 26–28)
-  ├── STEP 26: Open-Source Repository Documentation
-  ├── STEP 27: Cross-Platform CI & Packaging
-  └── STEP 28: Installer/Release Verification
-
-Milestone 8 — Beta Launch (Days 29–30)
-  ├── STEP 29: External Beta Testing & Critical Fixes
-  ├── STEP 30: Launch Materials & Showcase
-  ├── STEP 31: GitHub Beta Release
-  └── STEP 32: Feedback & Post-Release Roadmap
-```
-
----
-
-## 🛠️ Verified Development Environment (Host)
-
-The primary development environment is Linux x86_64:
-- **Rust Toolchain:** rustc 1.99.0 / cargo 1.99.0
-- **Node.js Environment:** Node.js v24.19.0 / npm 11.17.0
-- **Multimedia Engine:** FFmpeg 8.0.1 / FFprobe 8.0.1
-- **GUI Libraries:** GTK 3 (3.24.52), WebKitGTK 4.1 (2.52.6)
-
----
-
-## 🤝 Community & Contributing
-
-OpenTake welcomes contributors from the global open-source community. Full contributing guides, issue templates, and coding standards will be formally published in **STEP 26**.
-
-To inspect the desktop bootstrap audit, check the [Step 3 Report](file:///home/osmangoni/Downloads/OpenTake/docs/reports/STEP_03_REPORT.md).
+Open Media Workbench is distributed under the **GNU General Public License v3.0 or later (GPL-3.0-or-later)**.
+- See [LICENSE](LICENSE) for the full license text.
+- See [docs/architecture/LICENSING_AND_DISTRIBUTION.md](docs/architecture/LICENSING_AND_DISTRIBUTION.md) for licensing architecture and compliance invariants.

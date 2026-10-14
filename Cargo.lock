@@ -2482,6 +2482,7 @@ dependencies = [
  "tauri-build",
  "tokio",
  "tokio-util",
+ "uuid",
 ]
 
 [[package]]

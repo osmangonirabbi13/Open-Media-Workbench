@@ -342,37 +342,52 @@ fn synthesize_recommendations(
         });
     }
 
-    // 2. Container Remux / Header Rebuild (STEP 13)
-    if (has_timestamp_irregularities || has_truncated_box) && !has_missing_moov {
+    // 2. Container Remux (STEP 13)
+    if has_truncated_box && !has_missing_moov {
         recs.push(RepairRecommendation {
             strategy_id: "CONTAINER_REMUX".to_string(),
             title: "Lossless Container Remux".to_string(),
-            description: "The audio/video elementary streams appear intact, but the outer container has timing irregularities or header truncation. Losslessly repackaging the streams into a freshly muxed MP4 or MKV container may resolve playback issues.".to_string(),
-            confidence: "Moderate".to_string(),
+            description: "The audio/video elementary streams appear intact, but the outer container has header truncation. Losslessly repackaging the streams into a freshly muxed MP4 or MKV container may resolve playback issues.".to_string(),
+            confidence: "High".to_string(),
             required_evidence: vec![
                 "Valid stream headers detected".to_string(),
-                "Container timing anomalies or trailing truncation observed".to_string(),
+                "Container trailing truncation observed".to_string(),
             ],
             target_step: 13,
-            available_now: false,
+            available_now: true,
         });
     }
 
-    // 3. Raw Stream Salvage (STEP 13)
+    // 2b. Timestamp Rebuild (STEP 13)
+    if has_timestamp_irregularities && !has_missing_moov {
+        recs.push(RepairRecommendation {
+            strategy_id: "TIMESTAMP_REBUILD".to_string(),
+            title: "Timestamp Continuity Rebuild".to_string(),
+            description: "Non-monotonic DTS/PTS or negative timestamp offsets were detected. Regenerating presentation timestamps (genpts) during container remux can restore audio/video synchronization.".to_string(),
+            confidence: "Moderate".to_string(),
+            required_evidence: vec![
+                "DTS/PTS irregularities detected during decode inspection".to_string(),
+            ],
+            target_step: 13,
+            available_now: true,
+        });
+    }
+
+    // 3. Stream Salvage (STEP 13)
     if (has_corrupt_nals
         || (!container_res.is_iso_bmff && !container_res.is_mkv && !container_res.is_avi))
         && file_size > 1024 * 1024
     {
         recs.push(RepairRecommendation {
-            strategy_id: "RAW_STREAM_SALVAGE".to_string(),
-            title: "Raw Bitstream Salvage".to_string(),
-            description: "The container headers are unrecognized or severely damaged, but the raw binary file contains substantial data. In STEP 13, packet carver algorithms can scan for raw H.264/H.265 NAL start codes or ADTS audio frames to salvage recoverable segments.".to_string(),
-            confidence: "Tentative".to_string(),
+            strategy_id: "STREAM_SALVAGE".to_string(),
+            title: "Recoverable Stream Salvage".to_string(),
+            description: "One or more streams suffer from bitstream corruption or unsupported container framing. Conservative stream salvage isolates intact video or audio tracks into a clean container.".to_string(),
+            confidence: "Moderate".to_string(),
             required_evidence: vec![
-                "File size > 1MB with damaged/unknown container structure".to_string(),
+                "Partial stream integrity errors or damaged sister tracks observed".to_string(),
             ],
             target_step: 13,
-            available_now: false,
+            available_now: true,
         });
     }
 

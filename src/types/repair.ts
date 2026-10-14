@@ -68,3 +68,96 @@ export interface DiagnosticReport {
   inspectionCoverage: InspectionCoverage;
   toolVersions?: string | null;
 }
+
+// ==========================================
+// STEP 13 — Recovery Pipeline Types
+// ==========================================
+
+export type RecoveryMethod =
+  | "losslessRemux"
+  | "streamSalvage"
+  | "timestampRebuild";
+
+export type RecoveryStatus =
+  | "queued"
+  | "running"
+  | "validating"
+  | "completed"
+  | "partial"
+  | "failed"
+  | "cancelled";
+
+export type SalvageStreamType =
+  | "videoOnly"
+  | "audioOnly"
+  | "allReadable";
+
+export type ValidationLevel =
+  | "metadataOnly"
+  | "sampledDecode"
+  | "fullDecode";
+
+export interface StreamReportInfo {
+  index: number;
+  streamType: string;
+  codecName: string;
+  durationSeconds?: number | null;
+  resolution?: string | null;
+  sampleRate?: number | null;
+  channels?: number | null;
+}
+
+export interface RecoveryValidationResult {
+  passed: boolean;
+  isPlayable: boolean;
+  validationLevel: ValidationLevel;
+  streamsPresent: string[];
+  streamsExpected: string[];
+  streamLossDetected: boolean;
+  outputDurationSeconds?: number | null;
+  details: string;
+  warnings: string[];
+}
+
+export interface RecoveryRequest {
+  assetId: string;
+  method: RecoveryMethod;
+  outputContainerPreference?: string | null;
+  salvageStreamType?: SalvageStreamType | null;
+  customDestination?: string | null;
+  diagnosticReportId?: string | null;
+}
+
+export interface RecoveryReport {
+  schemaVersion: number;
+  jobId: string;
+  sourceAssetId: string;
+  sourceFileName: string;
+  recoveryMethod: RecoveryMethod;
+  originalContainer: string;
+  intendedOutputContainer: string;
+  actualOutputContainer: string;
+  inputStreams: StreamReportInfo[];
+  outputStreams: StreamReportInfo[];
+  processingStatus: RecoveryStatus;
+  validation: RecoveryValidationResult;
+  warnings: string[];
+  observedFfmpegErrors: string[];
+  outputFileSizeBytes?: number | null;
+  outputFilePath?: string | null;
+  sourceDurationSeconds?: number | null;
+  outputDurationSeconds?: number | null;
+  durationDifferenceSeconds?: number | null;
+  startedAtEpochMs: number;
+  completedAtEpochMs: number;
+  limitations: string[];
+}
+
+export interface RecoveryJobStatus {
+  jobId: string;
+  assetId: string;
+  status: RecoveryStatus;
+  stageMessage: string;
+  report?: RecoveryReport | null;
+  errorMessage?: string | null;
+}

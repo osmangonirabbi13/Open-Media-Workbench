@@ -131,6 +131,7 @@ export function RepairWorkspace({
           activeStep={activeWorkflowStep}
           report={currentReport}
           onStepChange={setActiveWorkflowStep}
+          onAssetRecovered={(newAsset) => onSelectAsset(newAsset)}
         />
 
         {/* Lower Split: Left Diagnostics & Right Preview Validation */}

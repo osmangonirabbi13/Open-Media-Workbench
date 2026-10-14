@@ -107,3 +107,80 @@ test("Repair Diagnostics Data Contract: JSON report serialization round-trip", (
   assert.equal(parsed.schemaVersion, 1);
   assert.equal(parsed.fileName, "damaged_video.mp4");
 });
+
+test("Recovery Pipeline: executes mock recovery job in browser environment", async () => {
+  const { startMediaRecovery, cancelMediaRecovery } = await import("./repair");
+  const jobStatus = await startMediaRecovery({
+    assetId: "asset-test-rec",
+    method: "losslessRemux",
+    outputContainerPreference: "mp4",
+  });
+
+  assert.ok(jobStatus.jobId.startsWith("mock-job-"));
+  assert.equal(jobStatus.assetId, "asset-test-rec");
+  assert.equal(jobStatus.status, "completed");
+  assert.ok(jobStatus.report);
+  assert.equal(jobStatus.report?.recoveryMethod, "losslessRemux");
+  assert.equal(jobStatus.report?.validation.passed, true);
+  assert.equal(jobStatus.report?.validation.isPlayable, true);
+
+  const cancelled = await cancelMediaRecovery("mock-job-123");
+  assert.equal(cancelled, true);
+});
+
+test("Recovery Pipeline Data Contract: validates RecoveryReport structure", () => {
+  const report: import("../types/repair").RecoveryReport = {
+    schemaVersion: 1,
+    jobId: "job-12345",
+    sourceAssetId: "asset-src-1",
+    sourceFileName: "source.mp4",
+    recoveryMethod: "streamSalvage",
+    originalContainer: "mp4",
+    intendedOutputContainer: "mp4",
+    actualOutputContainer: "mp4",
+    inputStreams: [
+      {
+        index: 0,
+        streamType: "video",
+        codecName: "h264",
+        durationSeconds: 15.0,
+      },
+    ],
+    outputStreams: [
+      {
+        index: 0,
+        streamType: "video",
+        codecName: "h264",
+        durationSeconds: 15.0,
+      },
+    ],
+    processingStatus: "completed",
+    validation: {
+      passed: true,
+      isPlayable: true,
+      validationLevel: "sampledDecode",
+      streamsPresent: ["Video stream (codec: h264)"],
+      streamsExpected: ["1 video stream(s)"],
+      streamLossDetected: false,
+      outputDurationSeconds: 15.0,
+      details: "Validation succeeded with 1 video stream.",
+      warnings: [],
+    },
+    warnings: [],
+    observedFfmpegErrors: [],
+    outputFileSizeBytes: 2048576,
+    outputFilePath: "/safe/staging/job-12345/recovered.mp4",
+    sourceDurationSeconds: 15.0,
+    outputDurationSeconds: 15.0,
+    durationDifferenceSeconds: 0.0,
+    startedAtEpochMs: 1700000000000,
+    completedAtEpochMs: 1700000001000,
+    limitations: ["Audio stream was omitted per stream salvage configuration."],
+  };
+
+  assert.equal(report.schemaVersion, 1);
+  assert.equal(report.recoveryMethod, "streamSalvage");
+  assert.equal(report.processingStatus, "completed");
+  assert.equal(report.validation.isPlayable, true);
+  assert.equal(report.limitations.length, 1);
+});
