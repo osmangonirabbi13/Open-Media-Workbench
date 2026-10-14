@@ -46,6 +46,13 @@ export function sanitizePreferences(raw: unknown): WorkspacePreferences {
   const snapEnabled =
     typeof candidate.snapEnabled === "boolean" ? candidate.snapEnabled : true;
 
+  const activeWorkspace =
+    candidate.activeWorkspace === "localization"
+      ? ("localization" as const)
+      : candidate.activeWorkspace === "repair"
+        ? ("repair" as const)
+        : undefined;
+
   return {
     schemaVersion: PREFERENCES_SCHEMA_VERSION,
     mediaPanelWidth: mediaWidth,
@@ -53,6 +60,7 @@ export function sanitizePreferences(raw: unknown): WorkspacePreferences {
     theme: "dark",
     timecodeFormat,
     snapEnabled,
+    ...(activeWorkspace ? { activeWorkspace } : {}),
   };
 }
 

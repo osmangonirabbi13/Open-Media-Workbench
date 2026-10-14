@@ -16,6 +16,8 @@ export interface WorkspacePreferences {
   timecodeFormat: "timecode" | "frames";
   /** Whether snap-to-grid is visually enabled in the timeline */
   snapEnabled: boolean;
+  /** Active workspace tab (repair or localization) */
+  activeWorkspace?: "repair" | "localization";
 }
 
 export const PREFERENCES_SCHEMA_VERSION = 1;

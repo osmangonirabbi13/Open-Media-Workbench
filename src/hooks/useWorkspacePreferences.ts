@@ -16,6 +16,7 @@ export interface UseWorkspacePreferencesReturn {
   setTimelineDeckHeight: (height: number) => void;
   setTimecodeFormat: (format: "timecode" | "frames") => void;
   setSnapEnabled: (enabled: boolean) => void;
+  setActiveWorkspace: (workspace: "repair" | "localization") => void;
   resetLayout: () => void;
 }
 
@@ -61,6 +62,13 @@ export function useWorkspacePreferences(): UseWorkspacePreferencesReturn {
     }));
   }, []);
 
+  const setActiveWorkspace = useCallback((activeWorkspace: "repair" | "localization") => {
+    setPreferences((prev) => ({
+      ...prev,
+      activeWorkspace,
+    }));
+  }, []);
+
   const resetLayout = useCallback(() => {
     const defaults = resetWorkspacePreferences();
     setPreferences(defaults);
@@ -72,6 +80,7 @@ export function useWorkspacePreferences(): UseWorkspacePreferencesReturn {
     setTimelineDeckHeight,
     setTimecodeFormat,
     setSnapEnabled,
+    setActiveWorkspace,
     resetLayout,
   };
 }

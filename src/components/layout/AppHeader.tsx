@@ -2,10 +2,14 @@ import React from "react";
 import { InfoIcon, OpenMediaWorkbenchLogo, ResetIcon, SettingsIcon } from "../ui/Icons";
 import { IconButton } from "../ui/IconButton";
 import { StatusBadge } from "../ui/StatusBadge";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import type { AppInfo, IpcState } from "../../types/ipc";
+import type { WorkspaceId } from "../../types/workspace";
 
 export interface AppHeaderProps {
   ipcState: IpcState<AppInfo>;
+  activeWorkspace?: WorkspaceId;
+  onSelectWorkspace?: (workspace: WorkspaceId) => void;
   onRetryIpc: () => void;
   onOpenSettings: () => void;
   onOpenAbout: () => void;
@@ -14,6 +18,8 @@ export interface AppHeaderProps {
 
 export function AppHeader({
   ipcState,
+  activeWorkspace,
+  onSelectWorkspace,
   onRetryIpc,
   onOpenSettings,
   onOpenAbout,
@@ -34,7 +40,9 @@ export function AppHeader({
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
           <OpenMediaWorkbenchLogo size={22} />
-          <span className="font-semibold text-sm tracking-tight text-zinc-100">Open Media Workbench</span>
+          <span className="font-semibold text-sm tracking-tight text-zinc-100 hidden sm:inline">
+            Open Media Workbench
+          </span>
         </div>
 
         <div className="h-4 w-[1px] bg-zinc-800" aria-hidden="true" />
@@ -46,6 +54,16 @@ export function AppHeader({
           </span>
         </div>
       </div>
+
+      {/* Center: Global Workspace Switcher */}
+      {activeWorkspace && onSelectWorkspace && (
+        <div className="flex items-center justify-center">
+          <WorkspaceSwitcher
+            activeWorkspace={activeWorkspace}
+            onSelectWorkspace={onSelectWorkspace}
+          />
+        </div>
+      )}
 
       {/* Right: Actions, Layout Controls, Backend Indicator & Settings */}
       <div className="flex items-center space-x-2">

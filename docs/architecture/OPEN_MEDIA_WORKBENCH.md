@@ -175,8 +175,54 @@ These identifiers will be scheduled for a seamless migration pass once workspace
 ## 8. Compatibility & Upgrade Strategy
 
 1. **Deterministic Test Gates:**
-   - Every commit must pass all existing Rust unit, property, and integration tests (83 tests) and TypeScript tests (16 tests).
+   - Every commit must pass all existing Rust unit, property, and integration tests (83 tests) and TypeScript tests (16 tests + 6 workspace tests).
 2. **Schema Upgraders:**
    - Any future modifications to saved project structures or cache headers will provide backward-compatible deserializers with automated migration paths.
 3. **Graceful Degraded Runtime:**
    - If local AI models or hardware encoders are unavailable, the application gracefully alerts the user while keeping standard media playback and manual editing fully operational.
+
+---
+
+## 9. Workspace Domain Model & Lifecycle (STEP 11)
+
+### 9.1 Typed Workspace Identities
+Workspaces are strictly typed as:
+```typescript
+type WorkspaceId = "repair" | "localization";
+```
+Each workspace is defined declaratively (`WORKSPACE_DEFINITIONS`) with its label, description, badge, and capability matrix specifying implementation status (`available`, `in_development`, `planned`) and roadmap milestone step.
+
+### 9.2 State Retention & Lifecycle
+- **Shared Media Ingestion & Authorization:** Both studios mount the canonical `MediaLibraryPanel` backed by the Rust media session. Assets imported in one studio remain authorized and immediately selectable in the other without duplicating memory buffers or session state.
+- **Active Asset Persistence:** When the user switches between Repair Studio and Localization Studio, the active asset selection is preserved across viewports.
+- **Independent Studio State:** Transient inspector views, diagnostic states, and recovery workflow step indices are scoped to each workspace. Switching tabs does not destroy in-progress work or reset unrelated panel splitters.
+- **Resource Ownership:** Video decoder elements (`<video>`) and audio waveform canvas buffers unmount deterministically, preventing background playback leaks or GPU resource hogging.
+
+### 9.3 Keyboard Navigation & Accessibility
+- **W3C ARIA Tablist Pattern:** The workspace switcher in `AppHeader` implements standard `role="tablist"` with `role="tab"`, `aria-selected`, `aria-controls`, and `tabIndex` attributes.
+- **Keyboard Traversal:** Users can cycle between studios using `ArrowLeft`/`ArrowRight`/`Home`/`End` within the switcher, or globally using non-conflicting dedicated shortcuts:
+  - `Alt+1`: Switch to Repair Studio
+  - `Alt+2`: Switch to Localization Studio
+- **Input Guard:** Global shortcuts strictly ignore keystrokes when focus is inside an `<input>` or `<textarea>` element.
+
+---
+
+## 10. Functional Capabilities vs Deferred Milestones Matrix
+
+| Capability | Studio | Status | Delivery Milestone |
+| :--- | :--- | :--- | :--- |
+| **Media Import & Probing** | Shared | **Available** | STEP 6 (Verified) |
+| **Video Playback & Proxy Engine** | Shared | **Available** | STEP 7 (Verified) |
+| **Multi-LOD Waveform Pipeline** | Shared | **Available** | STEP 8 (Verified) |
+| **Canonical Non-Destructive EDL** | Shared | **Available** | STEP 9 (Verified) |
+| **Dual-Workspace Shell & Switcher** | Shared | **Available** | STEP 11 (Verified) |
+| **Container & Atom Diagnostics** | Repair | *Planned* | STEP 12 |
+| **MOOV Atom Reconstruction (Untrunc)** | Repair | *Planned* | STEP 13 |
+| **Bitstream Demux & Stream Salvage** | Repair | *Planned* | STEP 14 |
+| **A/B Repair Preview Validation** | Repair | *Planned* | STEP 15 |
+| **Interactive Subtitle Editor (CRUD)** | Localization | *Planned* | STEP 16–17 |
+| **Local Offline Whisper Transcription** | Localization | *Planned* | STEP 18–21 |
+| **Local Neural Machine Translation** | Localization | *Planned* | STEP 22–23 |
+| **Neural Speech Synthesis (Dubbing)** | Localization | *Planned* | STEP 24–28 |
+| **Subtitle & Dubbed Multiplex Export** | Localization | *Planned* | STEP 29–31 |
+
