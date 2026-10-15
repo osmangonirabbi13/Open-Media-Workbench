@@ -19,6 +19,7 @@ import {
   RedoIcon,
   CpuIcon,
   MicIcon,
+  LanguagesIcon,
 } from "../../components/ui/Icons";
 import { Button } from "../../components/ui/Button";
 import {
@@ -52,6 +53,7 @@ export interface SubtitleTrackManagerProps {
   onToggleTrackVisibility: (trackId: string) => void;
   onSeek: (seconds: number) => void;
   onOpenTranscription?: () => void;
+  onOpenTranslation?: () => void;
 }
 
 export function SubtitleTrackManager({
@@ -71,6 +73,7 @@ export function SubtitleTrackManager({
   onToggleTrackVisibility,
   onSeek,
   onOpenTranscription,
+  onOpenTranslation,
 }: SubtitleTrackManagerProps): React.ReactElement {
   const [isLoading, setIsLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -325,6 +328,18 @@ export function SubtitleTrackManager({
               >
                 <MicIcon size={12} className="mr-1 text-indigo-400" />
                 Transcribe
+              </Button>
+            )}
+            {onOpenTranslation && (
+              <Button
+                size="xs"
+                variant="secondary"
+                onClick={onOpenTranslation}
+                title="Offline Multilingual Subtitle Translation"
+                className="text-emerald-300 hover:text-emerald-200 border-emerald-800/60 bg-emerald-950/40"
+              >
+                <LanguagesIcon size={12} className="mr-1 text-emerald-400" />
+                Translate
               </Button>
             )}
           </div>

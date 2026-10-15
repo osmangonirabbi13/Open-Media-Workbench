@@ -26,6 +26,7 @@ import type { AlignmentResult } from "../../types/alignment";
 import { WordAlignmentPanel } from "./WordAlignmentPanel";
 import { SubtitleStylingPanel } from "./SubtitleStylingPanel";
 import { SubtitleBurnInPanel } from "./SubtitleBurnInPanel";
+import { TranslationPanel } from "./TranslationPanel";
 import type { SubtitleStyle } from "../../types/styling";
 import { DEFAULT_SUBTITLE_STYLE } from "../../lib/styling";
 
@@ -264,6 +265,7 @@ export function LocalizationInspector({
               onToggleTrackVisibility={onToggleTrackVisibility}
               onSeek={onSeek}
               onOpenTranscription={() => handleTabClick("transcription")}
+              onOpenTranslation={() => handleTabClick("translation")}
             />
           </div>
         )}
@@ -322,56 +324,14 @@ export function LocalizationInspector({
           </div>
         )}
 
-        {/* TRANSLATION PANEL */}
+        {/* TRANSLATION PANEL (STEP 22 Active) */}
         {activeTab === "translation" && (
-          <div id="loc-panel-translation" role="tabpanel" aria-labelledby="loc-tab-translation" className="p-4 space-y-4 overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold text-zinc-200 flex items-center space-x-1.5">
-                <GlobeIcon size={14} className="text-indigo-400" />
-                <span>Multilingual Translation</span>
-              </h4>
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700/50">
-                Scheduled: STEP 22–23
-              </span>
-            </div>
-
-            <div className="p-3 rounded-lg border border-zinc-800 bg-zinc-900/60 space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[11px] text-zinc-400 block mb-1">Source Language</label>
-                  <select
-                    disabled
-                    className="w-full text-xs bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-500 cursor-not-allowed"
-                  >
-                    <option>Auto Detect (English)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[11px] text-zinc-400 block mb-1">Target Language</label>
-                  <select
-                    disabled
-                    className="w-full text-xs bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-500 cursor-not-allowed"
-                  >
-                    <option>Spanish (Español)</option>
-                    <option>French (Français)</option>
-                    <option>German (Deutsch)</option>
-                    <option>Japanese (日本語)</option>
-                    <option>Bengali (বাংলা)</option>
-                  </select>
-                </div>
-              </div>
-
-              <Button size="xs" variant="secondary" disabled className="w-full">
-                Translate Subtitles (Scheduled STEP 22)
-              </Button>
-            </div>
-
-            <div className="p-4 rounded-lg border border-indigo-900/40 bg-indigo-950/20 text-indigo-300 text-xs flex items-start space-x-2">
-              <SparklesIcon size={16} className="shrink-0 mt-0.5 text-indigo-400" />
-              <p className="text-[11px] leading-relaxed">
-                Offline neural machine translation will translate subtitle cues with side-by-side bilingual review in STEP 22–23.
-              </p>
-            </div>
+          <div id="loc-panel-translation" role="tabpanel" aria-labelledby="loc-tab-translation" className="h-full overflow-hidden">
+            <TranslationPanel
+              document={document}
+              onUpdateDocument={onDocumentChange}
+              onOpenModelManager={() => setShowModelManager(true)}
+            />
           </div>
         )}
 

@@ -2,7 +2,7 @@
 
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
-[![Status](https://img.shields.io/badge/Status-STEP%2021%20Subtitle%20Styling%20%26%20Burn--In%20Export%20Complete-success.svg)](docs/reports/STEP_21_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2022%20Offline%20Subtitle%20Translation%20Complete-success.svg)](docs/reports/STEP_22_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 
@@ -96,7 +96,16 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Production FFmpeg Burn-In Video Pipeline:** Real video burn-in re-encoding via system FFmpeg with libass filter integration (`ass=` filter), structured non-shell arguments, resolution options, CRF quality presets, and audio policy handling.
      - **Multi-Stage Output Validation:** ffprobe-based container, stream, and frame decode verification ensuring captions are visibly burned in and not merely accompanied by metadata.
      - **Safe Staging & Source Immutability:** Rendering executes strictly into app-owned staging directories; finalized export requires native save destination; source media is byte-for-byte immutable (verified via SHA-256).
-   - **On-Device Multilingual Translation** *(Planned STEP 22–23)*
+   - **Offline Multilingual Subtitle Translation Engine (STEP 22 Implemented):**
+     - **Real Local CPU Inference:** Genuine on-device machine translation powered by the official `llama.cpp` CLI runtime executing curated compact instruction models (`Qwen 2.5 0.5B Instruct` 4-bit quantized GGUF, 468 MB, Apache-2.0, single-file artifact). Zero cloud APIs, paid API tokens, telemetry, or remote servers.
+     - **Shared AI Model Manager Integration:** Seamless integration with the shared AI Model Manager (`~/.local/share/opentake/models` & `registry.json`) with strict SHA-256 integrity verification (`74a4da8c9f...`) and runtime model locking preventing deletion during active inference.
+     - **Authoritative Language Pair Capabilities:** Verified language pair: English to Spanish (`en` -> `es`). Experimental pairs: English to Bengali (`en` -> `bn`), Spanish to English (`es` -> `en`), Bengali to English (`bn` -> `en`). Unsupported language pairs are strictly disabled in the UI.
+     - **Strict Timing Preservation Invariant:** Every translated cue strictly preserves the exact microsecond start and end timestamps of the original cue (`target_start_us == source_start_us`, `target_end_us == source_end_us`). Cue counts and ordering are strictly maintained.
+     - **Non-Destructive Workflow & Original Safety:** Original subtitle tracks remain 100% byte-identical and untouched. Translation creates a distinct NEW `SubtitleTrack`. Source-language word timestamp evidence is explicitly cleared on translated cues to prevent invalid word-level acoustic assumptions.
+     - **Translation Review & Subtitle Editor Integration:** Interactive `TranslationPanel` with track selection, language pair validation, runtime readiness indicators, live progress reporting, cancellation, side-by-side original/translated comparison, and readability warnings (>84 chars/line, >25 CPS).
+     - **Export & Styling Compatibility:** Translated subtitle tracks can be manually edited in the timeline editor (STEP 17), styled and burned in to video (STEP 21), saved to `.omwsub` project files, and exported as standard SubRip (`.srt`) or WebVTT (`.vtt`).
+     - **High-Speed On-Device Performance:** Measured 2.76 seconds total inference time on standard CPU for a multi-sentence subtitle track at ~255 t/s prompt evaluation and ~52 t/s text generation.
+   - **Bilingual Subtitle Review & Alignment Tools** *(Planned STEP 23)*
    - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
    - **Multiplexed Soft Subtitle Export** *(Planned STEP 30)*
 

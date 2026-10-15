@@ -141,14 +141,22 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - **Unicode-Safe Bengali Segmentation:** Strict grapheme-cluster preservation preventing combining mark splitting, nukta or virama truncation, and Bengali punctuation handling (Dari `।`).
   - **Karaoke Word Highlighting:** Zero-cost DOM word highlighting in `SubtitleOverlay` during playback without `dangerouslySetInnerHTML`.
   - **Waveform Timeline Word Markers:** Visual boundary ticks displayed on cue blocks at high zoom levels ($W_{\text{cue}} \ge 5\%$).
-  - **Non-Destructive Project Persistence:** Versioned `.omwsub` project extension with backward-compatible `words` serialization; compliant standard SRT/VTT export.
-- **Local Machine Translation (Planned STEP 22–23):**
-  - On-device translation pipeline mapping source subtitle text to target language scripts.
+- **Professional Subtitle Styling & Video Burn-In Export (Completed in STEP 21):**
+  - **Comprehensive Subtitle Styling:** Canonical style domain covering font family, size, weight, outline, shadow, background box, and word-level highlight color.
+  - **8 Built-in Presets:** Clean Minimal, Cinematic, Modern Outline, Social Bold, Karaoke Highlight, Documentary, Accessible High Contrast, and Soft Background Box, plus custom presets.
+  - **ASS Script Generation & FFmpeg Burn-In:** Safe SubStation Alpha generation with accurate timing, word karaoke tags (`\kf`), and production video re-encoding via FFmpeg with libass.
+- **Offline Multilingual Subtitle Translation Engine (Completed in STEP 22):**
+  - **Local CPU Inference:** Real on-device neural translation using `llama.cpp` CLI executing curated compact GGUF models (`Qwen 2.5 0.5B Instruct`). Zero cloud calls or telemetry.
+  - **Authoritative Language Pair Capabilities:** Verified pair: English to Spanish (`en` -> `es`); experimental pairs for Bengali (`en` -> `bn`, `bn` -> `en`).
+  - **Strict Timing Preservation:** Every translated cue maintains exact microsecond timestamps (`target_start_us == source_start_us`, `target_end_us == source_end_us`).
+  - **Non-Destructive Workflow:** Original subtitle tracks are immutable; translations create a NEW `SubtitleTrack` in `.omwsub` with cleared word timings.
+- **Bilingual Subtitle Review Tools (Planned STEP 23):**
+  - Side-by-side bilingual editing and timing alignment verification.
 - **AI Voice Dubbing (Speech Synthesis — Planned STEP 24–28):**
   - Offline neural text-to-speech (TTS) engine generating synthesized speech clips for each subtitle cue.
   - Automatic time-stretching or rate-scaling to synchronize dubbed audio within subtitle cue interval boundaries.
-- **Multiplexed & Burn-In Export (Planned STEP 21 & 30):**
-  - Uses the shared FFmpeg managed process engine to mux subtitle tracks (SRT/VTT/embedded) and synchronized dubbing audio into the output video.
+- **Multiplexed Soft Subtitle Export (Planned STEP 30):**
+  - Uses the shared FFmpeg managed process engine to mux soft subtitle streams into output containers.
 
 ### 3.3 Shared Local AI Model Manager (STEP 18 Implemented)
 **Objective:** Provide a unified, offline-first local AI model repository shared between Localization Studio and the future AI Shorts Studio.

@@ -112,13 +112,14 @@ Because `--enable-gpl` and `--enable-libx264` are activated, the effective licen
   - OpenAI Whisper model weights (`tiny`, `base`, `small`, `medium`) are released under the **MIT License**.
   - **Distribution Strategy:** Model weights must not be committed to Git. Instead, they must be downloaded on-demand with explicit user consent or supplied locally by the user.
 
-### 4.3 Local AI Machine Translation (Localization Studio Candidate)
-- **Engine Candidates:**
-  - Argos Translate / OpenNMT (MIT License).
-  - Bergamot / MarianMT (Mozilla Public License 2.0 / Apache-2.0).
-- **Translation Model Weights:**
-  - Opus-MT models: CC-BY-4.0 (requires attribution) or CC-0.
-  - Must ensure non-commercial (`-NC`) licenses are excluded to preserve commercial freedom for creators using Open Media Workbench.
+### 4.3 Local AI Machine Translation (STEP 22 Implemented)
+- **Selected Engine Backend:** `llama.cpp` CLI binary (MIT License).
+  - Executed via secure, managed subprocess isolation without shell invocation.
+  - License compatibility: MIT License is 100% compatible with GPL-3.0-or-later composite works.
+- **Model Weights Licensing:**
+  - `qwen2.5-0.5b-instruct` (GGUF Q4_K_M): Apache-2.0 License.
+  - Verified and cryptographically pinned. Permissive commercial-friendly license.
+  - Distribution Strategy: Zero bundled weights; explicit user download or manual placement.
 
 ### 4.4 Local Neural Text-to-Speech (Dubbing) (Localization Studio Candidate)
 - **Engine Candidate:** Piper TTS.
@@ -142,7 +143,8 @@ Because `--enable-gpl` and `--enable-libx264` are activated, the effective licen
 | **Shared AI Model Manager** | Integrated (Step 18) | GPL-3.0-or-later (Rust Core) | Zero bundled weights; explicit consent & SHA-256 verification |
 | **Whisper Models (Tiny/Base)** | Verified Catalog (Step 18) | MIT License (Weights & Code) | Explicit opt-in download; zero bundling |
 | **Piper TTS Models (Lessac)** | Verified Catalog (Step 18) | Public Domain (Dataset & Weights) | Strict voice-model license filter allowlist |
-| **Qwen 2.5 Text Models** | Verified Catalog (Step 18) | Apache-2.0 License (Weights) | Explicit opt-in download; zero bundling |
+| **Qwen 2.5 Text Models** | Verified Catalog (Step 18/22) | Apache-2.0 License (Weights) | Explicit opt-in download; zero bundling |
+| **Translation Engine (llama.cpp)** | Integrated (Step 22) | MIT License (Runtime CLI) | Local execution; zero cloud APIs |
 | **Translation Engine (Opus-MT)** | Catalog-Only (Step 18) | CC-BY-4.0 | Installation disabled pending Marian runtime integration |
 
 ---

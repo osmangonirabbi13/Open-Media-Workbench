@@ -153,3 +153,20 @@ The Subtitle Editor directly integrates with the offline Whisper transcription e
 - Choose export resolution (Original, 1080p, 720p, Custom), CRF visual quality, and audio stream handling (`copy` or re-encode to `aac`).
 - Executes genuine FFmpeg re-encoding via `ass` filter and `libass` with real progress updates, cooperative cancellation, ffprobe post-validation, and safe staging to avoid corrupting source media.
 
+---
+
+## 10. Offline Multilingual Subtitle Translation Integration (STEP 22)
+
+### 10.1 Dedicated Translation Panel
+- Localization Studio includes a dedicated **Translate** tab (`TranslationPanel.tsx`) alongside Subtitles, Transcription, Styling, and Export.
+- Users select an existing source subtitle track, choose target language (e.g. English -> Spanish), and select an installed verified local translation model (`Qwen 2.5 0.5B Instruct`).
+- Provides pre-flight checks: model presence, file integrity, and runtime operational readiness (`llama.cpp`).
+- Features interactive progress tracking, cooperative cancellation, side-by-side original/translated cue inspection, and non-blocking readability warnings (CPS > 25, characters > 84).
+
+### 10.2 Subtitle Document & Track Integration
+- Applying translation creates a distinct NEW `SubtitleTrack` in `SubtitleDocument.tracks` with language code (e.g. `es`) and display name (e.g. `Spanish (Translated)`).
+- Original source tracks and cues remain 100% untouched and immutable.
+- Strictly preserves timing: `target_start_us == source_start_us` and `target_end_us == source_end_us`.
+- Clears source-language word timestamps (`words: None`) to prevent invalid acoustic alignment assumptions on translated text.
+- Translated cues are immediately selectable, editable in the visual timeline and cue inspector, and exportable to `.srt`, `.vtt`, or stylable for video burn-in.
+

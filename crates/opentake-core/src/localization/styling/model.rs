@@ -128,7 +128,10 @@ pub enum SubtitlePosition {
     BottomRight,
     Center,
     TopCenter,
-    Custom { x_pct: f64, y_pct: f64 },
+    Custom {
+        x_pct: f64,
+        y_pct: f64,
+    },
 }
 
 impl SubtitlePosition {
@@ -299,7 +302,10 @@ pub enum ExportResolution {
     Original,
     Res1080p,
     Res720p,
-    Custom { width: u32, height: u32 },
+    Custom {
+        width: u32,
+        height: u32,
+    },
 }
 
 /// Audio track handling policy during burn-in export.

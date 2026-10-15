@@ -8,6 +8,7 @@ pub mod repair;
 pub mod styling;
 pub mod subtitles;
 pub mod transcription;
+pub mod translation;
 pub mod waveform;
 
 pub use ai::{
@@ -60,6 +61,13 @@ pub use styling::{
     generate_ass_script_preview, get_subtitle_burn_in_status, get_subtitle_style_presets,
     get_system_fonts, save_custom_subtitle_style_preset, start_subtitle_burn_in_export,
     StylingState,
+};
+
+pub use translation::{
+    apply_translation_result_to_subtitles, cancel_offline_translation,
+    get_offline_translation_result, get_offline_translation_status, get_translation_capabilities,
+    list_translation_language_pairs, select_translation_runtime, start_offline_translation,
+    TranslationRuntimeCapabilities, TranslationState,
 };
 
 pub use waveform::{

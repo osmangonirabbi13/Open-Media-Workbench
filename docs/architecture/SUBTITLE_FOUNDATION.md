@@ -198,4 +198,15 @@ See [SUBTITLE_STYLING_AND_BURNIN.md](SUBTITLE_STYLING_AND_BURNIN.md) for full de
 - Safe Advanced SubStation Alpha (`.ass`) subtitle script generation with injection-resistant escaping and centisecond rounding.
 - Real FFmpeg burn-in video re-encoding pipeline with `libass` integration and frame decode validation.
 
+---
+
+## 11. Offline Multilingual Subtitle Translation (STEP 22)
+
+See [OFFLINE_TRANSLATION_ENGINE.md](OFFLINE_TRANSLATION_ENGINE.md) for full details on:
+- On-device local inference via `llama.cpp` using compact `Qwen 2.5 0.5B Instruct` 4-bit quantized GGUF weights.
+- Strict timing preservation invariant: `target_start_us == source_start_us` and `target_end_us == source_end_us`.
+- Non-destructive track addition appending a new target-language `SubtitleTrack` to the active `SubtitleDocument`.
+- Word alignment evidence isolation: source-language word-level token timestamps are cleared on translated cues to prevent invalid acoustic alignment assumptions.
+- Persistence in `.omwsub` and direct export to SubRip (`.srt`) and WebVTT (`.vtt`).
+
 

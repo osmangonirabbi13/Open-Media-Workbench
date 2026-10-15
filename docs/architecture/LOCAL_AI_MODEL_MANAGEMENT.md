@@ -182,3 +182,14 @@ The shared Model Manager is actively consumed by the STEP 19 Whisper transcripti
 - **Pre-Flight Capability Verification:** Multilingual vs English-only flags in catalog manifests are strictly enforced. English-only models (`.en`) reject non-English or Auto-Detect requests before launching inference.
 - **In-Use Concurrency Locking:** `storage.acquire_lock(model_id)` is acquired at the start of transcription and released upon job completion, cancellation, or failure. Attempts to delete an active model while transcription runs are rejected with `AiError::ModelInUse`.
 - **Integrity Validation:** Model files are verified on disk using stored SHA-256 digests prior to invoking the `whisper.cpp` inference runtime.
+
+---
+
+## 10. Consumer Integration: STEP 22 Offline Subtitle Translation Engine
+
+The shared Model Manager powers the offline subtitle translation pipeline implemented in STEP 22:
+- **Curated Translation Model:** Utilizes `qwen2.5-0.5b-instruct` (468 MB GGUF Q4_K_M, Apache-2.0, single-file direct download) as the primary CPU-efficient instruction translation engine.
+- **Strict Verification:** Pre-flight SHA-256 check (`74a4da8c9f...`) against catalog metadata before launching inference.
+- **Concurrency & Lock Safety:** Translation calls `storage.acquire_lock("qwen2.5-0.5b-instruct")` prior to invoking `llama.cpp` and guarantees release via RAII/deferred execution across all terminal paths (completion, error, cancellation).
+- **Zero Redundant Storage:** Translation references the existing `~/.local/share/opentake/models` directory, avoiding duplicate weight files.
+

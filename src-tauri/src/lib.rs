@@ -18,6 +18,7 @@ pub use commands::{
 pub fn run() {
     let ai_state = commands::AiState::default();
     let transcription_state = commands::TranscriptionState::new(ai_state.manager.storage().clone());
+    let translation_state = commands::TranslationState::new(ai_state.manager.storage().clone());
 
     tauri::Builder::default()
         .manage(commands::MediaEngineState::default())
@@ -28,6 +29,7 @@ pub fn run() {
         .manage(commands::StylingState::default())
         .manage(ai_state)
         .manage(transcription_state)
+        .manage(translation_state)
         .register_uri_scheme_protocol("opentake-media", |app, req| {
             protocol::media::handle_media_protocol(app, req)
         })
@@ -107,6 +109,14 @@ pub fn run() {
             commands::styling::get_subtitle_burn_in_status,
             commands::styling::cancel_subtitle_burn_in_export,
             commands::styling::finalize_burn_in_export,
+            commands::translation::get_translation_capabilities,
+            commands::translation::list_translation_language_pairs,
+            commands::translation::select_translation_runtime,
+            commands::translation::start_offline_translation,
+            commands::translation::get_offline_translation_status,
+            commands::translation::cancel_offline_translation,
+            commands::translation::get_offline_translation_result,
+            commands::translation::apply_translation_result_to_subtitles,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

@@ -17,6 +17,7 @@ pub mod models;
 pub mod runtime;
 pub mod storage;
 pub mod transcription;
+pub mod translation;
 pub mod verification;
 
 use std::collections::HashMap;
@@ -44,6 +45,13 @@ pub use transcription::{
         SystemWhisperCliEngine, WhisperEngine,
     },
     TranscriptionManager,
+};
+pub use translation::{
+    append_translated_track_to_document, convert_translation_to_track, discover_llama_runtime,
+    get_supported_language_pairs, MockTranslationEngine, SystemLlamaCliTranslationEngine,
+    TranslatedCue, TranslationEngine, TranslationError, TranslationLanguagePair,
+    TranslationManager, TranslationProgressStage, TranslationRequest, TranslationResult,
+    TranslationStatus, TRANSLATION_RESULT_SCHEMA_VERSION,
 };
 pub use verification::{compute_file_sha256, verify_file_integrity};
 
