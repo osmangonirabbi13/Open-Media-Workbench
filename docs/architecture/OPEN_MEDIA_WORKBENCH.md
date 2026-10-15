@@ -150,8 +150,12 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - **Authoritative Language Pair Capabilities:** Verified pair: English to Spanish (`en` -> `es`); experimental pairs for Bengali (`en` -> `bn`, `bn` -> `en`).
   - **Strict Timing Preservation:** Every translated cue maintains exact microsecond timestamps (`target_start_us == source_start_us`, `target_end_us == source_end_us`).
   - **Non-Destructive Workflow:** Original subtitle tracks are immutable; translations create a NEW `SubtitleTrack` in `.omwsub` with cleared word timings.
-- **Bilingual Subtitle Review Tools (Planned STEP 23):**
-  - Side-by-side bilingual editing and timing alignment verification.
+- **Bilingual Subtitle Review & Terminology Management (Completed in STEP 23):**
+  - **Side-by-Side Bilingual Review:** Dual-track synchronization rendering original read-only source text alongside editable translated target cues with synchronized video playhead navigation.
+  - **Stable Cue Pairing & Invalidation:** Cues matched by immutable `source_cue_id` and timing rather than naive array indices. Material text or timing edits immediately invalidate approved statuses (`Approved` -> `NeedsReview`), preventing stale approvals.
+  - **Terminology Protection & Glossaries:** Local glossaries with exact, case-sensitive/insensitive, and whole-word matching. Protected brand names (e.g., Open Media Workbench, Whisper, FFmpeg) masked during translation and verified during review.
+  - **Translation Memory (TM):** Local, privacy-preserving translation memory with exact-match suggestions, one-click application, and complete user deletion controls.
+  - **Batch Operations & Quality Diagnostics:** Rule-based quality findings (`EMPTY_TARGET_TEXT`, `PROTECTED_TERM_CHANGED`, `EXCESSIVE_READING_SPEED`, `LANGUAGE_PAIR_UNVERIFIED`), batch approvals, and review progress statistics.
 - **AI Voice Dubbing (Speech Synthesis — Planned STEP 24–28):**
   - Offline neural text-to-speech (TTS) engine generating synthesized speech clips for each subtitle cue.
   - Automatic time-stretching or rate-scaling to synchronize dubbed audio within subtitle cue interval boundaries.

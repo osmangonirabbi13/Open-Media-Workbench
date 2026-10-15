@@ -37,6 +37,7 @@ pub struct TranslationManager {
     storage: Arc<AiStorageManager>,
     engine: Arc<dyn TranslationEngine>,
     jobs: Arc<RwLock<HashMap<String, JobEntry>>>,
+    review_storage: Option<Arc<super::review::ReviewStorageManager>>,
 }
 
 impl TranslationManager {
@@ -45,7 +46,16 @@ impl TranslationManager {
             storage,
             engine,
             jobs: Arc::new(RwLock::new(HashMap::new())),
+            review_storage: None,
         }
+    }
+
+    pub fn with_review_storage(
+        mut self,
+        review_storage: Arc<super::review::ReviewStorageManager>,
+    ) -> Self {
+        self.review_storage = Some(review_storage);
+        self
     }
 
     pub fn engine(&self) -> &Arc<dyn TranslationEngine> {
@@ -182,6 +192,8 @@ impl TranslationManager {
         let request_clone = request.clone();
         let model_id_clone = request.model_id.clone();
 
+        let review_storage_clone = self.review_storage.clone();
+
         tokio::spawn(async move {
             let start_instant = Instant::now();
             let res = Self::run_translation_pipeline(
@@ -192,6 +204,7 @@ impl TranslationManager {
                 cancel_token,
                 jobs_clone.clone(),
                 job_id_clone.clone(),
+                review_storage_clone,
             )
             .await;
 
@@ -230,6 +243,7 @@ impl TranslationManager {
         Ok(job_id)
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn run_translation_pipeline(
         engine: Arc<dyn TranslationEngine>,
         model_path: std::path::PathBuf,
@@ -238,6 +252,7 @@ impl TranslationManager {
         cancel_token: CancellationToken,
         jobs: Arc<RwLock<HashMap<String, JobEntry>>>,
         job_id: String,
+        review_storage: Option<Arc<super::review::ReviewStorageManager>>,
     ) -> Result<TranslationResult, TranslationError> {
         let total_cues = cues.len();
 
@@ -249,6 +264,30 @@ impl TranslationManager {
                 e.message = Some("Preparing subtitle texts for translation...".to_string());
             }
         }
+
+        // Optional Glossary loading for terminology protection
+        let (glossary_opt, protected_terms) =
+            if let (Some(gid), Some(storage)) = (&request.glossary_id, &review_storage) {
+                match storage.load_glossary(gid) {
+                    Ok(g) => {
+                        let terms: Vec<String> = g
+                            .entries
+                            .iter()
+                            .filter(|e| e.is_protected)
+                            .map(|e| e.source_term.clone())
+                            .collect();
+                        (Some(g), terms)
+                    }
+                    Err(e) => {
+                        return Err(TranslationError::GlossaryError(format!(
+                            "Failed to load glossary {}: {}",
+                            gid, e
+                        )));
+                    }
+                }
+            } else {
+                (None, Vec::new())
+            };
 
         let texts: Vec<String> = cues.iter().map(|c| c.text.clone()).collect();
 
@@ -269,17 +308,47 @@ impl TranslationManager {
                 return Err(TranslationError::CancellationRequested);
             }
 
+            // Apply terminology masking if protected terms exist
+            let mut maskers: Vec<Option<super::review::ProtectedTermMasker>> =
+                Vec::with_capacity(chunk.len());
+            let mut input_chunk: Vec<String> = Vec::with_capacity(chunk.len());
+
+            for text in chunk {
+                if !protected_terms.is_empty() {
+                    let mut masker = super::review::ProtectedTermMasker::new();
+                    let pt_refs: Vec<&str> = protected_terms.iter().map(|s| s.as_str()).collect();
+                    let masked = masker.mask(text, &pt_refs);
+                    maskers.push(Some(masker));
+                    input_chunk.push(masked);
+                } else {
+                    maskers.push(None);
+                    input_chunk.push(text.clone());
+                }
+            }
+
             let chunk_res = engine
                 .translate(
                     &model_path,
-                    chunk,
+                    &input_chunk,
                     &request.source_language,
                     &request.target_language,
                     cancel_token.clone(),
                 )
                 .await?;
 
-            translated_texts.extend(chunk_res);
+            for (res_text, masker_opt) in chunk_res.into_iter().zip(maskers) {
+                let final_text = if let Some(masker) = masker_opt {
+                    masker.unmask(&res_text).map_err(|e| {
+                        TranslationError::OutputValidationFailed(format!(
+                            "Terminology unmasking failed: {}",
+                            e
+                        ))
+                    })?
+                } else {
+                    res_text
+                };
+                translated_texts.push(final_text);
+            }
 
             let done_count = translated_texts.len();
             let pct = (done_count as f32 / total_cues as f32) * 90.0;
@@ -330,6 +399,14 @@ impl TranslationManager {
 
             if trans_text.chars().count() > 84 {
                 cue_warnings.push("Long text exceeds typical subtitle bounds".to_string());
+            }
+
+            if let Some(ref g) = glossary_opt {
+                let term_findings =
+                    super::review::validate_terminology(&cue.text, &trans_text, &g.entries);
+                for finding in term_findings {
+                    cue_warnings.push(format!("[{}] {}", finding.code.as_str(), finding.message));
+                }
             }
 
             for w in &cue_warnings {

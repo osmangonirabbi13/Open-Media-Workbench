@@ -133,10 +133,17 @@ pub struct TranslationState {
 }
 
 impl TranslationState {
-    pub fn new(storage: AiStorageManager) -> Self {
+    pub fn new(
+        storage: AiStorageManager,
+        review_storage: Option<Arc<opentake_core::ai::translation::review::ReviewStorageManager>>,
+    ) -> Self {
         let storage_arc = Arc::new(storage);
         let dynamic_engine = Arc::new(DynamicTranslationEngine::new(None, None));
-        let manager = Arc::new(TranslationManager::new(storage_arc, dynamic_engine.clone()));
+        let mut manager = TranslationManager::new(storage_arc, dynamic_engine.clone());
+        if let Some(rs) = review_storage {
+            manager = manager.with_review_storage(rs);
+        }
+        let manager = Arc::new(manager);
 
         Self {
             manager,
@@ -270,7 +277,7 @@ pub mod tests {
     async fn test_translation_state_initialization() {
         let temp_dir = tempfile::tempdir().expect("create temp dir");
         let storage = AiStorageManager::new(temp_dir.path()).expect("create storage");
-        let state = TranslationState::new(storage);
+        let state = TranslationState::new(storage, None);
 
         assert!(!state.dynamic_engine.is_available());
         assert_eq!(state.dynamic_engine.runtime_path(), None);

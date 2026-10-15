@@ -48,7 +48,7 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Persistent Local Recovery History:** Crash-safe, atomic versioned JSON ledger tracking up to 50 previous recovery attempts with status, validation levels, timestamps, and manual history clear action.
      - **Sanitized JSON & Standalone Offline HTML Reports:** User-initiated report export featuring stable machine-readable finding codes, strict Content-Security-Policy, offline embedded dark CSS, XSS escaping, and path privacy sanitization.
 
-2. **Localization Studio** *(Active Development — STEPS 16, 17, 19 & 20 Implemented)*
+2. **Localization Studio** *(Active Development — STEPS 16, 17, 19, 20, 21, 22 & 23 Implemented)*
    - **Canonical Subtitle Domain Model (STEP 16 Implemented):**
      - **Strict Microsecond Timestamps:** Microsecond-accurate integer representation (`MediaTimeUs`), preventing floating-point drift across playback ticks.
      - **Robust SubRip (.srt) Support:** Parsing and serialization supporting UTF-8 BOM, CRLF/LF line endings, multiline cues, and tolerant numbering.
@@ -105,7 +105,15 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Translation Review & Subtitle Editor Integration:** Interactive `TranslationPanel` with track selection, language pair validation, runtime readiness indicators, live progress reporting, cancellation, side-by-side original/translated comparison, and readability warnings (>84 chars/line, >25 CPS).
      - **Export & Styling Compatibility:** Translated subtitle tracks can be manually edited in the timeline editor (STEP 17), styled and burned in to video (STEP 21), saved to `.omwsub` project files, and exported as standard SubRip (`.srt`) or WebVTT (`.vtt`).
      - **High-Speed On-Device Performance:** Measured 2.76 seconds total inference time on standard CPU for a multi-sentence subtitle track at ~255 t/s prompt evaluation and ~52 t/s text generation.
-   - **Bilingual Subtitle Review & Alignment Tools** *(Planned STEP 23)*
+   - **Professional Bilingual Subtitle Review & Glossary Management (STEP 23 Implemented):**
+     - **Side-by-Side Bilingual Editor:** Dual-column review panel displaying read-only source subtitles alongside in-line editable translated subtitles with synchronized playhead seeking upon cue selection.
+     - **Deterministic Terminology Protection:** Local glossary management with protected brand names and proper nouns (e.g. `Open Media Workbench`, `FFmpeg`, `llama.cpp`), case sensitivity preferences, and Unicode word-boundary matching preventing false substring replacements.
+     - **Translation Placeholder Masking:** Pre-translation token masking (`__OMW_TERM_0__`) and post-translation restoration verifying placeholder integrity and rejecting dropped or duplicated tokens.
+     - **Approval Invalidation Invariant:** State machine transitioning through `Pending`, `NeedsReview`, `Reviewed`, `Approved`, and `Rejected`; any manual edit to an approved cue immediately invalidates approval to `NeedsReview` and clears its SHA-256 fingerprint.
+     - **Rule-Based Quality Diagnostics:** Automated detection of missing translations, empty target text, excessive reading speed (>25 CPS), line length violations (>84 chars), timing deltas, and altered protected terminology.
+     - **100% Local Translation Memory:** Exact-match normalized memory stored locally in `~/.local/share/opentake/review/translation_memory.json` with usage counters, one-click application during review, entry deletion, and complete clearing controls.
+     - **Atomic Batch Review Operations:** Multi-row selection with batch Mark Reviewed, batch Approve, and batch Reject, coupled with review progress statistics and status/issue filtering.
+     - **Review Gate & Persistence:** Full review documents embedded in canonical `SubtitleDocument.metadata` under `translationReview` across `.omwsub` project save/reopen cycles; optional review gate alerting users before exporting tracks with unresolved quality findings.
    - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
    - **Multiplexed Soft Subtitle Export** *(Planned STEP 30)*
 

@@ -101,6 +101,7 @@ async fn test_translation_request_validation() {
         model_id: "qwen2.5-0.5b-instruct".to_string(),
         custom_runtime_path: None,
         batch_size: None,
+        glossary_id: None,
     };
 
     let result = manager.start_translation(req, vec![]).await;
@@ -119,6 +120,7 @@ async fn test_translation_request_validation() {
         model_id: "qwen2.5-0.5b-instruct".to_string(),
         custom_runtime_path: None,
         batch_size: None,
+        glossary_id: None,
     };
 
     let cue = SubtitleCue::new("c1", MediaTimeUs(1000), MediaTimeUs(2000), "Hello").expect("cue");
@@ -145,6 +147,7 @@ async fn test_missing_model_rejection() {
         model_id: "qwen2.5-0.5b-instruct".to_string(), // Not installed in this empty storage
         custom_runtime_path: None,
         batch_size: None,
+        glossary_id: None,
     };
 
     let cue = SubtitleCue::new("c1", MediaTimeUs(1000), MediaTimeUs(2000), "Hello").expect("cue");
@@ -196,6 +199,7 @@ async fn test_timing_preservation_and_cue_order_invariants() {
         model_id: "qwen2.5-0.5b-instruct".to_string(),
         custom_runtime_path: None,
         batch_size: None,
+        glossary_id: None,
     };
 
     let job_id = manager
@@ -246,6 +250,7 @@ async fn test_unicode_and_bengali_preservation() {
         model_id: "qwen2.5-0.5b-instruct".to_string(),
         custom_runtime_path: None,
         batch_size: None,
+        glossary_id: None,
     };
 
     let job_id = manager
@@ -318,6 +323,7 @@ async fn test_subtitle_conversion_and_non_destructive_document_update() {
         model_id: "qwen2.5-0.5b-instruct".to_string(),
         custom_runtime_path: None,
         batch_size: None,
+        glossary_id: None,
     };
 
     let job_id = manager

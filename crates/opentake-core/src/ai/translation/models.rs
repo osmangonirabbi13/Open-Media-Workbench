@@ -28,6 +28,8 @@ pub struct TranslationRequest {
     pub model_id: String,
     pub custom_runtime_path: Option<PathBuf>,
     pub batch_size: Option<usize>,
+    #[serde(default)]
+    pub glossary_id: Option<String>,
 }
 
 /// Progress stage for async translation jobs.

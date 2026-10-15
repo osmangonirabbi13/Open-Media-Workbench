@@ -16,6 +16,7 @@ export interface TranslationRequest {
   modelId: string;
   customRuntimePath?: string;
   batchSize?: number;
+  glossaryId?: string;
 }
 
 export type TranslationProgressStage =

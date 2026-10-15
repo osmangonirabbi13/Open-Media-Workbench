@@ -209,4 +209,16 @@ See [OFFLINE_TRANSLATION_ENGINE.md](OFFLINE_TRANSLATION_ENGINE.md) for full deta
 - Word alignment evidence isolation: source-language word-level token timestamps are cleared on translated cues to prevent invalid acoustic alignment assumptions.
 - Persistence in `.omwsub` and direct export to SubRip (`.srt`) and WebVTT (`.vtt`).
 
+---
+
+## 12. Bilingual Review, Glossaries & Translation Memory (STEP 23)
+
+See [BILINGUAL_REVIEW_AND_GLOSSARIES.md](BILINGUAL_REVIEW_AND_GLOSSARIES.md) for full details on:
+- Side-by-side bilingual review workspace pairing source and target `SubtitleTrack` cues with synchronized video playback.
+- Stable cue pairing using `source_cue_id` and timing without brittle array indexing.
+- Deterministic review state machine (`Pending`, `NeedsReview`, `Reviewed`, `Approved`, `Rejected`) with strict approval invalidation upon text/timing modifications.
+- Local project and global terminology glossaries with whole-word matching and brand protection masking.
+- Privacy-first local Translation Memory (TM) with exact matching, one-click reuse, and user deletion controls.
+
+
 

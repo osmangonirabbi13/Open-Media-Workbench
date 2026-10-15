@@ -135,3 +135,14 @@ Target-language speech-to-text alignment will be addressed in future steps.
 8. Upon completion, a side-by-side comparison table displays original vs translated text, timestamps, and warnings.
 9. User clicks **Apply as New Track**.
 10. A new `SubtitleTrack` is appended to `SubtitleDocument`, immediately editable in the timeline editor and exportable to `.srt`, `.vtt`, or burned into video via STEP 21.
+
+---
+
+## 7. Glossary & Terminology-Aware Translation Integration (STEP 23)
+
+In STEP 23, the translation pipeline was extended with terminology protection:
+- **Glossary Context Selection:** An optional `glossary_id` can be specified in `TranslationRequest`.
+- **Deterministic Term Masking:** The `ProtectedTermMasker` replaces protected terms with opaque tokens (e.g. `__OMW_TERM_0__`) before the prompt is formatted for `llama.cpp`.
+- **Integrity Validation & Restoration:** After inference, the tokens are verified to ensure no placeholders were dropped or duplicated, then restored to the preferred target or protected terminology.
+- **Bilingual Review Bridge:** Once translated, tracks can be loaded directly into the Bilingual Review panel (`src/workspaces/localization/BilingualReviewPanel.tsx`) for side-by-side verification, TM matching, and quality checks.
+

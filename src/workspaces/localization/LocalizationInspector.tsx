@@ -27,10 +27,21 @@ import { WordAlignmentPanel } from "./WordAlignmentPanel";
 import { SubtitleStylingPanel } from "./SubtitleStylingPanel";
 import { SubtitleBurnInPanel } from "./SubtitleBurnInPanel";
 import { TranslationPanel } from "./TranslationPanel";
+import { BilingualReviewPanel } from "./BilingualReviewPanel";
+import { GlossaryManagerPanel } from "./GlossaryManagerPanel";
 import type { SubtitleStyle } from "../../types/styling";
 import { DEFAULT_SUBTITLE_STYLE } from "../../lib/styling";
 
-export type LocalizationTab = "subtitles" | "transcription" | "alignment" | "styling" | "translation" | "dubbing" | "export";
+export type LocalizationTab =
+  | "subtitles"
+  | "transcription"
+  | "alignment"
+  | "styling"
+  | "translation"
+  | "review"
+  | "glossary"
+  | "dubbing"
+  | "export";
 
 export interface LocalizationInspectorProps {
   asset: MediaAsset | null;
@@ -103,6 +114,34 @@ export function LocalizationInspector({
     if (!activeTrack) return;
     setIsExporting(true);
     setExportFeedback(null);
+
+    // Optional review gate: verify if track has unresolved translation issues
+    if (document?.metadata?.translationReview) {
+      try {
+        const rev = JSON.parse(document.metadata.translationReview);
+        if (rev.targetTrackId === activeTrack.id) {
+          const errorsCount = rev.entries.filter((e: { findings?: Array<{ severity: string }> }) =>
+            e.findings?.some((f) => f.severity === "Error"),
+          ).length;
+          const unapprovedCount = rev.entries.filter((e: { status?: string }) => e.status !== "Approved").length;
+
+          if (errorsCount > 0) {
+            if (!confirm(`Quality Alert: This track contains ${errorsCount} unresolved terminology or quality error(s). Proceed with export anyway?`)) {
+              setIsExporting(false);
+              return;
+            }
+          } else if (unapprovedCount > 0) {
+            if (!confirm(`Review Notice: ${unapprovedCount} cue(s) in this track have not yet been marked 'Approved'. Proceed with export?`)) {
+              setIsExporting(false);
+              return;
+            }
+          }
+        }
+      } catch {
+        // Non-blocking metadata parse fail
+      }
+    }
+
     try {
       const res = await exportSubtitleTrack(activeTrack, exportFormat);
       if (res) {
@@ -206,6 +245,40 @@ export function LocalizationInspector({
         >
           <GlobeIcon size={13} className={activeTab === "translation" ? "text-indigo-400" : ""} />
           <span>Translate</span>
+        </button>
+
+        <button
+          role="tab"
+          id="loc-tab-review"
+          aria-selected={activeTab === "review"}
+          aria-controls="loc-panel-review"
+          tabIndex={activeTab === "review" ? 0 : -1}
+          onClick={() => handleTabClick("review")}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 ${
+            activeTab === "review"
+              ? "bg-zinc-800 text-zinc-100 shadow-xs"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+          }`}
+        >
+          <ShieldCheckIcon size={13} className={activeTab === "review" ? "text-emerald-400" : ""} />
+          <span>Review</span>
+        </button>
+
+        <button
+          role="tab"
+          id="loc-tab-glossary"
+          aria-selected={activeTab === "glossary"}
+          aria-controls="loc-panel-glossary"
+          tabIndex={activeTab === "glossary" ? 0 : -1}
+          onClick={() => handleTabClick("glossary")}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 ${
+            activeTab === "glossary"
+              ? "bg-zinc-800 text-zinc-100 shadow-xs"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+          }`}
+        >
+          <SparklesIcon size={13} className={activeTab === "glossary" ? "text-amber-400" : ""} />
+          <span>Glossary</span>
         </button>
 
         <button
@@ -332,6 +405,29 @@ export function LocalizationInspector({
               onUpdateDocument={onDocumentChange}
               onOpenModelManager={() => setShowModelManager(true)}
             />
+          </div>
+        )}
+
+        {/* BILINGUAL REVIEW PANEL (STEP 23 Active) */}
+        {activeTab === "review" && (
+          <div id="loc-panel-review" role="tabpanel" aria-labelledby="loc-tab-review" className="h-full overflow-hidden">
+            <BilingualReviewPanel
+              document={document}
+              onDocumentChange={onDocumentChange}
+              currentTime={currentTime}
+              onSeek={onSeek}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={onUndo}
+              onRedo={onRedo}
+            />
+          </div>
+        )}
+
+        {/* GLOSSARY & TRANSLATION MEMORY PANEL (STEP 23 Active) */}
+        {activeTab === "glossary" && (
+          <div id="loc-panel-glossary" role="tabpanel" aria-labelledby="loc-tab-glossary" className="h-full overflow-hidden">
+            <GlossaryManagerPanel />
           </div>
         )}
 

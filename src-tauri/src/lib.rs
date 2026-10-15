@@ -18,7 +18,17 @@ pub use commands::{
 pub fn run() {
     let ai_state = commands::AiState::default();
     let transcription_state = commands::TranscriptionState::new(ai_state.manager.storage().clone());
-    let translation_state = commands::TranslationState::new(ai_state.manager.storage().clone());
+
+    let review_base_dir = ai_state.manager.storage().base_dir().join("review");
+    let review_storage =
+        opentake_core::ai::translation::review::ReviewStorageManager::new(review_base_dir)
+            .expect("Failed to initialize review storage");
+    let translation_review_state = commands::TranslationReviewState::new(review_storage);
+
+    let translation_state = commands::TranslationState::new(
+        ai_state.manager.storage().clone(),
+        Some(translation_review_state.storage.clone()),
+    );
 
     tauri::Builder::default()
         .manage(commands::MediaEngineState::default())
@@ -30,6 +40,7 @@ pub fn run() {
         .manage(ai_state)
         .manage(transcription_state)
         .manage(translation_state)
+        .manage(translation_review_state)
         .register_uri_scheme_protocol("opentake-media", |app, req| {
             protocol::media::handle_media_protocol(app, req)
         })
@@ -117,6 +128,19 @@ pub fn run() {
             commands::translation::cancel_offline_translation,
             commands::translation::get_offline_translation_result,
             commands::translation::apply_translation_result_to_subtitles,
+            commands::translation_review::get_or_create_translation_review,
+            commands::translation_review::save_translation_review_to_document,
+            commands::translation_review::update_review_entry_target_text,
+            commands::translation_review::set_review_entry_status_command,
+            commands::translation_review::batch_set_review_status_command,
+            commands::translation_review::list_glossaries_command,
+            commands::translation_review::save_glossary_command,
+            commands::translation_review::delete_glossary_command,
+            commands::translation_review::get_translation_memory_command,
+            commands::translation_review::record_approved_translation_command,
+            commands::translation_review::lookup_translation_memory_command,
+            commands::translation_review::delete_translation_memory_entry_command,
+            commands::translation_review::clear_translation_memory_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

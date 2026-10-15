@@ -39,6 +39,9 @@ pub enum TranslationError {
     #[error("Translation job was cancelled by user.")]
     CancellationRequested,
 
+    #[error("Glossary error: {0}")]
+    GlossaryError(String),
+
     #[error("Failed to acquire model lock: {0}")]
     LockAcquisitionFailed(String),
 

@@ -170,3 +170,20 @@ The Subtitle Editor directly integrates with the offline Whisper transcription e
 - Clears source-language word timestamps (`words: None`) to prevent invalid acoustic alignment assumptions on translated text.
 - Translated cues are immediately selectable, editable in the visual timeline and cue inspector, and exportable to `.srt`, `.vtt`, or stylable for video burn-in.
 
+---
+
+## 11. Bilingual Review & Terminology Management Integration (STEP 23)
+
+### 11.1 Dedicated Review & Glossary Workspace Tabs
+- Localization Studio includes dedicated **Review** (`BilingualReviewPanel.tsx`) and **Glossary** (`GlossaryManagerPanel.tsx`) tabs.
+- Side-by-side view pairs original source subtitles (read-only) with translated target subtitles (editable).
+- Selecting any bilingual row automatically seeks video playback and syncs with the editor playhead.
+- Direct editing of target text within the bilingual review interface updates canonical `SubtitleDocument` tracks.
+- Invalidation safety: Editing approved target text or modifying cue timings immediately resets cue status from `Approved` to `NeedsReview`, clearing the SHA-256 approval fingerprint.
+
+### 11.2 Terminology Protection and Translation Memory
+- Glossaries with protected term definitions ensure company, product, or brand names are not mistranslated or altered.
+- Real-time diagnostics display findings such as `PROTECTED_TERM_CHANGED`, `EMPTY_TARGET_TEXT`, and `EXCESSIVE_READING_SPEED`.
+- Approved translations populate a local Translation Memory (TM) database, surfacing 100% exact match suggestions for repeated phrases with one-click adoption.
+
+

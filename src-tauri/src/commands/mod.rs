@@ -9,6 +9,7 @@ pub mod styling;
 pub mod subtitles;
 pub mod transcription;
 pub mod translation;
+pub mod translation_review;
 pub mod waveform;
 
 pub use ai::{
@@ -68,6 +69,15 @@ pub use translation::{
     get_offline_translation_result, get_offline_translation_status, get_translation_capabilities,
     list_translation_language_pairs, select_translation_runtime, start_offline_translation,
     TranslationRuntimeCapabilities, TranslationState,
+};
+
+pub use translation_review::{
+    batch_set_review_status_command, clear_translation_memory_command, delete_glossary_command,
+    delete_translation_memory_entry_command, get_or_create_translation_review,
+    get_translation_memory_command, list_glossaries_command, lookup_translation_memory_command,
+    record_approved_translation_command, save_glossary_command,
+    save_translation_review_to_document, set_review_entry_status_command,
+    update_review_entry_target_text, TranslationReviewState,
 };
 
 pub use waveform::{
