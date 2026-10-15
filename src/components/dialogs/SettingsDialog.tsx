@@ -10,6 +10,7 @@ import { IconButton } from "../ui/IconButton";
 import type { AppInfo } from "../../types/ipc";
 import type { WorkspacePreferences } from "../../types/preferences";
 import type { MediaEngineStatus } from "../../types/mediaEngine";
+import { ModelManagerView } from "../ai/ModelManagerView";
 
 export interface SettingsDialogProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ export interface SettingsDialogProps {
   onToggleSnap: () => void;
 }
 
-type SettingsTab = "workspace" | "appearance" | "media" | "privacy" | "about";
+type SettingsTab = "workspace" | "appearance" | "media" | "privacy" | "ai" | "about";
 
 export function SettingsDialog({
   isOpen,
@@ -80,7 +81,9 @@ export function SettingsDialog({
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="w-full max-w-2xl rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl flex flex-col overflow-hidden focus:outline-none"
+        className={`w-full ${
+          activeTab === "ai" ? "max-w-4xl" : "max-w-2xl"
+        } rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl flex flex-col overflow-hidden focus:outline-none transition-all`}
       >
         {/* Header */}
         <div className="h-12 shrink-0 flex items-center justify-between px-5 border-b border-zinc-800 bg-zinc-900/60">
@@ -100,7 +103,7 @@ export function SettingsDialog({
         </div>
 
         {/* Body with Sidebar Tabs */}
-        <div className="flex h-96">
+        <div className={`flex ${activeTab === "ai" ? "h-[34rem]" : "h-96"} transition-all`}>
           {/* Sidebar Tabs */}
           <nav
             aria-label="Settings Categories"
@@ -152,6 +155,20 @@ export function SettingsDialog({
             </button>
             <button
               type="button"
+              onClick={() => setActiveTab("ai")}
+              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-between ${
+                activeTab === "ai"
+                  ? "bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+              }`}
+            >
+              <span>AI Models</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">
+                Shared
+              </span>
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab("about")}
               className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                 activeTab === "about"
@@ -164,7 +181,7 @@ export function SettingsDialog({
           </nav>
 
           {/* Tab Content Panel */}
-          <div className="flex-1 p-6 overflow-y-auto text-xs text-zinc-300">
+          <div className={`flex-1 ${activeTab === "ai" ? "p-0" : "p-6"} overflow-y-auto text-xs text-zinc-300`}>
             {/* WORKSPACE TAB */}
             {activeTab === "workspace" && (
               <div className="space-y-6">
@@ -498,6 +515,9 @@ export function SettingsDialog({
                 </div>
               </div>
             )}
+
+            {/* AI MODELS TAB */}
+            {activeTab === "ai" && <ModelManagerView />}
 
             {/* ABOUT TAB */}
             {activeTab === "about" && (

@@ -15,6 +15,8 @@ tokio = { version = "1.43", features = ["process", "sync", "time", "macros", "io
 tokio-util = "0.7"
 libc = "0.2"
 sha2 = "0.10"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+futures-util = "0.3"
 
 [dev-dependencies]
 tokio = { version = "1.43", features = ["rt-multi-thread", "macros"] }

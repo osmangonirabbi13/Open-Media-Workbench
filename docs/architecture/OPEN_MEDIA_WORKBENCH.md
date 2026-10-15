@@ -142,6 +142,16 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
 - **Multiplexed & Burn-In Export (Planned STEP 21 & 30):**
   - Uses the shared FFmpeg managed process engine to mux subtitle tracks (SRT/VTT/embedded) and synchronized dubbing audio into the output video.
 
+### 3.3 Shared Local AI Model Manager (STEP 18 Implemented)
+**Objective:** Provide a unified, offline-first local AI model repository shared between Localization Studio and the future AI Shorts Studio.
+
+- **Unified Model Repository:** A single local filesystem cache located at `~/.local/share/open-media-workbench/ai-models` serving all workspaces without duplicating multi-gigabyte files.
+- **Small Installer Invariant:** Zero bundled weights. The standard application distribution package remains small (<100MB target for Linux).
+- **Curated & Verified Catalog:** Upstream Git LFS artifacts with pinned SHA-256 digests (Whisper Tiny/Base for speech-to-text, Piper Lessac for speech synthesis, Qwen 2.5 0.5B for local text generation).
+- **Explicit Consent & Staging:** Downloads require user confirmation with detailed disclosures (size, license, URL, disk requirements). Downloads stream in 64 KiB chunks with running SHA-256 calculation and cancellation cleanup.
+- **Storage Protection:** Model ID sanitization, symlink attack rejection, atomic registry writes (`registry.json`), and in-use locking to prevent model deletion while active jobs are running.
+- **Hardware Probing:** Best-effort detection via Linux `/proc/meminfo` and POSIX `statvfs` with honest disclosure of unverified GPU acceleration states.
+
 ---
 
 ## 4. Shared Player, Timeline & Background Job Services

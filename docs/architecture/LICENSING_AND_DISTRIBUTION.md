@@ -139,9 +139,11 @@ Because `--enable-gpl` and `--enable-libx264` are activated, the effective licen
 | **Frontend Dependencies** | Integrated (Steps 1–9) | MIT / Apache-2.0 | Maintain lockfile integrity |
 | **FFmpeg / FFprobe** | External Subprocess | GPLv2+ / GPLv3 (Host) | Rely on system path; defer bundling to packaging step |
 | **Untrunc / Atom Reconstructor** | Integrated (Step 14) | Safe Rust Native (`GPL-3.0+`) / Untrunc Subprocess (`GPL-2.0+`) | Primary native safe Rust implementation in core; optional external CLI adapter |
-| **Whisper Transcription** | Future (Step 11+) | MIT (Engine & Weights) | Explicit opt-in model downloads only |
-| **Translation Engine** | Future (Step 11+) | MIT / MPL 2.0 | Exclude non-commercial (`-NC`) datasets |
-| **Neural TTS (Piper)** | Future (Step 11+) | MIT (Engine) | Strict voice-model license filter allowlist |
+| **Shared AI Model Manager** | Integrated (Step 18) | GPL-3.0-or-later (Rust Core) | Zero bundled weights; explicit consent & SHA-256 verification |
+| **Whisper Models (Tiny/Base)** | Verified Catalog (Step 18) | MIT License (Weights & Code) | Explicit opt-in download; zero bundling |
+| **Piper TTS Models (Lessac)** | Verified Catalog (Step 18) | Public Domain (Dataset & Weights) | Strict voice-model license filter allowlist |
+| **Qwen 2.5 Text Models** | Verified Catalog (Step 18) | Apache-2.0 License (Weights) | Explicit opt-in download; zero bundling |
+| **Translation Engine (Opus-MT)** | Catalog-Only (Step 18) | CC-BY-4.0 | Installation disabled pending Marian runtime integration |
 
 ---
 

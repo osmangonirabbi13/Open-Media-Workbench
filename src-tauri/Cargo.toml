@@ -25,3 +25,4 @@ uuid = { version = "1.15", features = ["v4"] }
 
 [dev-dependencies]
 tokio = { version = "1.43", features = ["rt-multi-thread", "macros"] }
+tempfile = "3"

@@ -3,7 +3,7 @@
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%2017%20Professional%20Subtitle%20Editor%20Complete-success.svg)](docs/reports/STEP_17_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2018%20Shared%20AI%20Model%20Manager%20Complete-success.svg)](docs/reports/STEP_18_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 
@@ -73,6 +73,16 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
    - **On-Device Multilingual Translation** *(Planned STEP 22–23)*
    - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
    - **Multiplexed & Burn-In Video Export** *(Planned STEP 21 & 30)*
+
+3. **Shared Local AI Model Manager** *(Infrastructure Foundation — STEP 18 Implemented)*
+   - **Unified Workspace Model Repository:** Shared local model cache (`~/.local/share/open-media-workbench/ai-models`) serving both Localization Studio and future AI Shorts Studio without duplicating multi-gigabyte files.
+   - **Small Installer Strategy:** Zero bundled AI model weights. Clean release desktop binaries (~24 MB) with zero automatic downloads on application startup.
+   - **Curated & Cryptographically Verified Catalog:** Pinned upstream Git LFS models with strict SHA-256 verification (Whisper Tiny/Base for speech-to-text, Piper Lessac for speech synthesis, and Qwen 2.5 0.5B for local text generation).
+   - **Explicit User Consent & Transparency:** Clear confirmation modal disclosing exact artifact sizes, available disk space, model licenses, and official sources before initiating any download.
+   - **Resilient Staging Pipeline:** Direct streaming network-to-disk writes in 64 KiB chunks with running SHA-256 computation, download cancellation cleanup, and size-overflow guardrails.
+   - **Storage Safety & Anti-Traversal:** Model ID path sanitization, symlink attack rejection, atomic registry transactions (`registry.json`), startup orphan cleanup, and in-use locking preventing accidental deletion during active jobs.
+   - **Hardware & Capability Discovery:** Safe non-privileged Linux hardware probing via `/proc/meminfo` (RAM) and POSIX `statvfs` (disk storage) with honest reporting of unverified GPU acceleration states.
+   - **100% Offline Resilience:** Core Repair Studio, video playback, and subtitle editing operate with zero AI dependencies; previously installed models and catalog remain fully accessible offline.
 
 ---
 

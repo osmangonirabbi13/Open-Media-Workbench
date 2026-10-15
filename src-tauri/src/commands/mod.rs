@@ -1,3 +1,4 @@
+pub mod ai;
 pub mod app_info;
 pub mod media_engine;
 pub mod media_import;
@@ -5,6 +6,12 @@ pub mod playback;
 pub mod repair;
 pub mod subtitles;
 pub mod waveform;
+
+pub use ai::{
+    cancel_ai_model_download, get_ai_hardware_info, get_ai_model_download_status,
+    get_ai_model_status, get_ai_storage_usage, list_ai_models, remove_ai_model,
+    start_ai_model_download, verify_ai_model, AiState,
+};
 
 pub use app_info::{get_app_info, AppInfo};
 pub use media_engine::{get_media_engine_status, MediaEngineState};

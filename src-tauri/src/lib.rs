@@ -22,10 +22,20 @@ pub fn run() {
         .manage(commands::PlaybackState::default())
         .manage(commands::WaveformState::default())
         .manage(commands::RepairDiagnosticsState::default())
+        .manage(commands::AiState::default())
         .register_uri_scheme_protocol("opentake-media", |app, req| {
             protocol::media::handle_media_protocol(app, req)
         })
         .invoke_handler(tauri::generate_handler![
+            commands::ai::list_ai_models,
+            commands::ai::get_ai_model_status,
+            commands::ai::get_ai_hardware_info,
+            commands::ai::start_ai_model_download,
+            commands::ai::get_ai_model_download_status,
+            commands::ai::cancel_ai_model_download,
+            commands::ai::verify_ai_model,
+            commands::ai::remove_ai_model,
+            commands::ai::get_ai_storage_usage,
             commands::app_info::get_app_info,
             commands::media_engine::get_media_engine_status,
             commands::media_import::pick_and_import_files,

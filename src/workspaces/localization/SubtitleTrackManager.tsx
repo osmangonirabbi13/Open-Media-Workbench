@@ -17,6 +17,7 @@ import {
   InfoIcon,
   UndoIcon,
   RedoIcon,
+  CpuIcon,
 } from "../../components/ui/Icons";
 import { Button } from "../../components/ui/Button";
 import {
@@ -31,6 +32,7 @@ import {
   loadAutosaveSnapshot,
   clearAutosaveSnapshot,
 } from "../../lib/subtitleAutosave";
+import { ModelManagerView } from "../../components/ai/ModelManagerView";
 
 export interface SubtitleTrackManagerProps {
   asset: MediaAsset | null;
@@ -73,6 +75,7 @@ export function SubtitleTrackManager({
   const [showFindings, setShowFindings] = useState(false);
   const [activeFindings, setActiveFindings] = useState<SubtitleFinding[]>([]);
   const [autosavePrompt, setAutosavePrompt] = useState<SubtitleDocument | null>(null);
+  const [showAiModal, setShowAiModal] = useState(false);
 
   const currentTimeUs = Math.round(currentTime * 1_000_000);
 
@@ -298,6 +301,16 @@ export function SubtitleTrackManager({
             >
               <UploadIcon size={12} className="mr-1" />
               Import
+            </Button>
+            <Button
+              size="xs"
+              variant="secondary"
+              onClick={() => setShowAiModal(true)}
+              title="Manage Local AI Models (Offline)"
+              className="text-zinc-300 hover:text-zinc-100"
+            >
+              <CpuIcon size={12} className="mr-1 text-indigo-400" />
+              AI Models
             </Button>
           </div>
         </div>
@@ -660,6 +673,15 @@ export function SubtitleTrackManager({
           })
         )}
       </div>
+
+      {/* AI Model Manager Modal Entry Point */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs select-none">
+          <div className="w-full max-w-4xl h-[36rem] rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl flex flex-col overflow-hidden">
+            <ModelManagerView onClose={() => setShowAiModal(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
