@@ -213,6 +213,16 @@ cargo fmt --all -- --check
 cargo build -p opentake-desktop
 ```
 
+### 💾 Disk Optimization & Build Cache Maintenance
+To prevent `target/` directory bloat during local development across 15+ integration test suites, the workspace configures line-table debuginfo (`debug = 1`) for `[profile.dev]` and `[profile.test]` in root `Cargo.toml`. This preserves full source file and line number panic backtraces while reducing intermediate object and test binary sizes by ~60–70%.
+
+To safely reclaim disk space from old test executables and incremental caches while preserving the latest release binary and bundle packages:
+```bash
+# Safely clean debug compilation cache and intermediate release artifacts:
+rm -rf target/debug target/release/deps
+```
+
+
 ---
 
 ## 📜 Licensing & Distribution

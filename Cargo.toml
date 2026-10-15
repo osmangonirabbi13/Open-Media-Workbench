@@ -4,3 +4,12 @@ members = [
     "src-tauri",
 ]
 resolver = "2"
+
+[profile.dev]
+# Line tables only: retains accurate file & line panic backtraces while reducing object & binary size by ~60-70%
+debug = 1
+
+[profile.test]
+# Line tables only: prevents multi-gigabyte accumulation across 15+ integration test suites
+debug = 1
+
