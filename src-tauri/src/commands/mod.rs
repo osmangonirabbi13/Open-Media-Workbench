@@ -10,6 +10,7 @@ pub mod subtitles;
 pub mod transcription;
 pub mod translation;
 pub mod translation_review;
+pub mod tts;
 pub mod waveform;
 
 pub use ai::{
@@ -78,6 +79,12 @@ pub use translation_review::{
     record_approved_translation_command, save_glossary_command,
     save_translation_review_to_document, set_review_entry_status_command,
     update_review_entry_target_text, TranslationReviewState,
+};
+
+pub use tts::{
+    cancel_offline_tts, export_tts_audio, get_offline_tts_result, get_offline_tts_status,
+    get_tts_runtime_capabilities, get_tts_voice_status, list_available_tts_voices,
+    select_tts_runtime, start_offline_tts, TtsState,
 };
 
 pub use waveform::{

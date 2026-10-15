@@ -247,6 +247,43 @@ impl AiStorageManager {
         }
     }
 
+    /// Verifies all artifacts of an installed model (including additional configuration artifacts)
+    /// against the manifest requirements.
+    pub fn verify_installed_artifacts(
+        &self,
+        manifest: &super::models::AiModelManifest,
+    ) -> Result<bool, AiError> {
+        let inst = self
+            .get_installation(&manifest.id)?
+            .ok_or_else(|| AiError::ModelNotFound(manifest.id.clone()))?;
+
+        // 1. Verify primary artifact
+        if let Some(expected_sha256) = &manifest.expected_sha256 {
+            let primary_path = self.get_artifact_path(&manifest.id, &inst.artifact_filename)?;
+            verify_file_integrity(&primary_path, expected_sha256, manifest.expected_size_bytes)?;
+        }
+
+        // 2. Verify each additional artifact
+        for artifact in &manifest.additional_artifacts {
+            let artifact_path = self.get_artifact_path(&manifest.id, &artifact.filename)?;
+            if !artifact_path.exists() {
+                return Err(AiError::CorruptedModel(format!(
+                    "Required artifact {} missing for model {}",
+                    artifact.filename, manifest.id
+                )));
+            }
+            if let Some(expected_sha256) = &artifact.expected_sha256 {
+                verify_file_integrity(
+                    &artifact_path,
+                    expected_sha256,
+                    artifact.expected_size_bytes,
+                )?;
+            }
+        }
+
+        Ok(true)
+    }
+
     /// Acquires an in-use lock on a model to prevent uninstallation while an inference job runs.
     pub fn acquire_lock(&self, model_id: &str) -> Result<bool, AiError> {
         let mut locks = self.active_locks.write().map_err(|_| {

@@ -29,6 +29,7 @@ pub fn run() {
         ai_state.manager.storage().clone(),
         Some(translation_review_state.storage.clone()),
     );
+    let tts_state = commands::TtsState::new(ai_state.manager.storage().clone());
 
     tauri::Builder::default()
         .manage(commands::MediaEngineState::default())
@@ -41,6 +42,7 @@ pub fn run() {
         .manage(transcription_state)
         .manage(translation_state)
         .manage(translation_review_state)
+        .manage(tts_state)
         .register_uri_scheme_protocol("opentake-media", |app, req| {
             protocol::media::handle_media_protocol(app, req)
         })
@@ -141,6 +143,15 @@ pub fn run() {
             commands::translation_review::lookup_translation_memory_command,
             commands::translation_review::delete_translation_memory_entry_command,
             commands::translation_review::clear_translation_memory_command,
+            commands::tts::get_tts_runtime_capabilities,
+            commands::tts::select_tts_runtime,
+            commands::tts::list_available_tts_voices,
+            commands::tts::get_tts_voice_status,
+            commands::tts::start_offline_tts,
+            commands::tts::get_offline_tts_status,
+            commands::tts::cancel_offline_tts,
+            commands::tts::get_offline_tts_result,
+            commands::tts::export_tts_audio,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

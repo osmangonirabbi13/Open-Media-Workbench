@@ -1,6 +1,6 @@
 //! Trusted Curated Model Catalog for Open Media Workbench.
 
-use super::models::{AiModelCapability, AiModelManifest};
+use super::models::{AiModelArtifact, AiModelCapability, AiModelManifest};
 
 /// List of trusted hosts permitted for model artifact downloads.
 pub const TRUSTED_HOSTS: &[&str] = &["huggingface.co"];
@@ -55,6 +55,7 @@ pub fn get_curated_model_catalog() -> Vec<AiModelManifest> {
             expected_sha256: Some(
                 "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21".to_string(),
             ),
+            additional_artifacts: Vec::new(),
             license_name: "MIT".to_string(),
             license_url: "https://huggingface.co/openai/whisper/blob/main/LICENSE".to_string(),
             model_card_url: "https://huggingface.co/openai/whisper-tiny".to_string(),
@@ -88,6 +89,7 @@ pub fn get_curated_model_catalog() -> Vec<AiModelManifest> {
             expected_sha256: Some(
                 "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe".to_string(),
             ),
+            additional_artifacts: Vec::new(),
             license_name: "MIT".to_string(),
             license_url: "https://huggingface.co/openai/whisper/blob/main/LICENSE".to_string(),
             model_card_url: "https://huggingface.co/openai/whisper-base".to_string(),
@@ -105,7 +107,7 @@ pub fn get_curated_model_catalog() -> Vec<AiModelManifest> {
             family: "piper".to_string(),
             version: "v1.0.0".to_string(),
             capability: AiModelCapability::TextToSpeech,
-            supported_languages: vec!["en-US".into()],
+            supported_languages: vec!["en-US".into(), "en".into()],
             runtime_backend: "piper".to_string(),
             runtime_format: "onnx".to_string(),
             source_repository: "https://huggingface.co/rhasspy/piper-voices".to_string(),
@@ -118,6 +120,20 @@ pub fn get_curated_model_catalog() -> Vec<AiModelManifest> {
             expected_sha256: Some(
                 "5efe09e69902187827af646e1a6e9d269dee769f9877d17b16b1b46eeaaf019f".to_string(),
             ),
+            additional_artifacts: vec![
+                AiModelArtifact {
+                    filename: "en_US-lessac-medium.onnx.json".to_string(),
+                    url: Some(
+                        "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json"
+                            .to_string(),
+                    ),
+                    expected_size_bytes: 4_885,
+                    expected_sha256: Some(
+                        "efe19c417bed055f2d69908248c6ba650fa135bc868b0e6abb3da181dab690a0".to_string(),
+                    ),
+                    role: "config".to_string(),
+                },
+            ],
             license_name: "Public Domain".to_string(),
             license_url: "https://github.com/rhasspy/piper/blob/master/VOICES.md".to_string(),
             model_card_url: "https://huggingface.co/rhasspy/piper-voices".to_string(),
@@ -151,6 +167,7 @@ pub fn get_curated_model_catalog() -> Vec<AiModelManifest> {
             expected_sha256: Some(
                 "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db".to_string(),
             ),
+            additional_artifacts: Vec::new(),
             license_name: "Apache-2.0".to_string(),
             license_url: "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/blob/main/LICENSE"
                 .to_string(),
@@ -177,6 +194,7 @@ pub fn get_curated_model_catalog() -> Vec<AiModelManifest> {
             artifact_filename: "opus-mt-en-es.onnx".to_string(),
             expected_size_bytes: 312_000_000,
             expected_sha256: None,
+            additional_artifacts: Vec::new(),
             license_name: "CC-BY-4.0".to_string(),
             license_url: "https://huggingface.co/Helsinki-NLP/opus-mt-en-es".to_string(),
             model_card_url: "https://huggingface.co/Helsinki-NLP/opus-mt-en-es".to_string(),

@@ -18,6 +18,7 @@ pub mod runtime;
 pub mod storage;
 pub mod transcription;
 pub mod translation;
+pub mod tts;
 pub mod verification;
 
 use std::collections::HashMap;
@@ -239,6 +240,7 @@ impl AiModelManager {
                         artifact_filename: manifest_clone.artifact_filename.clone(),
                         actual_size_bytes: actual_size,
                         verified_sha256: computed_sha256,
+                        installed_artifacts: Vec::new(),
                         in_use: false,
                     };
 

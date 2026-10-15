@@ -52,6 +52,7 @@ fn setup_test_environment(model_id: &str) -> (tempfile::TempDir, AiStorageManage
         artifact_filename: manifest.artifact_filename.clone(),
         actual_size_bytes: mock_bytes.len() as u64,
         verified_sha256: checksum,
+        installed_artifacts: vec![],
         in_use: false,
     };
 
@@ -339,6 +340,7 @@ async fn test_model_integrity_failure_rejected() {
         artifact_filename: "ggml-tiny.bin".to_string(),
         actual_size_bytes: 23,
         verified_sha256: "invalid_hash".to_string(),
+        installed_artifacts: vec![],
         in_use: false,
     };
 

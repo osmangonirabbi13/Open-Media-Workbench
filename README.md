@@ -2,7 +2,7 @@
 
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
-[![Status](https://img.shields.io/badge/Status-STEP%2022%20Offline%20Subtitle%20Translation%20Complete-success.svg)](docs/reports/STEP_22_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2024%20Offline%20Text--to--Speech%20Complete-success.svg)](docs/reports/STEP_24_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 
@@ -114,7 +114,16 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **100% Local Translation Memory:** Exact-match normalized memory stored locally in `~/.local/share/opentake/review/translation_memory.json` with usage counters, one-click application during review, entry deletion, and complete clearing controls.
      - **Atomic Batch Review Operations:** Multi-row selection with batch Mark Reviewed, batch Approve, and batch Reject, coupled with review progress statistics and status/issue filtering.
      - **Review Gate & Persistence:** Full review documents embedded in canonical `SubtitleDocument.metadata` under `translationReview` across `.omwsub` project save/reopen cycles; optional review gate alerting users before exporting tracks with unresolved quality findings.
-   - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
+   - **Offline AI Text-to-Speech Engine (STEP 24 Implemented):**
+     - **Real Local CPU Voice Synthesis:** Native offline speech inference powered by Piper TTS (`v2023.11.14-2`, MIT) executing compact ONNX models (`piper-en-lessac-medium`, 22,050 Hz 16-bit mono PCM). 100% offline, zero cloud APIs, no telemetry, no mandatory accounts.
+     - **Script-to-Speech & Subtitle-to-Speech Workflows:** Enter or paste freeform text scripts with grapheme/Unicode-safe sentence chunking, or select existing SubtitleTracks to synthesize audio segments per cue.
+     - **Non-Destructive Timing Delta Preservation:** Measures genuine audio duration from samples, calculating and reporting signed timing differences (`timing_difference_us`) against subtitle display intervals. Zero silent time-stretching, zero truncation, and zero mutation of source subtitle tracks.
+     - **Integrated Audio Preview & Safe WAV Export:** HTML5 audio player previewing individual segments or full synthesized sequences; atomic no-clobber WAV export with format and silence validation.
+     - **Shared AI Model Manager Multi-Artifact Integration:** Extended catalog supporting multi-file voice models (`.onnx` weights + `.onnx.json` config) with strict SHA-256 verification and in-use model locking.
+     - **Future Dubbing Foundations:** Generates audio segment contracts preserving cue identifiers, source language, timestamps, and acoustic metadata for future Dubbing Timeline (STEP 26), Duration Alignment (STEP 27), and Audio Mixing (STEP 28).
+   - **Dubbing Timeline & Audio Synchronization** *(Planned STEP 26)*
+   - **Speech Duration Alignment** *(Planned STEP 27)*
+   - **Dialogue Mixing & Video Dubbing Export** *(Planned STEP 28)*
    - **Multiplexed Soft Subtitle Export** *(Planned STEP 30)*
 
 3. **Shared Local AI Model Manager** *(Infrastructure Foundation — STEP 18 Implemented)*
@@ -156,8 +165,8 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 19 Completed (Offline Whisper Transcription Engine: Real Local Speech-to-Text & Automatic Subtitle Generation)**
-> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), recovery review/reporting pipeline (STEP 15), subtitle foundation (STEP 16), professional subtitle editor (STEP 17), shared AI model manager (STEP 18), and offline Whisper transcription engine (STEP 19) are fully implemented and verified with **260 automated Rust tests** and **71 TypeScript unit tests**. Next milestone: **STEP 20**.
+> **Project State: STEP 24 Completed (Offline AI Text-to-Speech Engine: Real Local Voice Synthesis, Audio Preview, Voice Model Integration & WAV Export)**
+> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), recovery review/reporting pipeline (STEP 15), subtitle foundation (STEP 16), professional subtitle editor (STEP 17), shared AI model manager (STEP 18), offline Whisper transcription engine (STEP 19), word-level alignment (STEP 20), subtitle styling & burn-in export (STEP 21), offline translation engine (STEP 22), bilingual subtitle review & glossary management (STEP 23), and offline AI text-to-speech engine (STEP 24) are fully implemented and verified with **158 automated Rust tests** and **101 TypeScript unit tests**. Next milestone: **STEP 25**.
 
 
 - **Target Release:** v0.1.0 Beta

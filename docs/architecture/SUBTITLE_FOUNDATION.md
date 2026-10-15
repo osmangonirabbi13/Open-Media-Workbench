@@ -220,5 +220,13 @@ See [BILINGUAL_REVIEW_AND_GLOSSARIES.md](BILINGUAL_REVIEW_AND_GLOSSARIES.md) for
 - Local project and global terminology glossaries with whole-word matching and brand protection masking.
 - Privacy-first local Translation Memory (TM) with exact matching, one-click reuse, and user deletion controls.
 
+---
 
+## 13. Offline AI Text-to-Speech Engine (STEP 24)
 
+See [OFFLINE_TTS_ENGINE.md](OFFLINE_TTS_ENGINE.md) for full details on:
+- Subtitle-to-Speech synthesis generating dedicated `TtsAudioSegment` records per cue.
+- Source cue identity preservation: segments retain `cue_id`, `cue_start_us`, `cue_end_us`, and `cue_duration_us`.
+- Real timing discrepancy measurement: calculates signed `timing_difference_us = (duration_us as i64) - (cue_duration_us as i64)` without silent time-stretching or truncation.
+- Strict non-destructive behavior: source subtitle tracks and cues are immutable and never modified by TTS synthesis.
+- Audio preview and WAV export for downstream dubbing pipelines (STEPS 26–28).

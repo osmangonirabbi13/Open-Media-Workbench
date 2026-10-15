@@ -205,6 +205,7 @@ async fn test_09_download_success_and_atomic_installation() {
         artifact_filename: "mock_model.bin".to_string(),
         expected_size_bytes: expected_size,
         expected_sha256: Some(expected_sha.clone()),
+        additional_artifacts: vec![],
         license_name: "MIT".to_string(),
         license_url: "http://127.0.0.1/license".to_string(),
         model_card_url: "http://127.0.0.1/card".to_string(),
@@ -238,6 +239,7 @@ async fn test_09_download_success_and_atomic_installation() {
         artifact_filename: "mock_model.bin".to_string(),
         actual_size_bytes: downloaded_bytes,
         verified_sha256: computed_sha,
+        installed_artifacts: vec![],
         in_use: false,
     };
 
@@ -285,6 +287,7 @@ async fn test_10_download_cancellation_cleans_up_staging() {
         artifact_filename: "cancel.bin".to_string(),
         expected_size_bytes: 90000,
         expected_sha256: Some("any".into()),
+        additional_artifacts: vec![],
         license_name: "MIT".to_string(),
         license_url: "http://127.0.0.1".to_string(),
         model_card_url: "http://127.0.0.1".to_string(),
@@ -334,6 +337,7 @@ async fn test_11_http_error_handling() {
         artifact_filename: "err.bin".to_string(),
         expected_size_bytes: 100,
         expected_sha256: Some("any".into()),
+        additional_artifacts: vec![],
         license_name: "MIT".to_string(),
         license_url: "http://127.0.0.1".to_string(),
         model_card_url: "http://127.0.0.1".to_string(),
@@ -372,6 +376,7 @@ fn test_18_uninstall_success_and_19_in_use_rejection() {
         artifact_filename: "model.bin".to_string(),
         actual_size_bytes: 10,
         verified_sha256: "testsha".to_string(),
+        installed_artifacts: vec![],
         in_use: false,
     };
 
@@ -511,6 +516,7 @@ async fn test_14_duplicate_installation_and_17_corrupted_file_detection() {
         artifact_filename: "ggml-tiny.bin".to_string(),
         actual_size_bytes: 17,
         verified_sha256: "dummysha".to_string(),
+        installed_artifacts: vec![],
         in_use: false,
     };
 

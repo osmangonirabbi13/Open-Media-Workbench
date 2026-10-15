@@ -29,6 +29,7 @@ import { SubtitleBurnInPanel } from "./SubtitleBurnInPanel";
 import { TranslationPanel } from "./TranslationPanel";
 import { BilingualReviewPanel } from "./BilingualReviewPanel";
 import { GlossaryManagerPanel } from "./GlossaryManagerPanel";
+import { TextToSpeechPanel } from "./TextToSpeechPanel";
 import type { SubtitleStyle } from "../../types/styling";
 import { DEFAULT_SUBTITLE_STYLE } from "../../lib/styling";
 
@@ -295,7 +296,7 @@ export function LocalizationInspector({
           }`}
         >
           <MicIcon size={13} className={activeTab === "dubbing" ? "text-indigo-400" : ""} />
-          <span>Dubbing</span>
+          <span>Speech</span>
         </button>
 
         <button
@@ -431,52 +432,15 @@ export function LocalizationInspector({
           </div>
         )}
 
-        {/* VOICE & DUBBING PANEL */}
+        {/* SPEECH / TTS PANEL (STEP 24 Active) */}
         {activeTab === "dubbing" && (
-          <div id="loc-panel-dubbing" role="tabpanel" aria-labelledby="loc-tab-dubbing" className="p-4 space-y-4 overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold text-zinc-200 flex items-center space-x-1.5">
-                <MicIcon size={14} className="text-indigo-400" />
-                <span>AI Voice Synthesis & Dubbing</span>
-              </h4>
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700/50">
-                Scheduled: STEP 24–28
-              </span>
-            </div>
-
-            <div className="p-3 rounded-lg border border-zinc-800 bg-zinc-900/60 space-y-3">
-              <div>
-                <label className="text-[11px] text-zinc-400 block mb-1">Neural Voice Model</label>
-                <select
-                  disabled
-                  className="w-full text-xs bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-500 cursor-not-allowed"
-                >
-                  <option>Piper TTS — Local Studio Natural Voice (Permissive)</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-zinc-400">
-                <div>
-                  <label className="block mb-1">Audio Ducking</label>
-                  <input type="range" disabled min="0" max="100" defaultValue="70" className="w-full opacity-50 cursor-not-allowed" />
-                </div>
-                <div>
-                  <label className="block mb-1">Sync Time-Scale</label>
-                  <input type="range" disabled min="80" max="120" defaultValue="100" className="w-full opacity-50 cursor-not-allowed" />
-                </div>
-              </div>
-
-              <Button size="xs" variant="secondary" disabled className="w-full">
-                Generate Dubbed Audio Track (Scheduled STEP 24)
-              </Button>
-            </div>
-
-            <div className="p-4 rounded-lg border border-indigo-900/40 bg-indigo-950/20 text-indigo-300 text-xs flex items-start space-x-2">
-              <ShieldCheckIcon size={16} className="shrink-0 mt-0.5 text-indigo-400" />
-              <p className="text-[11px] leading-relaxed">
-                All voice synthesis runs locally on your CPU/GPU with strict license-filtered models. Automatic audio time-stretching keeps speech synced with subtitle intervals.
-              </p>
-            </div>
+          <div id="loc-panel-dubbing" role="tabpanel" aria-labelledby="loc-tab-dubbing" className="h-full overflow-hidden">
+            <TextToSpeechPanel
+              document={document}
+              activeTrack={activeTrack}
+              onOpenModelManager={() => setShowModelManager(true)}
+              onSeek={onSeek}
+            />
           </div>
         )}
 

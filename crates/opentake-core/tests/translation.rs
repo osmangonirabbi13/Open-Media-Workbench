@@ -50,6 +50,7 @@ fn setup_test_storage(model_id: &str) -> (tempfile::TempDir, AiStorageManager, P
         artifact_filename: manifest.artifact_filename.clone(),
         actual_size_bytes: mock_bytes.len() as u64,
         verified_sha256: checksum,
+        installed_artifacts: vec![],
         in_use: false,
     };
 

@@ -121,12 +121,18 @@ Because `--enable-gpl` and `--enable-libx264` are activated, the effective licen
   - Verified and cryptographically pinned. Permissive commercial-friendly license.
   - Distribution Strategy: Zero bundled weights; explicit user download or manual placement.
 
-### 4.4 Local Neural Text-to-Speech (Dubbing) (Localization Studio Candidate)
-- **Engine Candidate:** Piper TTS.
+### 4.4 Local Neural Text-to-Speech (TTS Engine) (STEP 24 Implemented)
+- **Engine Runtime:** Piper TTS (`v2023.11.14-2`, CLI `1.2.0`).
 - **Engine Code License:** MIT License.
-- **Voice Models License Warning (High Verification Priority):**
-  - Piper voice models originate from various datasets. Some are Public Domain / CC0 / MIT, while others are **CC-BY-NC (Non-Commercial)**.
-  - **Compliance Gate:** Open Media Workbench must strictly filter voice models to ensure only permissively licensed voices (MIT/Apache/Public Domain/CC-BY) are downloadable by default.
+- **Runtime Dependencies:**
+  - `libonnxruntime.so.1.14.1`: MIT License.
+  - `libpiper_phonemize.so.1.2.0`: MIT License.
+  - `libespeak-ng.so.1.52.0.1`: GPL-3.0-or-later.
+  - Phoneme dictionaries: GPL-3.0-or-later.
+- **Voice Model License:**
+  - `piper-en-lessac-medium`: Public Domain (Donald Derrick recording, CC0/Public Domain).
+  - Verified and cryptographically pinned (`5efe09e6...` for `.onnx`, `efe19c41...` for `.onnx.json`).
+- **Compatibility:** Runtime dependencies and voice model terms are 100% compliant with the Open Media Workbench GPL-3.0-or-later distribution license. Non-commercial (CC-BY-NC) voices remain strictly filtered out from the default catalog.
 
 ---
 
@@ -142,7 +148,7 @@ Because `--enable-gpl` and `--enable-libx264` are activated, the effective licen
 | **Untrunc / Atom Reconstructor** | Integrated (Step 14) | Safe Rust Native (`GPL-3.0+`) / Untrunc Subprocess (`GPL-2.0+`) | Primary native safe Rust implementation in core; optional external CLI adapter |
 | **Shared AI Model Manager** | Integrated (Step 18) | GPL-3.0-or-later (Rust Core) | Zero bundled weights; explicit consent & SHA-256 verification |
 | **Whisper Models (Tiny/Base)** | Verified Catalog (Step 18) | MIT License (Weights & Code) | Explicit opt-in download; zero bundling |
-| **Piper TTS Models (Lessac)** | Verified Catalog (Step 18) | Public Domain (Dataset & Weights) | Strict voice-model license filter allowlist |
+| **Piper TTS Models (Lessac)** | Integrated (Step 24) | Public Domain (Dataset & Weights) | Strict voice-model license filter allowlist |
 | **Qwen 2.5 Text Models** | Verified Catalog (Step 18/22) | Apache-2.0 License (Weights) | Explicit opt-in download; zero bundling |
 | **Translation Engine (llama.cpp)** | Integrated (Step 22) | MIT License (Runtime CLI) | Local execution; zero cloud APIs |
 | **Translation Engine (Opus-MT)** | Catalog-Only (Step 18) | CC-BY-4.0 | Installation disabled pending Marian runtime integration |

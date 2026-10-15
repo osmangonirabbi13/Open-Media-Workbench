@@ -64,10 +64,10 @@ The initial catalog is pinned in Rust and mirrored in TypeScript. Every installa
 | `qwen2.5-0.5b-instruct` | `qwen` | Text Generation | GGUF Q4_K_M | 491,400,032 B (~468 MB) | Apache-2.0 | `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db` | Verified (Installable) |
 | `opus-mt-en-es` | `opus-mt` | Translation | ONNX | 312,000,000 B (~298 MB) | CC-BY-4.0 | None (Pending) | Catalog-Only (Disabled) |
 
-### 3.1 Security & Trusted Host Policy
+### 3.1 Security, Trusted Hosts & Multi-Artifact Policy
 - **HTTPS Enforcement:** Artifact downloads require valid TLS certificate verification and reject plain HTTP or insecure schemes.
 - **Trusted Host Allowlist:** By default, downloads are restricted to `huggingface.co` and its subdomains (`cdn-lfs.huggingface.co`). Untrusted remote hosts or arbitrary user-supplied URLs are strictly rejected.
-- **Single-File Direct Artifacts:** Model entries use direct single-file binaries (GGML, GGUF, ONNX) rather than arbitrary multi-file archives, eliminating Zip Slip, symlink traversal, and decompression bomb risks.
+- **Multi-Artifact Support (STEP 24 Extension):** While single-file binaries (GGML, GGUF) continue to be supported seamlessly, Piper-style voices require both an ONNX neural model file (`.onnx`) and an accompanying JSON voice configuration (`.onnx.json`). The model manifest schema supports `additional_artifacts`, and `AiStorageManager` validates the presence and cryptographic SHA-256 digest of every required file before a voice model is marked ready for inference.
 
 ---
 

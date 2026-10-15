@@ -109,7 +109,7 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - Crash-safe, atomic versioned JSON history ledger (up to 50 attempts).
   - Standalone offline HTML and machine-readable JSON report export with home directory and staging path privacy sanitization.
 
-### 3.2 Localization Studio (Active Development — STEPS 16–20 Complete)
+### 3.2 Localization Studio (Active Development — STEPS 16–24 Complete)
 **Objective:** End-to-end subtitle generation, interactive visual editing, speech recognition, machine translation, and neural speech dubbing.
 
 - **Canonical Subtitle Domain Model & Timing (Completed in STEP 16):**
@@ -156,9 +156,14 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - **Terminology Protection & Glossaries:** Local glossaries with exact, case-sensitive/insensitive, and whole-word matching. Protected brand names (e.g., Open Media Workbench, Whisper, FFmpeg) masked during translation and verified during review.
   - **Translation Memory (TM):** Local, privacy-preserving translation memory with exact-match suggestions, one-click application, and complete user deletion controls.
   - **Batch Operations & Quality Diagnostics:** Rule-based quality findings (`EMPTY_TARGET_TEXT`, `PROTECTED_TERM_CHANGED`, `EXCESSIVE_READING_SPEED`, `LANGUAGE_PAIR_UNVERIFIED`), batch approvals, and review progress statistics.
-- **AI Voice Dubbing (Speech Synthesis — Planned STEP 24–28):**
-  - Offline neural text-to-speech (TTS) engine generating synthesized speech clips for each subtitle cue.
-  - Automatic time-stretching or rate-scaling to synchronize dubbed audio within subtitle cue interval boundaries.
+- **Offline AI Text-to-Speech Engine (Completed in STEP 24):**
+  - **Local Speech Synthesis:** Genuine on-device speech synthesis using the official Piper TTS runtime (`v2023.11.14-2`, MIT) executing verified ONNX voice models (`piper-en-lessac-medium`, 22,050 Hz 16-bit mono PCM). 100% offline, zero cloud calls, no telemetry, no mandatory accounts.
+  - **Script & Subtitle Sources:** Direct plain-text script synthesis with grapheme/Unicode-safe sentence chunking, or subtitle track synthesis generating per-cue speech segments.
+  - **Timing Discrepancy Reporting:** Explicitly calculates `timing_difference_us` between measured audio duration and subtitle cue display duration. Never stretches or truncates speech silently; original subtitle tracks remain immutable.
+  - **Audio Preview & WAV Export:** HTML5 audio playback preview of segments or concatenated sequences; safe atomic WAV file export with format and acoustic non-silence verification.
+- **Dubbing Timeline & Audio Synchronization (Planned STEP 26)**
+- **Speech Duration Alignment (Planned STEP 27)**
+- **Dialogue Mixing & Video Dubbing Export (Planned STEP 28)**
 - **Multiplexed Soft Subtitle Export (Planned STEP 30):**
   - Uses the shared FFmpeg managed process engine to mux soft subtitle streams into output containers.
 

@@ -42,6 +42,27 @@ pub enum AiDownloadState {
     Cancelled,
 }
 
+/// An individual artifact belonging to a multi-artifact model (e.g. config or tokenizer).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AiModelArtifact {
+    pub filename: String,
+    pub url: Option<String>,
+    pub expected_size_bytes: u64,
+    pub expected_sha256: Option<String>,
+    pub role: String, // e.g. "model", "config", "tokenizer"
+}
+
+/// Persistent record of an individual installed artifact.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AiInstalledArtifact {
+    pub filename: String,
+    pub actual_size_bytes: u64,
+    pub verified_sha256: String,
+    pub role: String,
+}
+
 /// Immutable metadata manifest describing a verified AI model.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,6 +80,8 @@ pub struct AiModelManifest {
     pub artifact_filename: String,
     pub expected_size_bytes: u64,
     pub expected_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub additional_artifacts: Vec<AiModelArtifact>,
     pub license_name: String,
     pub license_url: String,
     pub model_card_url: String,
@@ -80,6 +103,8 @@ pub struct AiModelInstallation {
     pub artifact_filename: String,
     pub actual_size_bytes: u64,
     pub verified_sha256: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub installed_artifacts: Vec<AiInstalledArtifact>,
     pub in_use: bool,
 }
 
