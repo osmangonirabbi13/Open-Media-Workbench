@@ -118,3 +118,21 @@ The Subtitle Editor directly integrates with the offline Whisper transcription e
 - **Preview Before Ingestion:** Recognition results (detected language, duration, and cue preview) are displayed for user confirmation before adding to the document.
 - **Non-Destructive Ingestion:** New tracks are appended with source format `nativeProject`, unique cue identifiers, and language tags without overwriting existing tracks.
 - **Full Editor Interactivity:** Generated cues immediately populate the visual timeline track, audio waveform canvas, and cue inspector with split/merge, snapping, timecode nudging, undo/redo, and SRT/VTT export capabilities.
+
+---
+
+## 8. Word-Level Karaoke Highlighting & Waveform Markers (STEP 20)
+
+### 8.1 Live Word Highlighting in Video Preview
+- When cues contain `words: Option<Vec<AlignedWord>>` metadata, `SubtitleOverlay` renders words individually.
+- During playback, the current playhead time (`currentTimeUs`) is compared against each word's `[start_us, end_us]` interval.
+- Words falling within the active interval receive a distinct karaoke highlight (`bg-amber-400 text-black font-semibold rounded px-0.5`).
+- Highlighting can be toggled on/off in the inspector panel (`enableKaraoke`).
+- If word alignment is missing or disabled, the overlay falls back gracefully to standard full-cue text rendering.
+- Text rendering strictly avoids `dangerouslySetInnerHTML` to prevent XSS vulnerabilities.
+
+### 8.2 Zoom-Dependent Waveform Timeline Markers
+- On the `SubtitleTimelineLane`, when the user zooms into the timeline such that a cue occupies $\ge 5\%$ of the timeline width, individual word boundaries are rendered as subtle vertical ticks along the top of the cue block.
+- Hovering or inspecting word boundaries reveals word text and timing.
+- The markers can be toggled on/off via `showWordMarkers`.
+- Rendering is memory-efficient with no per-frame recomputation; coordinates are derived directly from the linear viewport transform.

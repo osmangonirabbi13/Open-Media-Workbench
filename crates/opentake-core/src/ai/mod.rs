@@ -8,6 +8,7 @@
 //! - Best-effort hardware capability detection
 //! - Typed runtime contracts for future inference engines (Whisper, Piper, LLMs)
 
+pub mod alignment;
 pub mod catalog;
 pub mod downloads;
 pub mod errors;

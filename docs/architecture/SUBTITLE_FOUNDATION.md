@@ -69,6 +69,10 @@ pub struct SubtitleCue {
     pub settings: Option<WebVttCueSettings>,
     pub raw_identifier: Option<String>,
     pub custom_metadata: HashMap<String, String>,
+    /// Word-level timing alignment metadata (STEP 20 extension).
+    /// Serialized with #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// to preserve 100% backward and forward schema compatibility.
+    pub words: Option<Vec<AlignedWord>>,
 }
 
 pub struct SubtitleTrack {
@@ -93,6 +97,12 @@ pub struct SubtitleDocument {
     pub metadata: HashMap<String, String>,
 }
 ```
+
+### 2.3 Persistence & Export Boundaries for Word-Level Metadata
+- **Native Document (`.omwsub`):** The canonical project format stores full word-level metadata losslessly, including stable word IDs, start and end microseconds, source segment references, punctuation metadata, and timing provenance.
+- **SubRip (`.srt`) Export:** SRT format does not support word-level alignment metadata; cues are serialized as standard plain-text subtitle blocks.
+- **WebVTT (`.vtt`) Export:** WebVTT exports valid cues and settings. Standard WebVTT serializers do not invent non-standard tags for arbitrary word metadata.
+- **Backward Compatibility:** Existing `.omwsub` documents created prior to STEP 20 deserialize seamlessly with `words: None`.
 
 ---
 

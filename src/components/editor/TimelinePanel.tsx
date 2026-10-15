@@ -30,6 +30,7 @@ export interface TimelinePanelProps {
   onMoveCue?: (cueId: string, deltaUs: number) => void;
   onResizeCueStart?: (cueId: string, newStartUs: number) => void;
   onResizeCueEnd?: (cueId: string, newEndUs: number) => void;
+  showWordMarkers?: boolean;
 }
 
 const ZOOM_LEVELS = [1, 2, 4, 8, 16];
@@ -48,6 +49,7 @@ export function TimelinePanel({
   onMoveCue,
   onResizeCueStart,
   onResizeCueEnd,
+  showWordMarkers = true,
 }: TimelinePanelProps): React.ReactElement {
   const [zoomIdx, setZoomIdx] = useState<number>(0);
   const [timelineWidth, setTimelineWidth] = useState<number>(800);
@@ -418,6 +420,7 @@ export function TimelinePanel({
                   onResizeCueStart={onResizeCueStart || (() => {})}
                   onResizeCueEnd={onResizeCueEnd || (() => {})}
                   onSeek={onSeek}
+                  showWordMarkers={showWordMarkers}
                 />
               )}
             </>

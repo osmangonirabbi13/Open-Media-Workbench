@@ -1,4 +1,5 @@
 pub mod ai;
+pub mod alignment;
 pub mod app_info;
 pub mod media_engine;
 pub mod media_import;
@@ -12,6 +13,11 @@ pub use ai::{
     cancel_ai_model_download, get_ai_hardware_info, get_ai_model_download_status,
     get_ai_model_status, get_ai_storage_usage, list_ai_models, remove_ai_model,
     start_ai_model_download, verify_ai_model, AiState,
+};
+
+pub use alignment::{
+    apply_smart_segmented_subtitles, get_word_alignment_result, refine_subtitle_cues,
+    segment_words_to_cues, update_word_timing_in_subtitle_cue,
 };
 
 pub use app_info::{get_app_info, AppInfo};

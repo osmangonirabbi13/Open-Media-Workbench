@@ -1,3 +1,5 @@
+import type { AlignedWord, TimingQuality } from "./alignment";
+
 export type TranscriptionProgressStage =
   | "queued"
   | "preparingAudio"
@@ -48,6 +50,8 @@ export interface TranscriptionResult {
   processingDurationMs: number;
   audioDurationUs?: number;
   warnings: string[];
+  words?: AlignedWord[];
+  timingQuality?: TimingQuality;
 }
 
 export interface TranscriptionLanguage {

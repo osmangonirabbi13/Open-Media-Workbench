@@ -47,6 +47,8 @@ export function LocalizationWorkspace({
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
   const [subtitlesVisible, setSubtitlesVisible] = useState<boolean>(true);
   const [selectedCueIds, setSelectedCueIds] = useState<string[]>([]);
+  const [enableKaraoke, setEnableKaraoke] = useState<boolean>(true);
+  const [showWordMarkers, setShowWordMarkers] = useState<boolean>(true);
 
   // Multi-level undo/redo history stacks
   const [undoStack, setUndoStack] = useState<SubtitleDocument[]>([]);
@@ -364,6 +366,7 @@ export function LocalizationWorkspace({
             activeSubtitleCues={activeCues}
             subtitlesVisible={subtitlesVisible}
             onToggleSubtitlesVisible={() => setSubtitlesVisible(!subtitlesVisible)}
+            enableKaraoke={enableKaraoke}
           />
         </div>
 
@@ -425,6 +428,7 @@ export function LocalizationWorkspace({
                 });
               }
             }}
+            showWordMarkers={showWordMarkers}
           />
         </div>
       </div>
@@ -467,6 +471,10 @@ export function LocalizationWorkspace({
           onActiveTrackChange={setActiveTrackId}
           onToggleTrackVisibility={handleToggleTrackVisibility}
           onSeek={handleTimelineSeek}
+          enableKaraoke={enableKaraoke}
+          onToggleKaraoke={() => setEnableKaraoke(!enableKaraoke)}
+          showWordMarkers={showWordMarkers}
+          onToggleWordMarkers={() => setShowWordMarkers(!showWordMarkers)}
         />
       </div>
     </div>

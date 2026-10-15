@@ -127,6 +127,9 @@ pub struct SubtitleCue {
     /// Forward-compatible metadata store.
     #[serde(default)]
     pub custom_metadata: HashMap<String, String>,
+    /// Optional word-level timestamp alignment records (STEP 20).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub words: Option<Vec<crate::ai::alignment::models::AlignedWord>>,
 }
 
 impl SubtitleCue {
@@ -163,6 +166,7 @@ impl SubtitleCue {
             settings: None,
             raw_identifier: None,
             custom_metadata: HashMap::new(),
+            words: None,
         })
     }
 

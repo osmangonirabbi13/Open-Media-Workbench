@@ -22,8 +22,10 @@ import { SubtitleTrackManager } from "./SubtitleTrackManager";
 import { exportSubtitleTrack } from "../../lib/subtitles";
 import { TranscriptionPanel } from "./TranscriptionPanel";
 import { ModelManagerView } from "../../components/ai/ModelManagerView";
+import type { AlignmentResult } from "../../types/alignment";
+import { WordAlignmentPanel } from "./WordAlignmentPanel";
 
-export type LocalizationTab = "subtitles" | "transcription" | "translation" | "dubbing" | "export";
+export type LocalizationTab = "subtitles" | "transcription" | "alignment" | "translation" | "dubbing" | "export";
 
 export interface LocalizationInspectorProps {
   asset: MediaAsset | null;
@@ -43,6 +45,11 @@ export interface LocalizationInspectorProps {
   onActiveTrackChange: (trackId: string) => void;
   onToggleTrackVisibility: (trackId: string) => void;
   onSeek: (seconds: number) => void;
+  alignmentResult?: AlignmentResult | null;
+  enableKaraoke?: boolean;
+  onToggleKaraoke?: () => void;
+  showWordMarkers?: boolean;
+  onToggleWordMarkers?: () => void;
 }
 
 export function LocalizationInspector({
@@ -63,6 +70,11 @@ export function LocalizationInspector({
   onActiveTrackChange,
   onToggleTrackVisibility,
   onSeek,
+  alignmentResult,
+  enableKaraoke = true,
+  onToggleKaraoke,
+  showWordMarkers = true,
+  onToggleWordMarkers,
 }: LocalizationInspectorProps): React.ReactElement {
 
   const [internalTab, setInternalTab] = useState<LocalizationTab>("subtitles");
@@ -134,6 +146,23 @@ export function LocalizationInspector({
         >
           <MicIcon size={13} className={activeTab === "transcription" ? "text-indigo-400" : ""} />
           <span>Transcribe</span>
+        </button>
+
+        <button
+          role="tab"
+          id="loc-tab-alignment"
+          aria-selected={activeTab === "alignment"}
+          aria-controls="loc-panel-alignment"
+          tabIndex={activeTab === "alignment" ? 0 : -1}
+          onClick={() => handleTabClick("alignment")}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 ${
+            activeTab === "alignment"
+              ? "bg-zinc-800 text-zinc-100 shadow-xs"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+          }`}
+        >
+          <SparklesIcon size={13} className={activeTab === "alignment" ? "text-indigo-400" : ""} />
+          <span>Align</span>
         </button>
 
         <button
@@ -229,6 +258,30 @@ export function LocalizationInspector({
               }}
               onOpenModelManager={() => setShowModelManager(true)}
               onClose={() => handleTabClick("subtitles")}
+            />
+          </div>
+        )}
+
+        {/* WORD ALIGNMENT & SMART SEGMENTATION PANEL */}
+        {activeTab === "alignment" && (
+          <div id="loc-panel-alignment" role="tabpanel" aria-labelledby="loc-tab-alignment" className="h-full flex flex-col overflow-y-auto">
+            <WordAlignmentPanel
+              alignmentResult={alignmentResult || null}
+              activeTrack={activeTrack}
+              document={document}
+              onApplyTrack={(newDoc) => {
+                onDocumentChange(newDoc);
+                if (newDoc.activeTrackId) {
+                  onActiveTrackChange(newDoc.activeTrackId);
+                }
+                handleTabClick("subtitles");
+              }}
+              onSeek={onSeek}
+              enableKaraoke={enableKaraoke}
+              onToggleKaraoke={onToggleKaraoke || (() => {})}
+              showWordMarkers={showWordMarkers}
+              onToggleWordMarkers={onToggleWordMarkers || (() => {})}
+              currentTimeUs={Math.round(currentTime * 1_000_000)}
             />
           </div>
         )}

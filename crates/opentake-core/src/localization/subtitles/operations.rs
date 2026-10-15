@@ -297,6 +297,7 @@ impl SubtitleTrack {
                 let first_cue = &mut self.cues[idx];
                 first_cue.end_us = *split_time_us;
                 first_cue.text = first_text;
+                first_cue.words = None;
 
                 // Create second half
                 let second_cue = SubtitleCue {
@@ -308,6 +309,7 @@ impl SubtitleTrack {
                     settings,
                     raw_identifier: None,
                     custom_metadata: std::collections::HashMap::new(),
+                    words: None,
                 };
 
                 self.cues.push(second_cue);
@@ -423,6 +425,7 @@ impl SubtitleTrack {
                     settings: cue.settings,
                     raw_identifier: None,
                     custom_metadata: cue.custom_metadata,
+                    words: cue.words,
                 };
 
                 self.cues.push(duplicated);

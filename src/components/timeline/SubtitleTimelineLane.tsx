@@ -16,6 +16,7 @@ export interface SubtitleTimelineLaneProps {
   onResizeCueStart: (cueId: string, newStartUs: number) => void;
   onResizeCueEnd: (cueId: string, newEndUs: number) => void;
   onSeek: (seconds: number) => void;
+  showWordMarkers?: boolean;
 }
 
 type DragMode = "move" | "resizeStart" | "resizeEnd" | null;
@@ -33,6 +34,7 @@ export function SubtitleTimelineLane({
   onResizeCueStart,
   onResizeCueEnd,
   onSeek,
+  showWordMarkers = true,
 }: SubtitleTimelineLaneProps): React.ReactElement {
   const laneRef = useRef<HTMLDivElement>(null);
   const [activeSnap, setActiveSnap] = useState<SnapResult | null>(null);
@@ -305,8 +307,37 @@ export function SubtitleTimelineLane({
               <div className="w-[1.5px] h-3 bg-white/80 rounded-full" />
             </div>
 
+            {/* Word boundary markers when zoomed in */}
+            {showWordMarkers && cue.words && cue.words.length > 1 && widthPct >= 5 && (
+              <div
+                data-testid={`cue-words-${cue.id}`}
+                className="absolute inset-0 pointer-events-none overflow-hidden rounded opacity-60 z-0"
+              >
+                {cue.words.map((w, wIdx) => {
+                  const cueDur = endUs - startUs;
+                  if (cueDur <= 0) return null;
+                  const wLeftPct = ((w.startUs - startUs) / cueDur) * 100;
+                  const wWidthPct = ((w.endUs - w.startUs) / cueDur) * 100;
+                  return (
+                    <div
+                      key={w.id || `wm-${wIdx}`}
+                      data-testid={`timeline-word-marker-${w.id}`}
+                      style={{ left: `${wLeftPct}%`, width: `${wWidthPct}%` }}
+                      className="absolute top-0 bottom-0 border-r border-indigo-300/30 flex items-end pb-0.5 px-0.5"
+                    >
+                      {widthPct >= 20 && (
+                        <span className="text-[8px] font-mono opacity-70 truncate select-none leading-none">
+                          {w.text}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Cue Label / Text snippet */}
-            <div className="flex-1 min-w-0 px-2 flex items-center space-x-1.5 pointer-events-none overflow-hidden">
+            <div className="flex-1 min-w-0 px-2 flex items-center space-x-1.5 pointer-events-none overflow-hidden z-10">
               <span className="font-mono text-[9px] font-bold opacity-70 shrink-0">
                 #{idx + 1}
               </span>

@@ -2,7 +2,7 @@
 
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
-[![Status](https://img.shields.io/badge/Status-STEP%2019%20Offline%20Whisper%20Transcription%20Complete-success.svg)](docs/reports/STEP_19_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2020%20Word%20Alignment%20%26%20Smart%20Segmentation%20Complete-success.svg)](docs/reports/STEP_20_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 
@@ -48,7 +48,7 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Persistent Local Recovery History:** Crash-safe, atomic versioned JSON ledger tracking up to 50 previous recovery attempts with status, validation levels, timestamps, and manual history clear action.
      - **Sanitized JSON & Standalone Offline HTML Reports:** User-initiated report export featuring stable machine-readable finding codes, strict Content-Security-Policy, offline embedded dark CSS, XSS escaping, and path privacy sanitization.
 
-2. **Localization Studio** *(Active Development — STEPS 16 & 17 Implemented)*
+2. **Localization Studio** *(Active Development — STEPS 16, 17, 19 & 20 Implemented)*
    - **Canonical Subtitle Domain Model (STEP 16 Implemented):**
      - **Strict Microsecond Timestamps:** Microsecond-accurate integer representation (`MediaTimeUs`), preventing floating-point drift across playback ticks.
      - **Robust SubRip (.srt) Support:** Parsing and serialization supporting UTF-8 BOM, CRLF/LF line endings, multiline cues, and tolerant numbering.
@@ -75,7 +75,17 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Multilingual & English Model Discrimination:** Supports automatic language detection, English, Bengali (বাংলা), and 90+ Whisper languages on multilingual models; automatically disallows non-English transcription on English-only (`.en`) models.
      - **Canonical Subtitle Integration:** Parses structured runtime outputs into validated microsecond `SubtitleCue` segments, with non-destructive track addition to existing `.omwsub` project documents.
      - **Measured On-Device Speed:** Measured 770ms execution on CPU for 11-second audio test fixture (~14x realtime speed with Whisper Tiny).
-     - **Known Limitations:** Segment-level timing only; word-level alignment is scheduled for STEP 20. Machine translation is scheduled for STEP 22–23.
+   - **Word-Level Timestamp Alignment, Smart Segmentation & Karaoke Foundation (STEP 20 Implemented):**
+     - **Genuine Word-Level Timing Extraction:** Extracts measured token offsets and acoustic probabilities directly from `whisper.cpp` structured output (`--output-json-full`) without external Python runtimes or cloud aligners.
+     - **Explicit Provenance & Timing Quality:** Classifies timings as `WhisperNativeEstimate`, `ForcedAlignment`, `UserAdjusted`, or `Unaligned`, coupled with document-level `TimingQuality` ratings (`Aligned`, `Estimated`, `PartiallyAligned`, `Unavailable`).
+     - **Smart Subtitle Segmentation:** Intelligent heuristic segmentation partitioning aligned words into broadcast-compliant subtitle cues guided by configurable policies: maximum characters per line (e.g. 42), max lines per cue (e.g. 2), maximum and minimum cue duration bounds (1.0s – 7.0s), reading speed (CPS), natural silence pause splits (e.g. 400ms), and sentence punctuation breaks.
+     - **Unicode-Safe Bengali Segmentation:** Complete preservation of Bengali (বাংলা) grapheme clusters, combining marks, nukta, virama, and Dari sentence punctuation (`।`, `॥`) without erroneous mid-word boundary cuts.
+     - **Evidence-Based Timing Refinement:** Reversible boundary snapping matching cue start and end times to contained first and last word timestamps with minimum duration padding.
+     - **Live Word-Level Karaoke Preview:** Real-time visual word highlighting inside the video preview subtitle overlay following speech timestamps without `dangerouslySetInnerHTML`.
+     - **Waveform Timeline Word Markers:** Scalable, zoom-responsive word boundary markers on the subtitle timeline track lane when zoomed in (`>= 5%` cue width).
+     - **Interactive Alignment Review & Manual Correction:** Dedicated `WordAlignmentPanel` for inspecting words, adjusting millisecond timestamps, seeking audio to word boundaries, and non-destructively applying formatted tracks to the project.
+     - **Linear Performance Scaling:** Measured 100 words in 0.275ms, 1,000 words in 1.714ms, and 10,000 words in 20.024ms.
+     - **Preservation & Export Compatibility:** Losslessly persists word timing metadata in `.omwsub` project format, migrates legacy schemas without data loss, and exports clean, compliant `.srt` and `.vtt` caption files.
    - **On-Device Multilingual Translation** *(Planned STEP 22–23)*
    - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
    - **Multiplexed & Burn-In Video Export** *(Planned STEP 21 & 30)*

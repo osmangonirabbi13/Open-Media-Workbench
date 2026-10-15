@@ -139,6 +139,8 @@ mod tests {
             processing_duration_ms: 1200,
             audio_duration_us: Some(5_000_000),
             warnings: vec![],
+            words: None,
+            timing_quality: Some(crate::ai::alignment::models::TimingQuality::Unavailable),
         };
 
         let track = convert_transcription_result_to_track(&result, None).unwrap();

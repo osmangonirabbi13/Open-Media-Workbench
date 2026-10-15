@@ -1,3 +1,5 @@
+import type { AlignedWord } from "./alignment";
+
 export type SubtitleFormat = "srt" | "webVtt" | "nativeProject";
 
 export type FindingSeverity = "info" | "warning" | "error";
@@ -20,6 +22,7 @@ export interface SubtitleCue {
   settings?: WebVttCueSettings;
   rawIdentifier?: string;
   customMetadata?: Record<string, string>;
+  words?: AlignedWord[];
 }
 
 export interface SubtitleTrack {

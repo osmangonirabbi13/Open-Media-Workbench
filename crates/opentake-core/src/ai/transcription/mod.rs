@@ -26,6 +26,7 @@ use self::models::{
 };
 use self::segments::process_raw_segments;
 use self::whisper::WhisperEngine;
+use crate::editing::time::MediaTimeUs;
 
 /// Maximum number of concurrent transcription jobs admitted (1 to avoid resource contention).
 pub const MAX_CONCURRENT_TRANSCRIPTION_JOBS: usize = 1;
@@ -350,6 +351,45 @@ impl TranscriptionManager {
         let offset_us = request.start_time_us.unwrap_or(0);
         let canonical_segments = process_raw_segments(raw_output.segments, offset_us);
 
+        // Generate initial word alignment from transcription segments
+        let mut aligned_words = Vec::new();
+        for (seg_idx, seg) in canonical_segments.iter().enumerate() {
+            let seg_id = seg.id.clone();
+            use unicode_segmentation::UnicodeSegmentation;
+            let words: Vec<&str> = seg.text.unicode_words().collect();
+            if words.is_empty() {
+                continue;
+            }
+            let seg_dur = (seg.end_us.as_micros() - seg.start_us.as_micros()).max(50_000);
+            let per_word = seg_dur / words.len() as i64;
+
+            for (w_idx, w_text) in words.iter().enumerate() {
+                let w_start = MediaTimeUs(seg.start_us.as_micros() + (w_idx as i64 * per_word));
+                let w_end = if w_idx + 1 == words.len() {
+                    seg.end_us
+                } else {
+                    MediaTimeUs(w_start.as_micros() + per_word)
+                };
+
+                let (pfx, clean_word, sfx) =
+                    crate::ai::alignment::parser::split_word_punctuation(w_text);
+
+                if let Ok(mut word) = crate::ai::alignment::models::AlignedWord::new(
+                    format!("w_{seg_idx}_{w_idx}"),
+                    clean_word,
+                    w_start,
+                    w_end,
+                    crate::ai::alignment::models::WordTimingProvenance::WhisperNativeEstimate,
+                ) {
+                    word.source_segment_id = Some(seg_id.clone());
+                    word.punctuation_prefix = pfx;
+                    word.punctuation_suffix = sfx;
+                    word.confidence = seg.confidence;
+                    aligned_words.push(word);
+                }
+            }
+        }
+
         let duration_ms = start_time.elapsed().as_millis() as u64;
         let runtime_ver = self
             .engine
@@ -368,6 +408,12 @@ impl TranscriptionManager {
             processing_duration_ms: duration_ms,
             audio_duration_us,
             warnings: vec![],
+            words: if aligned_words.is_empty() {
+                None
+            } else {
+                Some(aligned_words)
+            },
+            timing_quality: Some(crate::ai::alignment::models::TimingQuality::Estimated),
         };
 
         cleanup();

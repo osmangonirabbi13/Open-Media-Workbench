@@ -17,7 +17,14 @@ impl Default for AiState {
             .map(PathBuf::from)
             .unwrap_or_else(|_| {
                 if let Ok(home) = std::env::var("HOME") {
-                    PathBuf::from(home).join(".local/share/open-media-workbench/ai-models")
+                    let canonical =
+                        PathBuf::from(&home).join(".local/share/open-media-workbench/ai-models");
+                    let legacy = PathBuf::from(&home).join(".local/share/opentake/models");
+                    if !canonical.exists() && legacy.exists() {
+                        legacy
+                    } else {
+                        canonical
+                    }
                 } else {
                     std::env::temp_dir().join("open-media-workbench/ai-models")
                 }

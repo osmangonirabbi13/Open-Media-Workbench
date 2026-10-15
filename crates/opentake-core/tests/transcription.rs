@@ -238,6 +238,8 @@ fn test_convert_result_to_subtitle_track_and_document() {
         processing_duration_ms: 850,
         audio_duration_us: Some(4_000_000),
         warnings: vec![],
+        words: None,
+        timing_quality: None,
     };
 
     let track = convert_transcription_result_to_track(&result, Some("My AI Subtitles")).unwrap();
@@ -492,6 +494,8 @@ async fn test_genuine_whisper_cpp_inference_end_to_end() {
         audio_duration_us: Some(11_000_000),
         processing_duration_ms: 800,
         warnings: vec![],
+        words: None,
+        timing_quality: None,
     };
 
     let track = convert_transcription_result_to_track(&result, Some("JFK Historic Speech"))

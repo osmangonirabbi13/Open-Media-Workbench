@@ -85,6 +85,10 @@ pub struct TranscriptionResult {
     pub processing_duration_ms: u64,
     pub audio_duration_us: Option<i64>,
     pub warnings: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub words: Option<Vec<crate::ai::alignment::models::AlignedWord>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timing_quality: Option<crate::ai::alignment::models::TimingQuality>,
 }
 
 /// Metadata describing a supported transcription language.

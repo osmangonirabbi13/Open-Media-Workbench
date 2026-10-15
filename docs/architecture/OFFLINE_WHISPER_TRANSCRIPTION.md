@@ -162,3 +162,27 @@ At any stage, clicking **Cancel**:
 - Segment preview table showing timestamps, duration, and transcribed text.
 - User confirmation buttons: **Add as New Subtitle Track**, **Replace Current Track**, or **Discard**.
 - Full integration with the STEP 17 visual subtitle editor, waveform overlay, and SRT/WebVTT export.
+
+---
+
+## 9. Word-Level Timestamp Extraction (STEP 20 Extension)
+
+`whisper.cpp` (v1.9.5+) generates token-level and word-level timestamps when executed with `--output-json-full` (or `-ojf`). 
+
+### Extraction Pipeline:
+1. **Runtime Token Offsets:** The parsed JSON output structure includes a `tokens` array within each transcription segment. Each token entry provides either an integer millisecond range (`offsets: { from, to }`) or formatted timestamps (`timestamps: { from, to }`).
+2. **Checked Microsecond Conversion:** Token offsets in milliseconds are multiplied by $1,000$ to obtain authoritative integer `MediaTimeUs` timestamps.
+3. **Punctuation & Grapheme Splitting:** Leading and trailing punctuation marks are extracted safely without splitting Unicode grapheme clusters (e.g. Bengali combining marks and Dari `।`).
+4. **Validation & Ordering:** Words must satisfy $start\_us \ge 0$ and $end\_us \ge start\_us$. Words with $end\_us == start\_us$ are given a minimal duration (50,000 $\mu s$).
+5. **Quality Scoring:**
+   - `Aligned`: Every spoken word has verified, non-empty, chronological timestamps directly extracted from audio inference.
+   - `PartiallyAligned`: Some words have verified timings while others fallback to segment bounds.
+   - `Estimated`: Token timestamps were unavailable or estimated by the runtime.
+   - `Unavailable`: No timing information could be derived.
+6. **Zero Fabricated Timestamps:** If word-level tokens are not present in the runtime output, the pipeline never fabricates evenly spaced artificial words; it sets `timingQuality` to `Unavailable` or `Estimated`.
+
+---
+
+## 10. Smart Subtitle Segmentation Integration
+
+Extracted words are fed directly into the STEP 20 smart rule-based segmentation engine (`crates/opentake-core/src/ai/alignment/segmentation.rs`), allowing users to transform long speech bursts into readable, well-paced subtitle cues adhering to professional broadcasting standards (EBU / Netflix guidelines).

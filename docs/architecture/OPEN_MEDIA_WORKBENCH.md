@@ -109,7 +109,7 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - Crash-safe, atomic versioned JSON history ledger (up to 50 attempts).
   - Standalone offline HTML and machine-readable JSON report export with home directory and staging path privacy sanitization.
 
-### 3.2 Localization Studio (Active Development — STEPS 16 & 17 Complete)
+### 3.2 Localization Studio (Active Development — STEPS 16–20 Complete)
 **Objective:** End-to-end subtitle generation, interactive visual editing, speech recognition, machine translation, and neural speech dubbing.
 
 - **Canonical Subtitle Domain Model & Timing (Completed in STEP 16):**
@@ -129,11 +129,19 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - **Multi-Cue Batch Editing:** Ctrl/Cmd-click and Shift-click range selection, batch nudge timing shifts with atomic negative-time rejection, and batch deletion.
   - **Multi-Level Undo/Redo:** 50-step deterministic history stack with `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`, and `Ctrl/Cmd+Y` shortcuts, designed to never intercept native text input undo events.
   - **Autosave & Crash Recovery:** Dirty state tracking with debounced snapshots and automatic recovery prompts on launch protecting against abrupt crashes or power loss.
-- **Local AI Transcription (Speech-to-Text — Planned STEP 19):**
-
-  - Fully offline, local Whisper inference (e.g., via `whisper.cpp` / ONNX runtime).
-  - Emits word-level and phrase-level timestamped tokens directly into the subtitle cue list.
-  - Zero external network requests or third-party cloud dependencies.
+- **Offline Whisper Speech-to-Text (Completed in STEP 19):**
+  - **Local Whisper Inference:** High-efficiency `whisper.cpp` runtime adapter using local CPU threads without cloud telemetry or external network calls.
+  - **Automated Subtitle Track Generation:** Media audio extraction to 16 kHz mono signed 16-bit PCM WAV via managed FFmpeg process and automatic canonical `SubtitleTrack` construction.
+  - **Model Verification & Locking:** Concurrency-protected model access via the shared AI Model Manager (`~/.local/share/opentake/models`), with SHA-256 integrity checks.
+  - **Multilingual Support:** Auto-detection and 90+ supported languages on multilingual models; strict rejection of non-English audio on English-only models.
+- **Word-Level Timing Alignment & Smart Segmentation (Completed in STEP 20):**
+  - **Word-Level Timestamp Extraction:** Genuine word and token boundary extraction from `whisper-cli` output (`tokens` array with microsecond precision), rejecting fabricated or evenly spaced timings.
+  - **Typed Alignment Domain:** Full provenance tracking (`WhisperNativeEstimate`, `ForcedAlignment`, `UserAdjusted`, `Unaligned`) and timing quality scoring (`Aligned`, `Estimated`, `PartiallyAligned`, `Unavailable`).
+  - **Smart Rule-Based Segmentation:** Configurable line wrapping, max chars per line, max duration, reading speed (CPS), silence gap detection, and sentence punctuation awareness preserving full transcript fidelity.
+  - **Unicode-Safe Bengali Segmentation:** Strict grapheme-cluster preservation preventing combining mark splitting, nukta or virama truncation, and Bengali punctuation handling (Dari `।`).
+  - **Karaoke Word Highlighting:** Zero-cost DOM word highlighting in `SubtitleOverlay` during playback without `dangerouslySetInnerHTML`.
+  - **Waveform Timeline Word Markers:** Visual boundary ticks displayed on cue blocks at high zoom levels ($W_{\text{cue}} \ge 5\%$).
+  - **Non-Destructive Project Persistence:** Versioned `.omwsub` project extension with backward-compatible `words` serialization; compliant standard SRT/VTT export.
 - **Local Machine Translation (Planned STEP 22–23):**
   - On-device translation pipeline mapping source subtitle text to target language scripts.
 - **AI Voice Dubbing (Speech Synthesis — Planned STEP 24–28):**

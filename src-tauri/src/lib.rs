@@ -92,6 +92,11 @@ pub fn run() {
             commands::transcription::cancel_offline_transcription,
             commands::transcription::get_offline_transcription_result,
             commands::transcription::apply_transcription_result_to_subtitles,
+            commands::alignment::get_word_alignment_result,
+            commands::alignment::segment_words_to_cues,
+            commands::alignment::refine_subtitle_cues,
+            commands::alignment::update_word_timing_in_subtitle_cue,
+            commands::alignment::apply_smart_segmented_subtitles,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

@@ -212,7 +212,7 @@ impl SystemWhisperCliEngine {
             language.to_string(),
             "-t".to_string(),
             num_threads.to_string(),
-            "-oj".to_string(),
+            "-ojf".to_string(),
             "-of".to_string(),
             out_prefix.to_string_lossy().to_string(),
             "--no-prints".to_string(),
@@ -360,7 +360,7 @@ pub async fn discover_whisper_runtime(custom_path: Option<&Path>) -> WhisperRunt
     let mut errors = Vec::new();
     let supported_languages = get_supported_whisper_languages();
 
-    // 1. If user provided a custom path, evaluate it first
+    // 1. If user provided a custom path, evaluate it
     if let Some(custom) = custom_path {
         match probe_candidate_binary(custom).await {
             Ok(ver) => {
@@ -378,6 +378,14 @@ pub async fn discover_whisper_runtime(custom_path: Option<&Path>) -> WhisperRunt
                     "Custom runtime at '{}' is invalid: {e}",
                     custom.display()
                 ));
+                return WhisperRuntimeCapabilities {
+                    is_available: false,
+                    runtime_path: None,
+                    runtime_version: None,
+                    is_custom: true,
+                    supported_languages,
+                    errors,
+                };
             }
         }
     }
@@ -388,6 +396,7 @@ pub async fn discover_whisper_runtime(custom_path: Option<&Path>) -> WhisperRunt
     if let Ok(home) = std::env::var("HOME") {
         let home_path = PathBuf::from(home);
         candidates.push(home_path.join(".local/share/open-media-workbench/bin/whisper-cli"));
+        candidates.push(home_path.join(".local/share/opentake/bin/whisper-cli"));
         candidates.push(home_path.join(".local/bin/whisper-cli"));
         candidates.push(home_path.join(".local/bin/whisper.cpp"));
         candidates.push(home_path.join(".local/bin/whisper"));
