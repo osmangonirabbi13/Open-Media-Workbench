@@ -197,3 +197,17 @@ Evaluated on x86_64 Linux (Intel i7, 4 CPU threads) using synthetic word sequenc
 | **10,000 words** | 1,668 cues | **20.024 ms** | ~499,000 words/sec |
 
 The segmentation and refinement algorithms run comfortably within the 16 ms frame budget for real-time interactive editing.
+
+---
+
+## 8. Downstream Integration with Subtitle Styling & Burn-In (STEP 21)
+
+Word alignment timing feeds directly into the STEP 21 styling and export pipeline:
+1. **ASS Karaoke Generation (`\kf`):**
+   - Each aligned word's duration is converted to centiseconds: $\text{dur\_cs} = \lfloor (\text{end\_us} - \text{start\_us} + 5000) / 10000 \rfloor$.
+   - Formatted into standard ASS dialogue lines: `{\kf<dur_cs>}word `.
+2. **Missing Word Timing Fallback:**
+   - If a cue lacks aligned words (`words: None` or empty) when `KaraokeHighlight` is active, the generator safely falls back to standard full-cue text without crashing or inventing artificial word timings.
+3. **Live Overlay Word Highlighting:**
+   - The interactive React subtitle preview continuously synchronizes word highlights with playhead time in microseconds, using the `word_highlight_color` defined in the canonical `SubtitleStyle`.
+

@@ -179,3 +179,23 @@ Offline Whisper speech recognition outputs convert directly into canonical `Subt
 - **Non-Destructive Track Addition:** Generated subtitle tracks append to the active `SubtitleDocument` as a new track (`append_track_to_document`), preserving all existing manual tracks and user edits.
 - **Immediate Editing and Export:** Generated cues are instantly editable using the STEP 17 visual editor, subject to the same validation rules, and exportable to compliant `.srt` and `.vtt` formats.
 
+---
+
+## 9. Word Alignment & Smart Segmentation (STEP 20)
+
+See [WORD_ALIGNMENT_AND_SEGMENTATION.md](WORD_ALIGNMENT_AND_SEGMENTATION.md) for full details on:
+- Measured word-level token timestamps and acoustic probabilities from Whisper.
+- Heuristic smart segmentation policies (reading speed, CPS, natural silence pauses, punctuation).
+- Evidence-based timing refinement and live word-level karaoke previews.
+
+---
+
+## 10. Subtitle Styling & Burn-In Export (STEP 21)
+
+See [SUBTITLE_STYLING_AND_BURNIN.md](SUBTITLE_STYLING_AND_BURNIN.md) for full details on:
+- Canonical `SubtitleStyle` model covering typography, colors, borders, shadows, background boxes, positioning, and animation presets.
+- 8 professional built-in presets and atomic local custom preset persistence.
+- Safe Advanced SubStation Alpha (`.ass`) subtitle script generation with injection-resistant escaping and centisecond rounding.
+- Real FFmpeg burn-in video re-encoding pipeline with `libass` integration and frame decode validation.
+
+

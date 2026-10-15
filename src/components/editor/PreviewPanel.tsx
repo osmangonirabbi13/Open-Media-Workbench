@@ -29,6 +29,7 @@ export interface PreviewPanelProps {
   subtitlesVisible?: boolean;
   onToggleSubtitlesVisible?: () => void;
   enableKaraoke?: boolean;
+  subtitleStyle?: import("../../types/styling").SubtitleStyle;
 }
 
 export function PreviewPanel({
@@ -40,6 +41,7 @@ export function PreviewPanel({
   subtitlesVisible = true,
   onToggleSubtitlesVisible,
   enableKaraoke = true,
+  subtitleStyle,
 }: PreviewPanelProps): React.ReactElement {
   const videoRef = useRef<HTMLVideoElement>(null);
   const scrubberTrackRef = useRef<HTMLDivElement>(null);
@@ -279,6 +281,7 @@ export function PreviewPanel({
                 isVisible={subtitlesVisible}
                 currentTimeUs={Math.round(currentTime * 1_000_000)}
                 enableKaraoke={enableKaraoke}
+                style={subtitleStyle}
               />
 
               {/* Buffering / Loading Overlay */}

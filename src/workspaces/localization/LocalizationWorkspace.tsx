@@ -9,6 +9,8 @@ import { LAYOUT_BOUNDS } from "../../types/preferences";
 import { findActiveCues } from "../../lib/subtitles";
 import { applySubtitleOperation } from "../../lib/subtitleOperations";
 import { saveAutosaveSnapshot } from "../../lib/subtitleAutosave";
+import type { SubtitleStyle } from "../../types/styling";
+import { DEFAULT_SUBTITLE_STYLE } from "../../lib/styling";
 
 export interface LocalizationWorkspaceProps {
   mediaPanelWidth: number;
@@ -49,6 +51,7 @@ export function LocalizationWorkspace({
   const [selectedCueIds, setSelectedCueIds] = useState<string[]>([]);
   const [enableKaraoke, setEnableKaraoke] = useState<boolean>(true);
   const [showWordMarkers, setShowWordMarkers] = useState<boolean>(true);
+  const [subtitleStyle, setSubtitleStyle] = useState<SubtitleStyle>(DEFAULT_SUBTITLE_STYLE);
 
   // Multi-level undo/redo history stacks
   const [undoStack, setUndoStack] = useState<SubtitleDocument[]>([]);
@@ -367,6 +370,7 @@ export function LocalizationWorkspace({
             subtitlesVisible={subtitlesVisible}
             onToggleSubtitlesVisible={() => setSubtitlesVisible(!subtitlesVisible)}
             enableKaraoke={enableKaraoke}
+            subtitleStyle={subtitleStyle}
           />
         </div>
 
@@ -475,6 +479,8 @@ export function LocalizationWorkspace({
           onToggleKaraoke={() => setEnableKaraoke(!enableKaraoke)}
           showWordMarkers={showWordMarkers}
           onToggleWordMarkers={() => setShowWordMarkers(!showWordMarkers)}
+          currentStyle={subtitleStyle}
+          onStyleChange={setSubtitleStyle}
         />
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
-[![Status](https://img.shields.io/badge/Status-STEP%2020%20Word%20Alignment%20%26%20Smart%20Segmentation%20Complete-success.svg)](docs/reports/STEP_20_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2021%20Subtitle%20Styling%20%26%20Burn--In%20Export%20Complete-success.svg)](docs/reports/STEP_21_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 
@@ -86,9 +86,19 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Interactive Alignment Review & Manual Correction:** Dedicated `WordAlignmentPanel` for inspecting words, adjusting millisecond timestamps, seeking audio to word boundaries, and non-destructively applying formatted tracks to the project.
      - **Linear Performance Scaling:** Measured 100 words in 0.275ms, 1,000 words in 1.714ms, and 10,000 words in 20.024ms.
      - **Preservation & Export Compatibility:** Losslessly persists word timing metadata in `.omwsub` project format, migrates legacy schemas without data loss, and exports clean, compliant `.srt` and `.vtt` caption files.
+   - **Professional Subtitle Styling & Video Burn-In Export (STEP 21 Implemented):**
+     - **Canonical Subtitle Style Domain:** Fully typed style configurations controlling typography (font family, size, weight, italic), colors (text, outline, shadow, background box, word highlight), outline thickness, shadow offset, background opacity, frame-relative positioning (BottomCenter, Center, TopCenter, etc.), and animation presets.
+     - **8 Professional Built-in Presets:** Clean Minimal, Cinematic, Modern Outline, Social Bold, Karaoke Highlight, Documentary, Accessible High Contrast, and Soft Background Box, alongside user-defined custom presets persisted locally.
+     - **Local System Font Discovery & Bengali Support:** Native font discovery (`fc-list`) with fallback defaults and explicit Bengali font detection (`Noto Sans Bengali`, `Noto Serif Bengali`).
+     - **Secure ASS Subtitle Generation:** Advanced SubStation Alpha generation with centisecond timing rounding, safe brace and character escaping, dialogue formatting, and animation tags (`\fad`, `\fscx`).
+     - **Real Word-Level Karaoke:** Timing-accurate `\kf` karaoke tags powered by genuine word timing from STEP 20.
+     - **Live React Subtitle Preview:** Instant dynamic styling updates on the video overlay adhering to canonical styles with live karaoke word highlighting.
+     - **Production FFmpeg Burn-In Video Pipeline:** Real video burn-in re-encoding via system FFmpeg with libass filter integration (`ass=` filter), structured non-shell arguments, resolution options, CRF quality presets, and audio policy handling.
+     - **Multi-Stage Output Validation:** ffprobe-based container, stream, and frame decode verification ensuring captions are visibly burned in and not merely accompanied by metadata.
+     - **Safe Staging & Source Immutability:** Rendering executes strictly into app-owned staging directories; finalized export requires native save destination; source media is byte-for-byte immutable (verified via SHA-256).
    - **On-Device Multilingual Translation** *(Planned STEP 22–23)*
    - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
-   - **Multiplexed & Burn-In Video Export** *(Planned STEP 21 & 30)*
+   - **Multiplexed Soft Subtitle Export** *(Planned STEP 30)*
 
 3. **Shared Local AI Model Manager** *(Infrastructure Foundation — STEP 18 Implemented)*
    - **Unified Workspace Model Repository:** Shared local model cache (`~/.local/share/open-media-workbench/ai-models`) serving both Localization Studio and future AI Shorts Studio without duplicating multi-gigabyte files.

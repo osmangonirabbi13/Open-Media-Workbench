@@ -25,6 +25,7 @@ pub fn run() {
         .manage(commands::PlaybackState::default())
         .manage(commands::WaveformState::default())
         .manage(commands::RepairDiagnosticsState::default())
+        .manage(commands::StylingState::default())
         .manage(ai_state)
         .manage(transcription_state)
         .register_uri_scheme_protocol("opentake-media", |app, req| {
@@ -97,6 +98,15 @@ pub fn run() {
             commands::alignment::refine_subtitle_cues,
             commands::alignment::update_word_timing_in_subtitle_cue,
             commands::alignment::apply_smart_segmented_subtitles,
+            commands::styling::get_subtitle_style_presets,
+            commands::styling::save_custom_subtitle_style_preset,
+            commands::styling::delete_custom_subtitle_style_preset,
+            commands::styling::get_system_fonts,
+            commands::styling::generate_ass_script_preview,
+            commands::styling::start_subtitle_burn_in_export,
+            commands::styling::get_subtitle_burn_in_status,
+            commands::styling::cancel_subtitle_burn_in_export,
+            commands::styling::finalize_burn_in_export,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

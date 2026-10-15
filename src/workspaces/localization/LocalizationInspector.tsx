@@ -24,8 +24,12 @@ import { TranscriptionPanel } from "./TranscriptionPanel";
 import { ModelManagerView } from "../../components/ai/ModelManagerView";
 import type { AlignmentResult } from "../../types/alignment";
 import { WordAlignmentPanel } from "./WordAlignmentPanel";
+import { SubtitleStylingPanel } from "./SubtitleStylingPanel";
+import { SubtitleBurnInPanel } from "./SubtitleBurnInPanel";
+import type { SubtitleStyle } from "../../types/styling";
+import { DEFAULT_SUBTITLE_STYLE } from "../../lib/styling";
 
-export type LocalizationTab = "subtitles" | "transcription" | "alignment" | "translation" | "dubbing" | "export";
+export type LocalizationTab = "subtitles" | "transcription" | "alignment" | "styling" | "translation" | "dubbing" | "export";
 
 export interface LocalizationInspectorProps {
   asset: MediaAsset | null;
@@ -50,6 +54,8 @@ export interface LocalizationInspectorProps {
   onToggleKaraoke?: () => void;
   showWordMarkers?: boolean;
   onToggleWordMarkers?: () => void;
+  currentStyle?: SubtitleStyle;
+  onStyleChange?: (style: SubtitleStyle) => void;
 }
 
 export function LocalizationInspector({
@@ -75,6 +81,8 @@ export function LocalizationInspector({
   onToggleKaraoke,
   showWordMarkers = true,
   onToggleWordMarkers,
+  currentStyle = DEFAULT_SUBTITLE_STYLE,
+  onStyleChange,
 }: LocalizationInspectorProps): React.ReactElement {
 
   const [internalTab, setInternalTab] = useState<LocalizationTab>("subtitles");
@@ -163,6 +171,23 @@ export function LocalizationInspector({
         >
           <SparklesIcon size={13} className={activeTab === "alignment" ? "text-indigo-400" : ""} />
           <span>Align</span>
+        </button>
+
+        <button
+          role="tab"
+          id="loc-tab-styling"
+          aria-selected={activeTab === "styling"}
+          aria-controls="loc-panel-styling"
+          tabIndex={activeTab === "styling" ? 0 : -1}
+          onClick={() => handleTabClick("styling")}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 ${
+            activeTab === "styling"
+              ? "bg-zinc-800 text-zinc-100 shadow-xs"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+          }`}
+        >
+          <SparklesIcon size={13} className={activeTab === "styling" ? "text-amber-400" : ""} />
+          <span>Style</span>
         </button>
 
         <button
@@ -282,6 +307,17 @@ export function LocalizationInspector({
               showWordMarkers={showWordMarkers}
               onToggleWordMarkers={onToggleWordMarkers || (() => {})}
               currentTimeUs={Math.round(currentTime * 1_000_000)}
+            />
+          </div>
+        )}
+
+        {/* STYLING PANEL (STEP 21) */}
+        {activeTab === "styling" && (
+          <div id="loc-panel-styling" role="tabpanel" aria-labelledby="loc-tab-styling" className="p-4 overflow-y-auto">
+            <SubtitleStylingPanel
+              currentStyle={currentStyle}
+              onStyleChange={onStyleChange || (() => {})}
+              onNavigateToExport={() => handleTabClick("export")}
             />
           </div>
         )}
@@ -459,14 +495,18 @@ export function LocalizationInspector({
               )}
             </div>
 
-            {/* Future Export Capabilities Notice */}
+            {/* Subtitle Burn-In Video Export Section (STEP 21 Active) */}
+            <SubtitleBurnInPanel
+              asset={asset}
+              activeTrack={activeTrack}
+              currentStyle={currentStyle}
+              onNavigateToStyling={() => handleTabClick("styling")}
+            />
+
+            {/* Future Audio Muxing Capability Notice */}
             <div className="p-3.5 rounded-lg border border-zinc-800/80 bg-zinc-900/30 space-y-2.5">
-              <div className="text-xs font-semibold text-zinc-400">Advanced Video Muxing (Scheduled)</div>
+              <div className="text-xs font-semibold text-zinc-400">Advanced Audio Muxing (Scheduled)</div>
               <div className="space-y-2 opacity-60">
-                <label className="flex items-center space-x-2 text-xs text-zinc-400 cursor-not-allowed">
-                  <input type="checkbox" disabled className="rounded bg-zinc-800 border-zinc-700" />
-                  <span>Burn-in Subtitles onto Video (Scheduled STEP 21)</span>
-                </label>
                 <label className="flex items-center space-x-2 text-xs text-zinc-400 cursor-not-allowed">
                   <input type="checkbox" disabled className="rounded bg-zinc-800 border-zinc-700" />
                   <span>Multiplex Dubbed Audio Stream (Scheduled STEP 30)</span>

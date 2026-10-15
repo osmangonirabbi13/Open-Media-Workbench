@@ -136,3 +136,20 @@ The Subtitle Editor directly integrates with the offline Whisper transcription e
 - Hovering or inspecting word boundaries reveals word text and timing.
 - The markers can be toggled on/off via `showWordMarkers`.
 - Rendering is memory-efficient with no per-frame recomputation; coordinates are derived directly from the linear viewport transform.
+
+---
+
+## 9. Subtitle Styling & Burn-In Export Integration (STEP 21)
+
+### 9.1 Professional Styling Panel & Overlay Customization
+- The Localization Studio inspector features a dedicated **Styling** tab hosting `SubtitleStylingPanel`.
+- Users can choose from 8 built-in professional style presets (Clean Minimal, Cinematic, Modern Outline, Social Bold, Karaoke Highlight, Documentary, Accessible High Contrast, Soft Background Box) or create and persist custom presets.
+- Typography (font family with system font detection, font size, weight, italic), colors (text, outline, shadow, background box, karaoke word highlight), outline thickness, shadow offset, background opacity, and frame positioning are customizable in real-time.
+- The `SubtitleOverlay` in `PreviewPanel` directly binds to the active `SubtitleStyle`, dynamically adjusting CSS typography, text-shadow offsets, container positioning, and background opacity with zero player teardown.
+
+### 9.2 Burn-In Video Export
+- The **Export** tab hosts `SubtitleBurnInPanel`, giving creators end-to-end video burn-in capabilities.
+- Select source video, subtitle track, and styling preset.
+- Choose export resolution (Original, 1080p, 720p, Custom), CRF visual quality, and audio stream handling (`copy` or re-encode to `aac`).
+- Executes genuine FFmpeg re-encoding via `ass` filter and `libass` with real progress updates, cooperative cancellation, ffprobe post-validation, and safe staging to avoid corrupting source media.
+

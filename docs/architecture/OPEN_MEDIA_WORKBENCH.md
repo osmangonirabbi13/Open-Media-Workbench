@@ -273,8 +273,8 @@ Each workspace is defined declaratively (`WORKSPACE_DEFINITIONS`) with its label
 | **Interactive Subtitle Editor (CRUD & EDL)** | Localization | **Available** | STEP 16–17 (Verified) |
 | **Shared AI Model Manager** | Shared | **Available** | STEP 18 (Verified) |
 | **Local Offline Whisper Transcription** | Localization | **Available** | STEP 19 (Verified) |
-| **Word-Level Subtitle Alignment** | Localization | *Planned* | STEP 20 |
-| **Subtitle Burn-In Video Export** | Localization | *Planned* | STEP 21 |
+| **Word-Level Subtitle Alignment** | Localization | **Available** | STEP 20 (Verified) |
+| **Subtitle Burn-In Video Export** | Localization | **Available** | STEP 21 (Verified) |
 | **Local Neural Machine Translation** | Localization | *Planned* | STEP 22–23 |
 | **Neural Speech Synthesis (Dubbing)** | Localization | *Planned* | STEP 24–28 |
 | **Subtitle & Dubbed Multiplex Export** | Localization | *Planned* | STEP 29–31 |

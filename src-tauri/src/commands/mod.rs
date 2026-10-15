@@ -5,6 +5,7 @@ pub mod media_engine;
 pub mod media_import;
 pub mod playback;
 pub mod repair;
+pub mod styling;
 pub mod subtitles;
 pub mod transcription;
 pub mod waveform;
@@ -52,6 +53,13 @@ pub use transcription::{
     apply_transcription_result_to_subtitles, cancel_offline_transcription,
     get_offline_transcription_result, get_offline_transcription_status,
     get_whisper_runtime_capabilities, select_whisper_runtime, TranscriptionState,
+};
+
+pub use styling::{
+    cancel_subtitle_burn_in_export, delete_custom_subtitle_style_preset, finalize_burn_in_export,
+    generate_ass_script_preview, get_subtitle_burn_in_status, get_subtitle_style_presets,
+    get_system_fonts, save_custom_subtitle_style_preset, start_subtitle_burn_in_export,
+    StylingState,
 };
 
 pub use waveform::{
