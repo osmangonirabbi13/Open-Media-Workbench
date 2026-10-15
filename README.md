@@ -2,8 +2,7 @@
 
 > **Free, open-source, offline-first desktop media recovery and AI localization studio.**
 
-[![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](docs/decisions/ADR-0001.md)
-[![Status](https://img.shields.io/badge/Status-STEP%2018%20Shared%20AI%20Model%20Manager%20Complete-success.svg)](docs/reports/STEP_18_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-STEP%2019%20Offline%20Whisper%20Transcription%20Complete-success.svg)](docs/reports/STEP_19_REPORT.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Dual%20Workspace-indigo.svg)](docs/architecture/OPEN_MEDIA_WORKBENCH.md)
 
 
@@ -69,7 +68,14 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Multi-Cue Batch Editing:** Ctrl/Cmd-click and Shift-click range selection, batch nudge timing shifts with atomic negative-time rejection, and batch deletion.
      - **Multi-Level Undo/Redo:** 50-step deterministic history stack with `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`, and `Ctrl/Cmd+Y` shortcuts, designed to never intercept native text input undo events.
      - **Autosave & Crash Recovery:** Dirty state tracking with debounced snapshots and automatic recovery prompts on launch protecting against abrupt crashes or power loss.
-   - **Local, Offline AI Speech-to-Text (Whisper)** *(Planned STEP 19)*
+   - **Offline Whisper Transcription Engine (STEP 19 Implemented):**
+     - **Genuine Local Speech-to-Text:** Real on-device transcription utilizing official `whisper.cpp` inference backends through secure managed subprocess isolation. Zero cloud APIs, paid speech recognition tokens, telemetry, or mandatory accounts.
+     - **Shared AI Model Integration:** Reuses installed GGML models (`whisper-tiny`, `whisper-base`) directly from the shared STEP 18 AI Model Manager repository. Zero redundant model downloads.
+     - **Audio Preprocessing Pipeline:** Secure non-shell FFmpeg transformation staging 16 kHz mono signed 16-bit PCM WAV with automatic cleanup and cooperative cancellation.
+     - **Multilingual & English Model Discrimination:** Supports automatic language detection, English, Bengali (বাংলা), and 90+ Whisper languages on multilingual models; automatically disallows non-English transcription on English-only (`.en`) models.
+     - **Canonical Subtitle Integration:** Parses structured runtime outputs into validated microsecond `SubtitleCue` segments, with non-destructive track addition to existing `.omwsub` project documents.
+     - **Measured On-Device Speed:** Measured 770ms execution on CPU for 11-second audio test fixture (~14x realtime speed with Whisper Tiny).
+     - **Known Limitations:** Segment-level timing only; word-level alignment is scheduled for STEP 20. Machine translation is scheduled for STEP 22–23.
    - **On-Device Multilingual Translation** *(Planned STEP 22–23)*
    - **Synchronized Neural Speech Synthesis (Dubbing)** *(Planned STEP 24–28)*
    - **Multiplexed & Burn-In Video Export** *(Planned STEP 21 & 30)*
@@ -113,8 +119,8 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
 ## ⚡ Current Project Status
 
 > [!IMPORTANT]
-> **Project State: STEP 17 Completed (Professional Visual Subtitle Editor: Timing, Split/Merge, Waveform Alignment & Undo/Redo)**
-> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), recovery review/reporting pipeline (STEP 15), subtitle foundation (STEP 16), and professional subtitle editor (STEP 17) are fully implemented and verified with **225 automated Rust tests** and **57 TypeScript unit tests**. Next milestone: **STEP 18**.
+> **Project State: STEP 19 Completed (Offline Whisper Transcription Engine: Real Local Speech-to-Text & Automatic Subtitle Generation)**
+> The dual-workspace desktop UI (STEP 11), corruption diagnostics engine (STEP 12), safe remux/salvage pipeline (STEP 13), reference-based reconstruction engine (STEP 14), recovery review/reporting pipeline (STEP 15), subtitle foundation (STEP 16), professional subtitle editor (STEP 17), shared AI model manager (STEP 18), and offline Whisper transcription engine (STEP 19) are fully implemented and verified with **260 automated Rust tests** and **71 TypeScript unit tests**. Next milestone: **STEP 20**.
 
 
 - **Target Release:** v0.1.0 Beta

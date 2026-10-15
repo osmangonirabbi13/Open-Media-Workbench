@@ -15,6 +15,7 @@ pub mod hardware;
 pub mod models;
 pub mod runtime;
 pub mod storage;
+pub mod transcription;
 pub mod verification;
 
 use std::collections::HashMap;
@@ -28,6 +29,21 @@ pub use hardware::detect_hardware;
 pub use models::*;
 pub use runtime::{evaluate_model_compatibility, AiModelCompatibility, AiRuntime};
 pub use storage::AiStorageManager;
+pub use transcription::{
+    audio::extract_audio_for_whisper,
+    errors::TranscriptionError,
+    models::{
+        get_supported_whisper_languages, TranscriptionLanguage, TranscriptionProgressStage,
+        TranscriptionRequest, TranscriptionResult, TranscriptionSegment, TranscriptionStatus,
+        WhisperRuntimeCapabilities, TRANSCRIPTION_RESULT_SCHEMA_VERSION,
+    },
+    subtitle_conversion::{append_track_to_document, convert_transcription_result_to_track},
+    whisper::{
+        discover_whisper_runtime, parse_whisper_json_output, MockWhisperEngine,
+        SystemWhisperCliEngine, WhisperEngine,
+    },
+    TranscriptionManager,
+};
 pub use verification::{compute_file_sha256, verify_file_integrity};
 
 /// Type alias for thread-safe active download tracking map.

@@ -108,3 +108,13 @@ When snapping occurs, an amber indicator vertical guide line is rendered with a 
 - **Multiple Overlapping Cues:** In standard film and broadcast subtitling, dual speakers frequently overlap for several hundred milliseconds. Rather than discarding or hiding overlapping cues, the partition point lookup algorithm returns all concurrently active cues.
 - **Stacking Overlay:** `SubtitleOverlay` renders all concurrently active cues stacked vertically with semi-transparent dark backgrounds and text shadows.
 - **Zero XSS:** Subtitle text is rendered strictly as plain React children (no `dangerouslySetInnerHTML`).
+
+---
+
+## 7. Automatic Subtitle Ingestion from Whisper Transcription (STEP 19)
+
+The Subtitle Editor directly integrates with the offline Whisper transcription engine:
+- **Direct Entry Point:** The Subtitle Track Manager toolbar features a "Transcribe" button that navigates directly to the dedicated AI Transcription panel.
+- **Preview Before Ingestion:** Recognition results (detected language, duration, and cue preview) are displayed for user confirmation before adding to the document.
+- **Non-Destructive Ingestion:** New tracks are appended with source format `nativeProject`, unique cue identifiers, and language tags without overwriting existing tracks.
+- **Full Editor Interactivity:** Generated cues immediately populate the visual timeline track, audio waveform canvas, and cue inspector with split/merge, snapping, timecode nudging, undo/redo, and SRT/VTT export capabilities.

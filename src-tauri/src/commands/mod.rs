@@ -5,6 +5,7 @@ pub mod media_import;
 pub mod playback;
 pub mod repair;
 pub mod subtitles;
+pub mod transcription;
 pub mod waveform;
 
 pub use ai::{
@@ -39,6 +40,12 @@ pub use subtitles::{
     parse_subtitle_content, pick_and_import_subtitle_file, save_subtitle_project,
     validate_subtitle_document_command, SubtitleExportResponse, SubtitleImportResponse,
     SubtitleOperationResponse, SubtitleProjectOpenResponse, SubtitleProjectSaveResponse,
+};
+
+pub use transcription::{
+    apply_transcription_result_to_subtitles, cancel_offline_transcription,
+    get_offline_transcription_result, get_offline_transcription_status,
+    get_whisper_runtime_capabilities, select_whisper_runtime, TranscriptionState,
 };
 
 pub use waveform::{

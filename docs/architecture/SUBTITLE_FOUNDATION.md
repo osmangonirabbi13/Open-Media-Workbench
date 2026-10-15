@@ -160,3 +160,12 @@ The foundations laid in STEP 16 are extended into a full interactive timeline ed
 - Snapping algorithms and visual alignment
 - Multi-level history and crash recovery architecture
 
+---
+
+## 8. AI Transcription Integration (STEP 19)
+
+Offline Whisper speech recognition outputs convert directly into canonical `SubtitleTrack` objects:
+- **Canonical Microsecond Mapping:** Whisper millisecond offsets and timestamps (`HH:MM:SS.mmm`) map deterministically into integer `MediaTimeUs` values.
+- **Non-Destructive Track Addition:** Generated subtitle tracks append to the active `SubtitleDocument` as a new track (`append_track_to_document`), preserving all existing manual tracks and user edits.
+- **Immediate Editing and Export:** Generated cues are instantly editable using the STEP 17 visual editor, subject to the same validation rules, and exportable to compliant `.srt` and `.vtt` formats.
+

@@ -20,8 +20,10 @@ import {
 import { Button } from "../../components/ui/Button";
 import { SubtitleTrackManager } from "./SubtitleTrackManager";
 import { exportSubtitleTrack } from "../../lib/subtitles";
+import { TranscriptionPanel } from "./TranscriptionPanel";
+import { ModelManagerView } from "../../components/ai/ModelManagerView";
 
-export type LocalizationTab = "subtitles" | "translation" | "dubbing" | "export";
+export type LocalizationTab = "subtitles" | "transcription" | "translation" | "dubbing" | "export";
 
 export interface LocalizationInspectorProps {
   asset: MediaAsset | null;
@@ -65,6 +67,7 @@ export function LocalizationInspector({
 
   const [internalTab, setInternalTab] = useState<LocalizationTab>("subtitles");
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
+  const [showModelManager, setShowModelManager] = useState(false);
 
   const [exportFormat, setExportFormat] = useState<SubtitleFormat>("srt");
   const [exportFeedback, setExportFeedback] = useState<string | null>(null);
@@ -114,6 +117,23 @@ export function LocalizationInspector({
         >
           <SubtitlesIcon size={13} className={activeTab === "subtitles" ? "text-indigo-400" : ""} />
           <span>Subtitles</span>
+        </button>
+
+        <button
+          role="tab"
+          id="loc-tab-transcription"
+          aria-selected={activeTab === "transcription"}
+          aria-controls="loc-panel-transcription"
+          tabIndex={activeTab === "transcription" ? 0 : -1}
+          onClick={() => handleTabClick("transcription")}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 ${
+            activeTab === "transcription"
+              ? "bg-zinc-800 text-zinc-100 shadow-xs"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+          }`}
+        >
+          <MicIcon size={13} className={activeTab === "transcription" ? "text-indigo-400" : ""} />
+          <span>Transcribe</span>
         </button>
 
         <button
@@ -189,8 +209,27 @@ export function LocalizationInspector({
               onActiveTrackChange={onActiveTrackChange}
               onToggleTrackVisibility={onToggleTrackVisibility}
               onSeek={onSeek}
+              onOpenTranscription={() => handleTabClick("transcription")}
             />
+          </div>
+        )}
 
+        {/* TRANSCRIPTION PANEL */}
+        {activeTab === "transcription" && (
+          <div id="loc-panel-transcription" role="tabpanel" aria-labelledby="loc-tab-transcription" className="h-full flex flex-col">
+            <TranscriptionPanel
+              asset={asset}
+              document={document}
+              onDocumentChange={(newDoc) => {
+                onDocumentChange(newDoc);
+                if (newDoc.activeTrackId) {
+                  onActiveTrackChange(newDoc.activeTrackId);
+                }
+                handleTabClick("subtitles");
+              }}
+              onOpenModelManager={() => setShowModelManager(true)}
+              onClose={() => handleTabClick("subtitles")}
+            />
           </div>
         )}
 
@@ -384,6 +423,25 @@ export function LocalizationInspector({
           </div>
         )}
       </div>
+
+      {showModelManager && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-950/50">
+              <span className="text-sm font-semibold text-zinc-200">AI Model Manager</span>
+              <button
+                onClick={() => setShowModelManager(false)}
+                className="text-zinc-400 hover:text-zinc-200 text-xs px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700"
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <ModelManagerView />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

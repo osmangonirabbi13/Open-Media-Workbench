@@ -16,13 +16,17 @@ pub use commands::{
 /// Desktop application entry point.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let ai_state = commands::AiState::default();
+    let transcription_state = commands::TranscriptionState::new(ai_state.manager.storage().clone());
+
     tauri::Builder::default()
         .manage(commands::MediaEngineState::default())
         .manage(commands::MediaLibraryState::default())
         .manage(commands::PlaybackState::default())
         .manage(commands::WaveformState::default())
         .manage(commands::RepairDiagnosticsState::default())
-        .manage(commands::AiState::default())
+        .manage(ai_state)
+        .manage(transcription_state)
         .register_uri_scheme_protocol("opentake-media", |app, req| {
             protocol::media::handle_media_protocol(app, req)
         })
@@ -81,6 +85,13 @@ pub fn run() {
             commands::subtitles::open_subtitle_project,
             commands::subtitles::validate_subtitle_document_command,
             commands::subtitles::apply_subtitle_operation_command,
+            commands::transcription::get_whisper_runtime_capabilities,
+            commands::transcription::select_whisper_runtime,
+            commands::transcription::start_offline_transcription,
+            commands::transcription::get_offline_transcription_status,
+            commands::transcription::cancel_offline_transcription,
+            commands::transcription::get_offline_transcription_result,
+            commands::transcription::apply_transcription_result_to_subtitles,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

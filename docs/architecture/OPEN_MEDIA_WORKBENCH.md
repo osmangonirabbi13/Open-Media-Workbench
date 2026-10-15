@@ -258,12 +258,15 @@ Each workspace is defined declaratively (`WORKSPACE_DEFINITIONS`) with its label
 | **Multi-LOD Waveform Pipeline** | Shared | **Available** | STEP 8 (Verified) |
 | **Canonical Non-Destructive EDL** | Shared | **Available** | STEP 9 (Verified) |
 | **Dual-Workspace Shell & Switcher** | Shared | **Available** | STEP 11 (Verified) |
-| **Container & Atom Diagnostics** | Repair | *Planned* | STEP 12 |
-| **MOOV Atom Reconstruction (Untrunc)** | Repair | *Planned* | STEP 13 |
-| **Bitstream Demux & Stream Salvage** | Repair | *Planned* | STEP 14 |
-| **A/B Repair Preview Validation** | Repair | *Planned* | STEP 15 |
-| **Interactive Subtitle Editor (CRUD)** | Localization | *Planned* | STEP 16–17 |
-| **Local Offline Whisper Transcription** | Localization | *Planned* | STEP 18–21 |
+| **Container & Atom Diagnostics** | Repair | **Available** | STEP 12 (Verified) |
+| **Lossless Video Recovery & Stream Salvage** | Repair | **Available** | STEP 13 (Verified) |
+| **Reference-Based Reconstruction Engine** | Repair | **Available** | STEP 14 (Verified) |
+| **A/B Repair Preview & Multi-Tier Validation** | Repair | **Available** | STEP 15 (Verified) |
+| **Interactive Subtitle Editor (CRUD & EDL)** | Localization | **Available** | STEP 16–17 (Verified) |
+| **Shared AI Model Manager** | Shared | **Available** | STEP 18 (Verified) |
+| **Local Offline Whisper Transcription** | Localization | **Available** | STEP 19 (Verified) |
+| **Word-Level Subtitle Alignment** | Localization | *Planned* | STEP 20 |
+| **Subtitle Burn-In Video Export** | Localization | *Planned* | STEP 21 |
 | **Local Neural Machine Translation** | Localization | *Planned* | STEP 22–23 |
 | **Neural Speech Synthesis (Dubbing)** | Localization | *Planned* | STEP 24–28 |
 | **Subtitle & Dubbed Multiplex Export** | Localization | *Planned* | STEP 29–31 |

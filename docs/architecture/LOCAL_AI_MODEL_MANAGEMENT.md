@@ -172,3 +172,13 @@ Nine narrowly-scoped Tauri commands expose model management to the frontend with
 - **No Automatic Downloads:** No background network requests on application startup.
 - **Verified Metadata Only:** Install buttons are enabled strictly for verified, pinned models with known SHA-256 checksums.
 - **Uncompromised Core Workspaces:** Repair Studio and Subtitle Editor remain 100% operational with or without downloaded models.
+
+---
+
+## 9. Consumer Integration: STEP 19 Offline Whisper Transcription
+
+The shared Model Manager is actively consumed by the STEP 19 Whisper transcription engine:
+- **Zero Redundant Storage:** `whisper-tiny` and `whisper-base` installed via the Model Manager are shared directly by Localization Studio.
+- **Pre-Flight Capability Verification:** Multilingual vs English-only flags in catalog manifests are strictly enforced. English-only models (`.en`) reject non-English or Auto-Detect requests before launching inference.
+- **In-Use Concurrency Locking:** `storage.acquire_lock(model_id)` is acquired at the start of transcription and released upon job completion, cancellation, or failure. Attempts to delete an active model while transcription runs are rejected with `AiError::ModelInUse`.
+- **Integrity Validation:** Model files are verified on disk using stored SHA-256 digests prior to invoking the `whisper.cpp` inference runtime.

@@ -18,6 +18,7 @@ import {
   UndoIcon,
   RedoIcon,
   CpuIcon,
+  MicIcon,
 } from "../../components/ui/Icons";
 import { Button } from "../../components/ui/Button";
 import {
@@ -50,6 +51,7 @@ export interface SubtitleTrackManagerProps {
   onActiveTrackChange: (trackId: string) => void;
   onToggleTrackVisibility: (trackId: string) => void;
   onSeek: (seconds: number) => void;
+  onOpenTranscription?: () => void;
 }
 
 export function SubtitleTrackManager({
@@ -68,6 +70,7 @@ export function SubtitleTrackManager({
   onActiveTrackChange,
   onToggleTrackVisibility,
   onSeek,
+  onOpenTranscription,
 }: SubtitleTrackManagerProps): React.ReactElement {
   const [isLoading, setIsLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -312,6 +315,18 @@ export function SubtitleTrackManager({
               <CpuIcon size={12} className="mr-1 text-indigo-400" />
               AI Models
             </Button>
+            {onOpenTranscription && (
+              <Button
+                size="xs"
+                variant="secondary"
+                onClick={onOpenTranscription}
+                title="AI Speech-to-Text Transcription (Whisper)"
+                className="text-indigo-300 hover:text-indigo-200 border-indigo-800/60 bg-indigo-950/40"
+              >
+                <MicIcon size={12} className="mr-1 text-indigo-400" />
+                Transcribe
+              </Button>
+            )}
           </div>
         </div>
 
