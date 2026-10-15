@@ -20,6 +20,7 @@ pub mod transcription;
 pub mod translation;
 pub mod tts;
 pub mod verification;
+pub mod voices;
 
 use std::collections::HashMap;
 use std::path::PathBuf;

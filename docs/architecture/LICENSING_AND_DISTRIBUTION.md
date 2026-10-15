@@ -148,7 +148,10 @@ Because `--enable-gpl` and `--enable-libx264` are activated, the effective licen
 | **Untrunc / Atom Reconstructor** | Integrated (Step 14) | Safe Rust Native (`GPL-3.0+`) / Untrunc Subprocess (`GPL-2.0+`) | Primary native safe Rust implementation in core; optional external CLI adapter |
 | **Shared AI Model Manager** | Integrated (Step 18) | GPL-3.0-or-later (Rust Core) | Zero bundled weights; explicit consent & SHA-256 verification |
 | **Whisper Models (Tiny/Base)** | Verified Catalog (Step 18) | MIT License (Weights & Code) | Explicit opt-in download; zero bundling |
-| **Piper TTS Models (Lessac)** | Integrated (Step 24) | Public Domain (Dataset & Weights) | Strict voice-model license filter allowlist |
+| **Piper TTS Models (Lessac)** | Integrated (Step 24/25) | Public Domain (Dataset & Weights) | Strict voice-model license filter allowlist |
+| **Piper TTS Models (LibriTTS)** | Verified Catalog (Step 25) | CC-BY-4.0 | Requires attribution notice |
+| **Piper TTS Models (Sharvard)** | Verified Catalog (Step 25) | Open Software License / Permissive | Verified permissive license |
+| **Piper TTS Models (Ibrahim)** | Verified Catalog (Step 25) | Open Software License / Permissive | Verified permissive license |
 | **Qwen 2.5 Text Models** | Verified Catalog (Step 18/22) | Apache-2.0 License (Weights) | Explicit opt-in download; zero bundling |
 | **Translation Engine (llama.cpp)** | Integrated (Step 22) | MIT License (Runtime CLI) | Local execution; zero cloud APIs |
 | **Translation Engine (Opus-MT)** | Catalog-Only (Step 18) | CC-BY-4.0 | Installation disabled pending Marian runtime integration |

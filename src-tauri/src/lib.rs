@@ -1,6 +1,8 @@
 pub mod commands;
 pub mod protocol;
 
+use std::sync::Arc;
+
 pub use commands::{
     cancel_media_diagnostics, cancel_media_recovery, cancel_preview_proxy,
     cancel_waveform_analysis, clear_media_library, export_diagnostic_report,
@@ -30,6 +32,8 @@ pub fn run() {
         Some(translation_review_state.storage.clone()),
     );
     let tts_state = commands::TtsState::new(ai_state.manager.storage().clone());
+    let voice_library_state =
+        commands::VoiceLibraryState::default_local(Arc::new(ai_state.manager.storage().clone()));
 
     tauri::Builder::default()
         .manage(commands::MediaEngineState::default())
@@ -43,6 +47,7 @@ pub fn run() {
         .manage(translation_state)
         .manage(translation_review_state)
         .manage(tts_state)
+        .manage(voice_library_state)
         .register_uri_scheme_protocol("opentake-media", |app, req| {
             protocol::media::handle_media_protocol(app, req)
         })
@@ -152,6 +157,19 @@ pub fn run() {
             commands::tts::cancel_offline_tts,
             commands::tts::get_offline_tts_result,
             commands::tts::export_tts_audio,
+            commands::voices::list_voice_library,
+            commands::voices::get_voice_details,
+            commands::voices::get_voice_compatibility,
+            commands::voices::start_voice_preview,
+            commands::voices::compare_voices,
+            commands::voices::get_voice_preferences,
+            commands::voices::toggle_voice_favorite,
+            commands::voices::set_preferred_voice,
+            commands::voices::clear_voice_preview_cache,
+            commands::voices::assign_voice_to_track_command,
+            commands::voices::remove_voice_assignment_command,
+            commands::voices::set_project_default_voice_command,
+            commands::voices::get_project_voice_assignments_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenTake desktop application");

@@ -230,3 +230,13 @@ See [OFFLINE_TTS_ENGINE.md](OFFLINE_TTS_ENGINE.md) for full details on:
 - Real timing discrepancy measurement: calculates signed `timing_difference_us = (duration_us as i64) - (cue_duration_us as i64)` without silent time-stretching or truncation.
 - Strict non-destructive behavior: source subtitle tracks and cues are immutable and never modified by TTS synthesis.
 - Audio preview and WAV export for downstream dubbing pipelines (STEPS 26–28).
+
+---
+
+## 14. Project Voice Assignments & Multi-Speaker Variants (STEP 25)
+
+See [AI_VOICE_LIBRARY.md](AI_VOICE_LIBRARY.md) for full details on:
+- Track-level voice assignments and project default voices persisted within `SubtitleDocument.metadata["voiceAssignments"]`.
+- Multi-speaker variant selection persisted per track assignment.
+- Absolute cue immutability: assigning voices alters zero subtitle cues or timestamps.
+- Forward compatibility: establishes clear assignment contracts for STEP 26 timeline construction.

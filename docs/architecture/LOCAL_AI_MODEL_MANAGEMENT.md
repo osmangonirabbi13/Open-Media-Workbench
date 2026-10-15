@@ -193,3 +193,12 @@ The shared Model Manager powers the offline subtitle translation pipeline implem
 - **Concurrency & Lock Safety:** Translation calls `storage.acquire_lock("qwen2.5-0.5b-instruct")` prior to invoking `llama.cpp` and guarantees release via RAII/deferred execution across all terminal paths (completion, error, cancellation).
 - **Zero Redundant Storage:** Translation references the existing `~/.local/share/opentake/models` directory, avoiding duplicate weight files.
 
+---
+
+## 11. Voice Model Management & Multi-Artifact Verification (STEP 24 & 25)
+
+The shared Model Manager manages neural voice models for Text-to-Speech and the AI Voice Library:
+- **Multi-Artifact Models:** Accommodates paired `.onnx` weight files and `.onnx.json` voice configurations.
+- **Verification Engine (`verify_installed_artifacts`):** Validates all artifacts against their respective SHA-256 digests and expected byte sizes before marking voices ready.
+- **Zero Redundant Downloads:** AI Voice Library browses the trusted catalog and interfaces with the Model Manager rather than executing unconsented or parallel downloads.
+- **Model Locking:** Real previews and comparisons acquire model locks to prevent concurrent removal while synthesis is active.

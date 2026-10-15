@@ -16,6 +16,7 @@ import {
   ShieldCheckIcon,
   DownloadIcon,
   CheckIcon,
+  VolumeIcon,
 } from "../../components/ui/Icons";
 import { Button } from "../../components/ui/Button";
 import { SubtitleTrackManager } from "./SubtitleTrackManager";
@@ -30,6 +31,7 @@ import { TranslationPanel } from "./TranslationPanel";
 import { BilingualReviewPanel } from "./BilingualReviewPanel";
 import { GlossaryManagerPanel } from "./GlossaryManagerPanel";
 import { TextToSpeechPanel } from "./TextToSpeechPanel";
+import { VoiceLibraryPanel } from "./VoiceLibraryPanel";
 import type { SubtitleStyle } from "../../types/styling";
 import { DEFAULT_SUBTITLE_STYLE } from "../../lib/styling";
 
@@ -41,6 +43,7 @@ export type LocalizationTab =
   | "translation"
   | "review"
   | "glossary"
+  | "voices"
   | "dubbing"
   | "export";
 
@@ -284,6 +287,23 @@ export function LocalizationInspector({
 
         <button
           role="tab"
+          id="loc-tab-voices"
+          aria-selected={activeTab === "voices"}
+          aria-controls="loc-panel-voices"
+          tabIndex={activeTab === "voices" ? 0 : -1}
+          onClick={() => handleTabClick("voices")}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 ${
+            activeTab === "voices"
+              ? "bg-zinc-800 text-zinc-100 shadow-xs"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+          }`}
+        >
+          <VolumeIcon size={13} className={activeTab === "voices" ? "text-indigo-400" : ""} />
+          <span>Voices</span>
+        </button>
+
+        <button
+          role="tab"
           id="loc-tab-dubbing"
           aria-selected={activeTab === "dubbing"}
           aria-controls="loc-panel-dubbing"
@@ -432,6 +452,21 @@ export function LocalizationInspector({
           </div>
         )}
 
+        {/* AI VOICE LIBRARY PANEL (STEP 25 Active) */}
+        {activeTab === "voices" && (
+          <div id="loc-panel-voices" role="tabpanel" aria-labelledby="loc-tab-voices" className="h-full overflow-hidden">
+            <VoiceLibraryPanel
+              document={document}
+              activeTrack={activeTrack}
+              onDocumentChange={(newDoc) => onDocumentChange(newDoc)}
+              onOpenModelManager={() => setShowModelManager(true)}
+              onSelectVoiceForTts={(_voiceId) => {
+                handleTabClick("dubbing");
+              }}
+            />
+          </div>
+        )}
+
         {/* SPEECH / TTS PANEL (STEP 24 Active) */}
         {activeTab === "dubbing" && (
           <div id="loc-panel-dubbing" role="tabpanel" aria-labelledby="loc-tab-dubbing" className="h-full overflow-hidden">
@@ -439,6 +474,7 @@ export function LocalizationInspector({
               document={document}
               activeTrack={activeTrack}
               onOpenModelManager={() => setShowModelManager(true)}
+              onOpenVoiceLibrary={() => handleTabClick("voices")}
               onSeek={onSeek}
             />
           </div>

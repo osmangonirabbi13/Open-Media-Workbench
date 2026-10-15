@@ -91,3 +91,12 @@ pub use waveform::{
     cancel_waveform_analysis, get_waveform_segment, get_waveform_status, request_waveform_analysis,
     WaveformSegmentResponse, WaveformState, WaveformStatusInfo, WaveformStatusResponse,
 };
+
+pub mod voices;
+pub use voices::{
+    assign_voice_to_track_command, clear_voice_preview_cache, compare_voices,
+    get_project_voice_assignments_command, get_voice_compatibility, get_voice_details,
+    get_voice_preferences, list_voice_library, remove_voice_assignment_command,
+    set_preferred_voice, set_project_default_voice_command, start_voice_preview,
+    toggle_voice_favorite, VoiceLibraryState,
+};

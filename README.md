@@ -48,7 +48,7 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Persistent Local Recovery History:** Crash-safe, atomic versioned JSON ledger tracking up to 50 previous recovery attempts with status, validation levels, timestamps, and manual history clear action.
      - **Sanitized JSON & Standalone Offline HTML Reports:** User-initiated report export featuring stable machine-readable finding codes, strict Content-Security-Policy, offline embedded dark CSS, XSS escaping, and path privacy sanitization.
 
-2. **Localization Studio** *(Active Development — STEPS 16, 17, 19, 20, 21, 22 & 23 Implemented)*
+2. **Localization Studio** *(Active Development — STEPS 16, 17, 19, 20, 21, 22, 23, 24 & 25 Implemented)*
    - **Canonical Subtitle Domain Model (STEP 16 Implemented):**
      - **Strict Microsecond Timestamps:** Microsecond-accurate integer representation (`MediaTimeUs`), preventing floating-point drift across playback ticks.
      - **Robust SubRip (.srt) Support:** Parsing and serialization supporting UTF-8 BOM, CRLF/LF line endings, multiline cues, and tolerant numbering.
@@ -121,6 +121,16 @@ Open Media Workbench unifies two specialized studio workspaces under a single hi
      - **Integrated Audio Preview & Safe WAV Export:** HTML5 audio player previewing individual segments or full synthesized sequences; atomic no-clobber WAV export with format and silence validation.
      - **Shared AI Model Manager Multi-Artifact Integration:** Extended catalog supporting multi-file voice models (`.onnx` weights + `.onnx.json` config) with strict SHA-256 verification and in-use model locking.
      - **Future Dubbing Foundations:** Generates audio segment contracts preserving cue identifiers, source language, timestamps, and acoustic metadata for future Dubbing Timeline (STEP 26), Duration Alignment (STEP 27), and Audio Mixing (STEP 28).
+   - **Professional Offline AI Voice Library (STEP 25 Implemented):**
+     - **Verified Voice Model Discovery:** Curated catalog of verified offline voice models (`piper-en-lessac-medium`, `piper-en-libritts-high`, `piper-es-sharvard-medium`, `piper-bn-ibrahim-medium`) with display names, model IDs, quality tiers, sizes, and explicit licensing details.
+     - **Search & Standards-Based Filtering:** Search voices by name or model; filter by ISO 639-1 language, BCP 47 locale, and installation status. Languages only appear selectable when a verified voice exists.
+     - **Server-Side Compatibility Engine:** Multi-stage server-side validation evaluating catalog membership, installation state, artifact completeness (`.onnx` + `.onnx.json`), SHA-256 integrity, runtime presence, language support, and speaker ID boundaries.
+     - **Genuine Offline Voice Preview:** Synthesizes authentic 16-bit PCM WAV audio using local Piper inference on CPU without generic sample substitution, fabricated waveforms, or cloud APIs. Features HTML5 audio playback with pause, seek, and accurate audio duration reporting.
+     - **Side-by-Side Voice A/B Comparison:** Side-by-side comparison between two distinct, installed, and ready voices on identical sample text. If only one voice is ready, honestly informs user to install another voice via Model Manager.
+     - **Bounded LRU Preview Cache:** Content-addressed preview cache (`voice_id:model_hash:speaker:settings:text_hash`) bounded to 50 files and 50 MB with automatic LRU eviction, model invalidation, and explicit clear cache action.
+     - **Voice Preferences & Favorites:** Persistent favorites, recents, global preferred default voice, and last selected speaker variant saved atomically in `voice_preferences.json`.
+     - **Track-Level Voice & Speaker Assignments:** Non-destructively binds voices and multi-speaker variants to subtitle tracks and establishes project defaults in `SubtitleDocument.metadata.voiceAssignments` without altering subtitle text or timestamps.
+     - **Text-to-Speech Integration:** Seamless canonical voice synchronization between Voice Library, `LocalizationInspector`, and `TextToSpeechPanel`.
    - **Dubbing Timeline & Audio Synchronization** *(Planned STEP 26)*
    - **Speech Duration Alignment** *(Planned STEP 27)*
    - **Dialogue Mixing & Video Dubbing Export** *(Planned STEP 28)*

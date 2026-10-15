@@ -196,6 +196,11 @@ impl AiStorageManager {
         Ok(registry.installations.get(model_id).cloned())
     }
 
+    /// Convenience check whether a model ID is registered as installed.
+    pub fn is_installed(&self, model_id: &str) -> bool {
+        self.get_installation(model_id).ok().flatten().is_some()
+    }
+
     /// Lists all installed model records.
     pub fn list_installations(&self) -> Result<Vec<AiModelInstallation>, AiError> {
         let registry = self.load_registry()?;

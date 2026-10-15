@@ -109,8 +109,8 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - Crash-safe, atomic versioned JSON history ledger (up to 50 attempts).
   - Standalone offline HTML and machine-readable JSON report export with home directory and staging path privacy sanitization.
 
-### 3.2 Localization Studio (Active Development — STEPS 16–24 Complete)
-**Objective:** End-to-end subtitle generation, interactive visual editing, speech recognition, machine translation, and neural speech dubbing.
+### 3.2 Localization Studio (Active Development — STEPS 16–25 Complete)
+**Objective:** End-to-end subtitle generation, interactive visual editing, speech recognition, machine translation, voice discovery, and neural speech dubbing.
 
 - **Canonical Subtitle Domain Model & Timing (Completed in STEP 16):**
   - **Microsecond Precision:** Cues and tracks represent time exclusively via `MediaTimeUs` ($t \ge 0$), completely eliminating floating-point rounding drifts.
@@ -161,6 +161,16 @@ The foundational work completed across STEPS 1 through 9 remains completely pres
   - **Script & Subtitle Sources:** Direct plain-text script synthesis with grapheme/Unicode-safe sentence chunking, or subtitle track synthesis generating per-cue speech segments.
   - **Timing Discrepancy Reporting:** Explicitly calculates `timing_difference_us` between measured audio duration and subtitle cue display duration. Never stretches or truncates speech silently; original subtitle tracks remain immutable.
   - **Audio Preview & WAV Export:** HTML5 audio playback preview of segments or concatenated sequences; safe atomic WAV file export with format and acoustic non-silence verification.
+- **Professional Offline AI Voice Library (Completed in STEP 25):**
+  - **Curated Offline Voice Catalog:** Verified offline voice models (`piper-en-lessac-medium`, `piper-en-libritts-high`, `piper-es-sharvard-medium`, `piper-bn-ibrahim-medium`) with display names, model IDs, quality tiers, sizes, and explicit licensing details.
+  - **Search & Standards-Based Filtering:** Search voices by name or model; filter by ISO 639-1 language, BCP 47 locale, and installation status. Languages only appear selectable when a verified voice exists.
+  - **Server-Side Compatibility Engine:** Multi-stage server-side validation evaluating catalog membership, installation state, artifact completeness (`.onnx` + `.onnx.json`), SHA-256 integrity, runtime presence, language support, and speaker ID boundaries.
+  - **Genuine Offline Voice Preview:** Synthesizes authentic 16-bit PCM WAV audio using local Piper inference on CPU without generic sample substitution, fabricated waveforms, or cloud APIs. Features HTML5 audio playback with pause, seek, and accurate audio duration reporting.
+  - **Side-by-Side Voice A/B Comparison:** Side-by-side comparison between two distinct, installed, and ready voices on identical sample text. If only one voice is ready, honestly informs user to install another voice via Model Manager.
+  - **Bounded LRU Preview Cache:** Content-addressed preview cache (`voice_id:model_hash:speaker:settings:text_hash`) bounded to 50 files and 50 MB with automatic LRU eviction, model invalidation, and explicit clear cache action.
+  - **Voice Preferences & Favorites:** Persistent favorites, recents, global preferred default voice, and last selected speaker variant saved atomically in `voice_preferences.json`.
+  - **Track-Level Voice & Speaker Assignments:** Non-destructively binds voices and multi-speaker variants to subtitle tracks and establishes project defaults in `SubtitleDocument.metadata.voiceAssignments` without altering subtitle text or timestamps.
+  - **Text-to-Speech Integration:** Seamless canonical voice synchronization between Voice Library, `LocalizationInspector`, and `TextToSpeechPanel`.
 - **Dubbing Timeline & Audio Synchronization (Planned STEP 26)**
 - **Speech Duration Alignment (Planned STEP 27)**
 - **Dialogue Mixing & Video Dubbing Export (Planned STEP 28)**

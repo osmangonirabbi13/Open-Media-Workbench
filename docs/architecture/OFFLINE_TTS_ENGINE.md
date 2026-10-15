@@ -171,3 +171,14 @@ When synthesizing from a `SubtitleTrack`:
 3. **Staging Isolation**: Temporary WAV files reside strictly in `~/.local/share/opentake/staging/tts/<job_id>/`.
 4. **Cancellation**: Process groups are cleanly terminated, resources unlocked, and partial staging cleaned up automatically.
 5. **No Telemetry**: Zero user data collection.
+
+---
+
+## 8. Integration with Offline AI Voice Library (STEP 25)
+
+The TTS engine provides the underlying speech synthesis foundation for the STEP 25 AI Voice Library (`crates/opentake-core/src/ai/voices/`):
+- **Voice Previews**: `VoicePreviewManager` invokes `TtsEngine::synthesize_speech()` to produce genuine offline speech previews for catalog voices.
+- **WAV Validation**: Uses `validate_wav_file` to inspect generated preview audio.
+- **Canonical Voice Identity**: Both `TextToSpeechPanel` and `VoiceLibraryPanel` resolve voices against the canonical catalog, honoring project track assignments and user preferences.
+- **Shared Model Locking**: Previews acquire model locks in `AiStorageManager` during synthesis to prevent concurrent file mutations.
+

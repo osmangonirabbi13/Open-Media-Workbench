@@ -27,10 +27,13 @@ import {
   SparklesIcon,
 } from "../../components/ui/Icons";
 
+import { getProjectVoiceAssignments, getVoicePreferences } from "../../lib/voices";
+
 export interface TextToSpeechPanelProps {
   document: SubtitleDocument | null;
   activeTrack: SubtitleTrack | null;
   onOpenModelManager?: () => void;
+  onOpenVoiceLibrary?: () => void;
   onSeek?: (seconds: number) => void;
 }
 
@@ -38,6 +41,7 @@ export function TextToSpeechPanel({
   document,
   activeTrack,
   onOpenModelManager,
+  onOpenVoiceLibrary,
   onSeek,
 }: TextToSpeechPanelProps): React.ReactElement {
   // Mode: script or subtitle track
@@ -82,13 +86,39 @@ export function TextToSpeechPanel({
   useEffect(() => {
     async function loadData() {
       try {
-        const [caps, vList] = await Promise.all([
+        const [caps, vList, prefs] = await Promise.all([
           getTtsRuntimeCapabilities(),
           listAvailableTtsVoices(),
+          getVoicePreferences().catch(() => null),
         ]);
         setRuntimeCaps(caps);
         setVoices(vList);
-        if (vList.length > 0 && !selectedVoiceId) {
+
+        // Canonical Voice Resolution Priority:
+        // 1. Active track's explicit voice assignment
+        // 2. Subtitle project default voice
+        // 3. User preferred default voice from Voice Library
+        // 4. First installed ready voice or first available voice
+        let resolvedVoiceId = "";
+        if (document) {
+          const assignments = getProjectVoiceAssignments(document);
+          if (activeTrack) {
+            const trackAssigned = assignments.trackAssignments.find((a) => a.trackId === activeTrack.id);
+            if (trackAssigned) {
+              resolvedVoiceId = trackAssigned.voiceId;
+            }
+          }
+          if (!resolvedVoiceId && assignments.defaultVoiceId) {
+            resolvedVoiceId = assignments.defaultVoiceId;
+          }
+        }
+        if (!resolvedVoiceId && prefs?.preferredVoiceId) {
+          resolvedVoiceId = prefs.preferredVoiceId;
+        }
+
+        if (resolvedVoiceId && vList.some((v) => v.id === resolvedVoiceId)) {
+          setSelectedVoiceId(resolvedVoiceId);
+        } else if (vList.length > 0 && !selectedVoiceId) {
           setSelectedVoiceId(vList[0].id);
         }
       } catch (err) {
@@ -96,7 +126,7 @@ export function TextToSpeechPanel({
       }
     }
     loadData();
-  }, []);
+  }, [document, activeTrack]);
 
   // Poll active synthesis job
   useEffect(() => {
@@ -336,7 +366,18 @@ export function TextToSpeechPanel({
 
       {/* Voice selection */}
       <div className="space-y-1.5">
-        <label className="text-[11px] text-zinc-400 block font-medium">Neural Voice</label>
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] text-zinc-400 block font-medium">Neural Voice</label>
+          {onOpenVoiceLibrary && (
+            <button
+              type="button"
+              onClick={onOpenVoiceLibrary}
+              className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+            >
+              Browse Library &rarr;
+            </button>
+          )}
+        </div>
         <select
           value={selectedVoiceId}
           onChange={(e) => setSelectedVoiceId(e.target.value)}
